@@ -1,0 +1,28 @@
+### Maven ###
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+### IDE ###
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+### Logs ###
+*.log
+logs/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Uploaded files ###
+src/main/resources/META-INF/resources/assets/images/upload/**
+src/main/resources/static/upload/**
+
+### Application Properties ###
+src/main/resources/application.properties
+application-local.properties
+application-dev.properties
