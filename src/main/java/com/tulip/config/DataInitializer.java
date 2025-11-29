@@ -1,5 +1,6 @@
 package com.tulip.config;
 
+import com.tulip.entity.Role;
 import com.tulip.entity.User;
 import com.tulip.entity.UserProfile;
 import com.tulip.repository.UserRepository;
@@ -20,7 +21,7 @@ public class DataInitializer {
             User admin = User.builder()
                     .email("admin@local")
                     .passwordHash(passwordEncoder.encode("admin123"))
-                    .role("ADMIN")
+                    .role(Role.ADMIN)
                     .status(true)
                     .build();
             UserProfile p = UserProfile.builder()

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -89,8 +90,24 @@
                                             <i class="fas fa-search"></i>
                                         </a>
                                     </li>
-                                    <li>
-                                        <a th:href="@{/account}" class="header-account-icon">
+                                    <li class="user-menu-item">
+                                        <!-- Hiển thị khi đã đăng nhập -->
+                                        <div sec:authorize="isAuthenticated()" class="user-dropdown">
+                                            <a href="#" class="header-account-icon" id="user-menu-toggle">
+                                                <i class="fas fa-user"></i>
+                                                <span class="user-name" sec:authentication="name"></span>
+                                            </a>
+                                            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                                <a th:href="@{/account}" class="dropdown-item">
+                                                    <i class="fas fa-user-circle"></i> Tài khoản
+                                                </a>
+                                                <a th:href="@{/logout}" class="dropdown-item logout-item">
+                                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <!-- Hiển thị khi chưa đăng nhập -->
+                                        <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="header-account-icon">
                                             <i class="fas fa-user"></i>
                                         </a>
                                     </li>
@@ -136,6 +153,22 @@
                     </li>
                     <li class="nav-item">
                         <a th:href="@{/contact}">Liên hệ</a>
+                    </li>
+                    <!-- User menu trong mobile -->
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/account}">
+                            <i class="fas fa-user-circle"></i> Tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/logout}">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -325,6 +358,24 @@
         document.getElementById('close-menu')?.addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.remove('active');
         });
+
+        // User dropdown menu toggle
+        const userMenuToggle = document.getElementById('user-menu-toggle');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        
+        if (userMenuToggle && userDropdownMenu) {
+            userMenuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                userDropdownMenu.classList.toggle('active');
+            });
+
+            // Đóng dropdown khi click bên ngoài
+            document.addEventListener('click', function(e) {
+                if (!userMenuToggle.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                    userDropdownMenu.classList.remove('active');
+                }
+            });
+        }
     </script>
 </body>
 </html>
