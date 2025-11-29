@@ -1,5 +1,6 @@
 package com.tulip.service.impl;
 
+import com.tulip.entity.Role;
 import com.tulip.entity.User;
 import com.tulip.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
 
-        String role = user.getRole();
-        String roleWithPrefix = (role != null && role.startsWith("ROLE_") ? role : "ROLE_" + role);
+        Role role = user.getRole();
+        String roleValue = role != null ? role.getValue() : Role.CUSTOMER.getValue();
+        String roleWithPrefix = "ROLE_" + roleValue;
         Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(roleWithPrefix));
 
         // Đây là class User có sẵn của Spring, không phải Entity com.tulip.entity.User của bạn.

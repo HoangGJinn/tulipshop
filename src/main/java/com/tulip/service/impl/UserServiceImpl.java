@@ -1,5 +1,6 @@
 package com.tulip.service.impl;
 
+import com.tulip.entity.Role;
 import com.tulip.entity.User;
 import com.tulip.entity.UserProfile;
 import com.tulip.repository.UserRepository;
@@ -24,7 +25,7 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()          // 1. Khởi động nhà máy (Static method)
                 .email(email)               // 2. Set giá trị email, trả về Builder
                 .passwordHash(passwordEncoder.encode(rawPassword))  // 3. Set pass, trả về Builder
-                .role("CUSTOMER")           // 4. Set role, trả về Builder
+                .role(Role.CUSTOMER)        // 4. Set role, trả về Builder
                 .status(true)               // 5. Set status, trả về Builder
                 .build();                   // 6. Trả về đối tượng User hoàn chỉnh ~ new User()
 
