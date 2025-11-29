@@ -15,6 +15,11 @@ spring.datasource.username=root
 spring.datasource.password=YOUR_DATABASE_PASSWORD
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
+# SQL Script Execution
+# Spring Boot will automatically run schema.sql on startup
+spring.sql.init.mode=always
+spring.sql.init.continue-on-error=true
+
 spring.jpa.show-sql=true
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.properties.hibernate.format_sql=true
@@ -26,11 +31,9 @@ storage.location=src/main/resources/static/images/upload
 # Static resources are served from classpath:/static/ by default
 # spring.web.resources.static-locations=classpath:/static/
 
-
-security.jwt.secret-key=YOUR_JWT_SECRET_KEY_HERE
-## 1h in millisecond
-security.jwt.expiration-time=3600000
-
+# Remember-Me Configuration
+# Change this to a secure random string in production
+security.remember-me.key=tulip-shop-remember-me-secret-key-2024
 
 spring.security.oauth2.client.registration.google.client-id=
 spring.security.oauth2.client.registration.google.client-secret=
