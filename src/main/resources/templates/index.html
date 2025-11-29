@@ -95,7 +95,7 @@
                                         <div sec:authorize="isAuthenticated()" class="user-dropdown">
                                             <a href="#" class="header-account-icon" id="user-menu-toggle">
                                                 <i class="fas fa-user"></i>
-                                                <span class="user-name" sec:authentication="name"></span>
+                                                <span class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.name}">User</span>
                                             </a>
                                             <div class="user-dropdown-menu" id="user-dropdown-menu">
                                                 <a th:href="@{/account}" class="dropdown-item">
