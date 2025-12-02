@@ -25,6 +25,7 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()          // 1. Khởi động nhà máy (Static method)
                 .email(email)               // 2. Set giá trị email, trả về Builder
                 .passwordHash(passwordEncoder.encode(rawPassword))  // 3. Set pass, trả về Builder
+                .authProvider("LOCAL")      // login with form -> authProvider = "LOCAL"
                 .role(Role.CUSTOMER)        // 4. Set role, trả về Builder
                 .status(true)               // 5. Set status, trả về Builder
                 .build();                   // 6. Trả về đối tượng User hoàn chỉnh ~ new User()

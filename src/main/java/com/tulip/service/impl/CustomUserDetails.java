@@ -5,6 +5,7 @@ import org.springframework.security.core.userdetails.User;
 import lombok.Getter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.time.LocalDate;
 import java.util.Collections;
 
 @Getter
@@ -14,14 +15,17 @@ public class CustomUserDetails extends User {
     private final Long userId;
     private String fullName;
     private String email;
+    private String avatar;
+    private LocalDate birthday;
 
     // 2. Chỗ tham số truyền vào: Phải ghi rõ đường dẫn "com.tulip.entity.User"
     // Để Java phân biệt được với class "User" (của Spring) đang được kế thừa
     public CustomUserDetails(com.tulip.entity.User user) {
         super(
                 user.getEmail(),
-                user.getPasswordHash(),
-                user.getStatus(), // Lưu ý: status trong DB không được null
+                // noop là để Spring Security biết là password này không được mã hóa
+                user.getPasswordHash() != null ? user.getPasswordHash() : "{noop}",
+                user.getStatus(),
                 true,
                 true,
                 true,
@@ -31,5 +35,7 @@ public class CustomUserDetails extends User {
         this.userId = user.getId();
         this.email = user.getEmail();
         this.fullName = user.getProfile() != null ? user.getProfile().getFullName() : null;
+        this.avatar = user.getProfile() != null ? user.getProfile().getAvatar() : null;
+        this.birthday = user.getProfile() != null ? user.getProfile().getBirthday() : null;
     }
 }

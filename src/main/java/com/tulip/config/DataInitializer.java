@@ -21,6 +21,7 @@ public class DataInitializer {
             User admin = User.builder()
                     .email("admin@local")
                     .passwordHash(passwordEncoder.encode("admin123"))
+                    .authProvider("LOCAL")
                     .role(Role.ADMIN)
                     .status(true)
                     .build();
