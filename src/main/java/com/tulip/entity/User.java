@@ -21,8 +21,12 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = true)
     private String passwordHash;
+
+    @Column(name = "auth_provider", length = 50)
+    @Builder.Default
+    private String authProvider = "LOCAL"; // LOCAL, GOOGLE, FACEBOOK
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)

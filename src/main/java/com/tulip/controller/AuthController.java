@@ -26,11 +26,19 @@ public class AuthController {
     // Rồi view (thằng thymeleaf) sẽ lấy dữ liệu từ đĩa ra dùng
     @GetMapping("/login")
     public String login(@RequestParam(value = "error", required = false) String error,
-                        @RequestParam(value = "logout", required = false) String logout,
-                        @RequestParam(value = "success", required = false) String success,
-                        Model model) {
+                       @RequestParam(value = "disabled", required = false) String disabled,
+                       @RequestParam(value = "oauth2Error", required = false) String oauth2Error,
+                       @RequestParam(value = "logout", required = false) String logout,
+                       @RequestParam(value = "success", required = false) String success,
+                       Model model) {
         if (error != null) {
             model.addAttribute("error", "Email hoặc mật khẩu không đúng!");
+        }
+        if (disabled != null) {
+            model.addAttribute("error", "Tài khoản này đã bị khóa hoặc chưa được kích hoạt!");
+        }
+        if (oauth2Error != null) {
+            model.addAttribute("error", "Đăng nhập bằng Google thất bại. Vui lòng thử lại!");
         }
         if (logout != null) {
             model.addAttribute("message", "Bạn đã đăng xuất thành công.");

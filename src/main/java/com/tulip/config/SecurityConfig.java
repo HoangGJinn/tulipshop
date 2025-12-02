@@ -1,16 +1,20 @@
 package com.tulip.config;
 
+import com.tulip.service.impl.CustomOAuth2UserService;
 import com.tulip.service.impl.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
@@ -18,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import javax.sql.DataSource;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity // Khong bắt buộc nhưng nên thêm để đánh dấu đây là cấu hình bảo mật
 @RequiredArgsConstructor
@@ -28,6 +33,7 @@ public class SecurityConfig {
     // Nó định nghĩa các hành động: Kết nối đến database, Lấy connection, Close connection, ...
     // DataSource được sử dụng để kết nối đến database và lưu trữ các token remember-me.
     private final DataSource dataSource;
+    private final CustomOAuth2UserService oauth2UserService;
     
     @Value("${security.remember-me.key}")
     private String rememberMeKey;
@@ -85,7 +91,46 @@ public class SecurityConfig {
                 .usernameParameter("email")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/", true)
+                .failureHandler((request, response, exception) -> {
+                    if (exception instanceof DisabledException) {
+                        response.sendRedirect("/login?disabled");
+                    } else {
+                        response.sendRedirect("/login?error");
+                    }
+                })
                 .permitAll()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/login")
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userService(oauth2UserService)
+                    )
+                    .defaultSuccessUrl("/", true)
+                    .failureHandler((request, response, exception) -> {
+                        String errorMessage = null;
+                        
+                        if (exception instanceof OAuth2AuthenticationException) {
+                            OAuth2AuthenticationException oauth2Exception = (OAuth2AuthenticationException) exception;
+                            if (oauth2Exception.getError() != null) {
+                                errorMessage = oauth2Exception.getError().getDescription();
+                            }
+                            if (errorMessage == null) {
+                                errorMessage = oauth2Exception.getMessage();
+                            }
+                        } else {
+                            errorMessage = exception.getMessage();
+                        }
+                        
+                        log.error("OAuth2 login failed: {}", errorMessage, exception);
+                        
+                        if (errorMessage != null && 
+                            (errorMessage.contains("bị khóa") || 
+                             errorMessage.contains("chưa được kích hoạt"))) {
+                            response.sendRedirect("/login?disabled");
+                        } else {
+                            response.sendRedirect("/login?oauth2Error=true");
+                        }
+                    })
             )
             .rememberMe(remember -> remember
                 .tokenRepository(persistentTokenRepository())
