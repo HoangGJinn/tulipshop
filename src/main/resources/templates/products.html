@@ -8,30 +8,42 @@
 
 <div class="banner-collection-header text-center">
     <a href="#">
-        <img src="https://placehold.co/1920x450?text=NEW+COLLECTION" alt="Banner" class="img-fluid w-100" style="object-fit: cover;">
+        <img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/collection_banner.jpg?v=663" alt="Banner" class="img-fluid w-100" style="object-fit: cover;">
     </a>
 </div>
 
 <div class="main-content container-fluid px-md-5 py-4">
-
     <div class="section-index home-category mb-5">
         <div class="home-category__list d-flex justify-content-center gap-4 overflow-auto pb-3">
             <div class="category-item text-center" th:classappend="${selectedCategory == null} ? 'active'">
                 <div class="category-item__image rounded-circle border mb-2" style="width: 80px; height: 80px; padding: 3px;">
-                    <a href="/products"><img src="https://placehold.co/100x100?text=All" class="rounded-circle w-100 h-100 object-fit-cover"></a>
+                    <a href="/products"><img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/category2-img.png?v=663" class="rounded-circle w-100 h-100 object-fit-cover"></a>
                 </div>
                 <div class="category-item__name small fw-bold text-uppercase"><a href="/products" class="text-dark text-decoration-none">Tất cả</a></div>
             </div>
-            <div class="category-item text-center" th:each="cat : ${categories}" th:classappend="${selectedCategory == cat.slug} ? 'active'">
+            <div class="category-item text-center" th:classappend="${selectedCategory == 'ao-kieu'} ? 'active'">
                 <div class="category-item__image rounded-circle border mb-2" style="width: 80px; height: 80px; padding: 3px;">
-                    <a th:href="@{/products(category=${cat.slug})}">
-                        <img th:src="'https://placehold.co/100x100?text=' + ${#strings.substring(cat.name,0,1)}" class="rounded-circle w-100 h-100 object-fit-cover">
-                    </a>
+                    <a href="/products?category=ao-kieu"><img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/category3-img.png?v=663" class="rounded-circle w-100 h-100 object-fit-cover"></a>
                 </div>
-                <div class="category-item__name small fw-bold text-uppercase">
-                    <a th:href="@{/products(category=${cat.slug})}" class="text-dark text-decoration-none" th:text="${cat.name}"></a>
-                </div>
+                <div class="category-item__name small fw-bold text-uppercase"><a href="/products?category=ao-kieu" class="text-dark text-decoration-none">Áo kiểu</a></div>
             </div>
+            <div class="category-item text-center" th:classappend="${selectedCategory == 'ao-thun'} ? 'active'">
+                <div class="category-item__image rounded-circle border mb-2" style="width: 80px; height: 80px; padding: 3px;">
+                    <a href="/products?category=ao-thun"><img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/category4-img.png?v=663" class="rounded-circle w-100 h-100 object-fit-cover"></a>
+                </div>
+                <div class="category-item__name small fw-bold text-uppercase"><a href="/products?category=ao-thun" class="text-dark text-decoration-none">Áo Thun</a></div>
+            </div>
+
+<!--            <div class="category-item text-center" th:each="cat : ${categories}" th:classappend="${selectedCategory == cat.slug} ? 'active'">-->
+<!--                <div class="category-item__image rounded-circle border mb-2" style="width: 80px; height: 80px; padding: 3px;">-->
+<!--                    <a th:href="@{/products(category=${cat.slug})}">-->
+<!--                        <img th:src="'https://placehold.co/100x100?text=' + ${#strings.substring(cat.name,0,1)}" class="rounded-circle w-100 h-100 object-fit-cover">-->
+<!--                    </a>-->
+<!--                </div>-->
+<!--                <div class="category-item__name small fw-bold text-uppercase">-->
+<!--                    <a th:href="@{/products(category=${cat.slug})}" class="text-dark text-decoration-none" th:text="${cat.name}"></a>-->
+<!--                </div>-->
+<!--            </div>-->
         </div>
     </div>
 
