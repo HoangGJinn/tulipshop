@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head(title='Thêm sản phẩm mới')}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0 fw-bold text-uppercase">Thêm sản phẩm mới</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    <form action="/admin/products/create" method="post" enctype="multipart/form-data" th:object="${productDTO}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên sản phẩm</label>
+                            <input type="text" class="form-control" th:field="*{name}" placeholder="Ví dụ: Đầm Dập Ly Cao Cấp" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Giá gốc (VNĐ)</label>
+                                <input type="number" class="form-control" th:field="*{price}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Giá khuyến mãi (VNĐ)</label>
+                                <input type="number" class="form-control" th:field="*{discountPrice}">
+                                <div class="form-text">Để trống hoặc nhập 0 nếu không giảm giá</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Danh mục</label>
+                            <select class="form-select" th:field="*{categorySlug}">
+                                <option th:each="cat : ${categories}"
+                                        th:value="${cat.slug}"
+                                        th:text="${cat.name}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Ảnh đại diện</label>
+                            <input type="file" class="form-control" th:field="*{thumbnailFile}" accept="image/*" onchange="previewImage(this)">
+
+                            <div class="mt-2">
+                                <img id="preview" src="#" alt="Ảnh xem trước" style="max-width: 200px; display: none; border-radius: 8px; border: 1px solid #ddd;">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Mô tả chi tiết</label>
+                            <textarea class="form-control" th:field="*{description}" rows="5" placeholder="Mô tả chất liệu, kiểu dáng..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Màu sắc (Các biến thể)</label>
+                            <input type="text" class="form-control" th:field="*{colors}" placeholder="Nhập các màu cách nhau bởi dấu phẩy. Ví dụ: Trắng, Đen, Xanh Mint">
+                            <div class="form-text">Hệ thống sẽ tự động tạo kho hàng cho các màu này với số lượng = 0.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Kích thước áp dụng</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check" th:each="size : ${allSizes}">
+                                    <input class="form-check-input" type="checkbox"
+                                           th:field="*{sizes}"
+                                           th:value="${size.code}"
+                                           th:id="'size-' + ${size.code}">
+                                    <label class="form-check-label" th:for="'size-' + ${size.code}" th:text="${size.code}"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-dark btn-lg text-uppercase fw-bold">
+                                <i class="fas fa-save me-2"></i> Lưu sản phẩm
+                            </button>
+                            <a href="/products" class="btn btn-outline-secondary">Hủy bỏ</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var preview = document.getElementById('preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+</body>
+</html>

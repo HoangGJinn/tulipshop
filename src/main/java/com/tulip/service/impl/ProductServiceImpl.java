@@ -1,11 +1,14 @@
 package com.tulip.service.impl;
 
 import com.tulip.dto.ProductCardDTO;
+import com.tulip.dto.ProductCreateDTO;
 import com.tulip.dto.ProductDetailDTO;
 import com.tulip.dto.ProductVariantDTO;
 import com.tulip.entity.product.*;
+import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.ProductRepository;
 import com.tulip.repository.SizeRepository;
+import com.tulip.repository.VariantRepository;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,9 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final SizeRepository sizeRepository;
+    private final CloudinaryService cloudinaryService;
+    private final CategoryRepository categoryRepository;
+    private final VariantRepository variantRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -142,6 +148,124 @@ public class ProductServiceImpl implements ProductService {
                 .colorCodes(colors)
                 .colorImages(colorImgs)
                 .build();
+    }
+
+    @Transactional // đảm bảo lưu Product và Variant cùng thành công hoặc cùng thất bại
+    public Long createProduct(ProductCreateDTO dto){
+        String thumbnailUrl = "https://placehold.co/600x800?text=No+Image";
+
+        if (dto.getThumbnailFile() != null && !dto.getThumbnailFile().isEmpty()) {
+            thumbnailUrl = cloudinaryService.uploadImage(dto.getThumbnailFile());
+        }
+
+        Category category = categoryRepository.findBySlug(dto.getCategorySlug())
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+
+        Product product = Product.builder()
+                .name(dto.getName())
+                .basePrice(dto.getPrice())
+                .discountPrice(dto.getDiscountPrice())
+                .description(dto.getDescription())
+                .category(category)
+                .thumbnail(thumbnailUrl)// Lưu link ảnh từ Cloudinary
+                .variants(new ArrayList<>())
+                .build();
+
+        Product savedProduct = productRepository.save(product);
+
+        if (dto.getColors() != null && !dto.getColors().isBlank()) {
+            // Tách chuỗi "Trắng, Đen" thành mảng ["Trắng", "Đen"]
+            String[] colorList = dto.getColors().split(",");
+
+            List<Size> selectedSizes = new ArrayList<>();
+            if (dto.getSizes() != null && !dto.getSizes().isEmpty()) {
+                selectedSizes = sizeRepository.findAll().stream()
+                        .filter(s -> dto.getSizes().contains(s.getCode()))
+                        .toList();
+
+            }else{
+                selectedSizes = sizeRepository.findAll();
+            }
+
+
+
+            for (String colorName : colorList){
+                colorName = colorName.trim(); // xoá khoảng trắng thừa
+                if (colorName.isEmpty()) continue;
+
+                ProductVariant variant = ProductVariant.builder()
+                        .product(savedProduct)
+                        .colorName(colorName)
+                        .colorCode("#000000") // để tạm
+                        .stocks(new ArrayList<>())
+                        .build();
+
+                // Tạo Stock (Kho hàng) cho từng Size (Mặc định số lượng = 0)
+                for (Size size : selectedSizes) {
+                    ProductStock stock = ProductStock.builder()
+                            .variant(variant)
+                            .size(size)
+                            .quantity(0) // Mặc định 0
+                            .sku(savedProduct.getId() + "-" + colorName.toUpperCase() + "-" + size.getCode())
+                            .build();
+                    variant.getStocks().add(stock);
+                }
+
+                variantRepository.save(variant);
+
+            }
+        }
+        return savedProduct.getId();
+    }
+
+    @Transactional
+    public void addVariant(Long productId, String colorName, String colorCode) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+        ProductVariant variant = ProductVariant.builder()
+                .product(product)
+                .colorName(colorName)
+                .colorCode(colorCode)
+                .build();
+
+        // Tự động tạo kho hàng = 0 cho tất cả các size hiện có
+        List<Size> sizes = sizeRepository.findAll();
+        List<ProductStock> stocks = new ArrayList<>();
+
+        for (Size size : sizes) {
+            ProductStock stock = ProductStock.builder()
+                    .variant(variant)
+                    .size(size)
+                    .quantity(0) // Mặc định 0
+                    .sku(product.getId() + "-" + colorName.toUpperCase() + "-" + size.getCode())
+                    .build();
+            stocks.add(stock);
+        }
+        variant.setStocks(stocks);
+        variantRepository.save(variant);
+    }
+
+    // Hàm cập nhật kho hàng (Nhận vào Map: key="S", value=10)
+    @Transactional
+    public void updateVariantStock(Long variantId, Map<String, Integer> stockData) {
+        ProductVariant variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant không tồn tại"));
+
+        for (ProductStock stock : variant.getStocks()) {
+            String sizeCode = stock.getSize().getCode();
+            if (stockData.containsKey(sizeCode)) {
+                stock.setQuantity(stockData.get(sizeCode));
+            }
+        }
+        variantRepository.save(variant);
+    }
+
+    // Hàm xóa variant
+    @Transactional
+    public void deleteVariant(Long variantId) {
+        variantRepository.deleteById(variantId);
     }
 
 }
