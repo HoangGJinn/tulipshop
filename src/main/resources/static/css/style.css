@@ -611,3 +611,132 @@ body {
     color: #d32f2f;
 }
 
+/* --- MEGA MENU --- */
+
+/* 1. Font & Container */
+@font-face {
+    font-family: 'MTD Balerno';
+    /* src: url('../fonts/MTDBalerno.woff2') format('woff2'); */
+    font-weight: normal;
+    font-style: normal;
+}
+
+.mega-menu-container {
+    font-family: 'MTD Balerno', 'Playfair Display', 'Times New Roman', serif;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #f0f0f0;
+    background-color: #fff;
+
+    /* Hiệu ứng xuất hiện */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease-out;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.parent-nav:hover .mega-menu-container {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 2. IMAGE STYLING (Gradient Shadow Effect) */
+.mega-img-wrapper {
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    display: block;
+    position: relative;
+}
+
+.mega-img-wrapper img {
+    transition: none; /* Bỏ zoom ảnh */
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Lớp phủ Gradient (Chỉ nửa dưới) */
+.img-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60%; /* Phủ 60% chiều cao từ dưới lên */
+
+    /* Gradient từ trong suốt -> đen mờ */
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+
+    opacity: 0; /* Ẩn mặc định */
+    transition: opacity 0.4s ease;
+}
+
+/* Chữ Mua Ngay (Góc phải dưới) */
+.buy-now-text {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+
+    color: #fff;
+    font-family: 'MTD Balerno', sans-serif; /* Font sans cho chữ nhỏ dễ đọc */
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    /* Hiệu ứng bay lên */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s ease;
+
+    /* Bóng chữ nhẹ để nổi trên nền ảnh */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Hover Events */
+.mega-img-wrapper:hover .img-overlay {
+    opacity: 1;
+}
+
+.mega-img-wrapper:hover .buy-now-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 3. LIST STYLING (Thanh mảnh, gạch dọc) */
+.mega-col-border {
+    border-right: 1px solid #eee; /* Đường gạch dọc mảnh */
+}
+
+.mega-list-title {
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 12px;
+    font-weight: 400 !important; /* Không in đậm */
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.mega-menu-list li {
+    margin-bottom: 6px;
+}
+
+.mega-menu-list li a {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    font-weight: 300; /* Nét mảnh */
+    transition: color 0.2s, padding-left 0.2s;
+    display: block;
+}
+
+.mega-menu-list li a:hover {
+    color: #000;
+    padding-left: 5px; /* Di chuyển nhẹ sang phải */
+}
