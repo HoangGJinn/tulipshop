@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head(title='Tất cả sản phẩm')}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<link rel="stylesheet" th:href="@{/css/products.css}">
+
+<div class="banner-collection-header text-center">
+    <a href="#">
+        <img src="https://placehold.co/1920x450?text=NEW+COLLECTION" alt="Banner" class="img-fluid w-100" style="object-fit: cover;">
+    </a>
+</div>
+
+<div class="main-content container-fluid px-md-5 py-4">
+
+    <div class="section-index home-category mb-5">
+        <div class="home-category__list d-flex justify-content-center gap-4 overflow-auto pb-3">
+            <div class="category-item text-center" th:classappend="${selectedCategory == null} ? 'active'">
+                <div class="category-item__image rounded-circle border mb-2" style="width: 80px; height: 80px; padding: 3px;">
+                    <a href="/products"><img src="https://placehold.co/100x100?text=All" class="rounded-circle w-100 h-100 object-fit-cover"></a>
+                </div>
+                <div class="category-item__name small fw-bold text-uppercase"><a href="/products" class="text-dark text-decoration-none">Tất cả</a></div>
+            </div>
+            <div class="category-item text-center" th:each="cat : ${categories}" th:classappend="${selectedCategory == cat.slug} ? 'active'">
+                <div class="category-item__image rounded-circle border mb-2" style="width: 80px; height: 80px; padding: 3px;">
+                    <a th:href="@{/products(category=${cat.slug})}">
+                        <img th:src="'https://placehold.co/100x100?text=' + ${#strings.substring(cat.name,0,1)}" class="rounded-circle w-100 h-100 object-fit-cover">
+                    </a>
+                </div>
+                <div class="category-item__name small fw-bold text-uppercase">
+                    <a th:href="@{/products(category=${cat.slug})}" class="text-dark text-decoration-none" th:text="${cat.name}"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrap-collection-title mb-4 pb-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="filter-toggle">
+                <button class="btn btn-outline-dark btn-sm text-uppercase rounded-0 d-flex align-items-center gap-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterPanel">
+                    <i class="fas fa-filter"></i> BỘ LỌC
+                </button>
+            </div>
+            <div class="sortby-wrapper d-flex align-items-center gap-2">
+                <span class="small text-muted d-none d-md-inline">Sắp xếp theo:</span>
+                <select class="form-select form-select-sm border-0 fw-bold" style="width: auto; cursor: pointer;" onchange="location = this.value;">
+                    <option value="?sort=newest" th:selected="${selectedSort == 'newest'}">Mới nhất</option>
+                    <option value="?sort=price_asc" th:selected="${selectedSort == 'price_asc'}">Giá: Tăng dần</option>
+                    <option value="?sort=price_desc" th:selected="${selectedSort == 'price_desc'}">Giá: Giảm dần</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row product-list">
+        <div class="col-md-3 col-sm-4 col-xs-6 pro-loop mb-4" th:each="prod : ${products}">
+            <div class="product-block product-resize h-100">
+                <div class="product-img position-relative">
+                    <div class="product-sale-flag" th:if="${prod.discountPercent != null}">
+                        <span th:text="'-' + ${prod.discountPercent} + '%'">-10%</span>
+                    </div>
+
+                    <div class="product-wl position-absolute top-0 end-0 p-2" style="z-index: 5;">
+                        <span class="btn-add-wl" onclick="toggleWishlist(this)" style="cursor: pointer;">
+                            <i class="far fa-heart text-dark"></i>
+                        </span>
+                    </div>
+
+                    <a th:href="@{/product/{id}(id=${prod.id})}" class="image-resize ratiobox d-block position-relative" style="padding-top: 133%;">
+                        <img class="img-loop lazyload position-absolute top-0 start-0 w-100 h-100 object-fit-cover" th:src="${prod.thumbnail}" th:id="'img-' + ${prod.id}">
+                        <img th:if="${!prod.colorImages.isEmpty()}" th:src="${prod.colorImages[0]}" class="img-loop img-hover position-absolute top-0 start-0 w-100 h-100 object-fit-cover" style="opacity: 0; transition: opacity 0.3s;">
+                    </a>
+                </div>
+
+                <div class="product-detail clearfix pt-3">
+                    <div class="box-pro-detail text-end">
+
+                        <div class="pro-name mb-1">
+                            <a th:href="@{/product/{id}(id=${prod.id})}"
+                               class="text-decoration-none text-dark product-title-font"
+                               th:text="${prod.name}"
+                               th:title="${prod.name}"> Tên sản phẩm
+                            </a>
+                        </div>
+
+                        <div class="box-pro-prices mb-2">
+                            <p class="pro-price highlight m-0">
+                                <span class="fw-bold text-danger price-font" th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                                <span class="pro-price-del text-muted small ms-1" th:if="${prod.originalPrice != null}">
+                    <del class="compare-price" th:text="${#numbers.formatDecimal(prod.originalPrice, 0, 'COMMA', 0, 'POINT') + '₫'}"></del>
+                </span>
+                            </p>
+                        </div>
+
+                        <div class="swatch-loop d-flex justify-content-end gap-2" th:if="${!prod.colorCodes.isEmpty()}">
+                            <div th:each="code, iter : ${prod.colorCodes}"
+                                 class="swatch-element"
+                                 th:data-img="${prod.colorImages[iter.index]}"
+                                 th:data-target="'img-' + ${prod.id}"
+                                 onmouseover="previewColor(this)">
+                 <span class="color-dot"
+                       th:style="'background-color:' + ${code}">
+                 </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="filterPanel" style="width: 320px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold text-uppercase font-serif">Lọc tìm kiếm</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-4">
+        <form action="/products" method="get">
+
+            <div class="filter-group mb-4">
+                <h6 class="fw-bold mb-3 small text-uppercase ls-1">Màu sắc</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <label class="filter-color-item">
+                        <input type="checkbox" name="color" value="Trắng" class="d-none">
+                        <span class="swatch-color" style="background-color: #fff;"></span>
+                    </label>
+                    <label class="filter-color-item">
+                        <input type="checkbox" name="color" value="Đen" class="d-none">
+                        <span class="swatch-color" style="background-color: #000;"></span>
+                    </label>
+                    <label class="filter-color-item">
+                        <input type="checkbox" name="color" value="Hồng" class="d-none">
+                        <span class="swatch-color" style="background-color: #FFC0CB;"></span>
+                    </label>
+                    <label class="filter-color-item">
+                        <input type="checkbox" name="color" value="Xanh" class="d-none">
+                        <span class="swatch-color" style="background-color: #87CEEB;"></span>
+                    </label>
+                </div>
+            </div>
+
+            <hr class="text-muted opacity-25 my-4">
+
+            <div class="filter-group mb-4">
+                <h6 class="fw-bold mb-3 small text-uppercase ls-1">Kích thước</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <label class="filter-size-item">
+                        <input type="checkbox" name="size" value="S" class="d-none">
+                        <span class="size-box">S</span>
+                    </label>
+                    <label class="filter-size-item">
+                        <input type="checkbox" name="size" value="M" class="d-none">
+                        <span class="size-box">M</span>
+                    </label>
+                    <label class="filter-size-item">
+                        <input type="checkbox" name="size" value="L" class="d-none">
+                        <span class="size-box">L</span>
+                    </label>
+                    <label class="filter-size-item">
+                        <input type="checkbox" name="size" value="XL" class="d-none">
+                        <span class="size-box">XL</span>
+                    </label>
+                </div>
+            </div>
+
+            <hr class="text-muted opacity-25 my-4">
+
+            <div class="filter-group mb-5">
+                <h6 class="fw-bold mb-3 small text-uppercase ls-1">Giá sản phẩm</h6>
+                <ul class="list-unstyled price-filter-list">
+                    <li>
+                        <label class="d-flex align-items-center mb-2 cursor-pointer">
+                            <input type="radio" name="priceRange" value="all" checked class="form-check-input me-2">
+                            <span>Tất cả</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="d-flex align-items-center mb-2 cursor-pointer">
+                            <input type="radio" name="priceRange" value="0-500000" class="form-check-input me-2">
+                            <span>Dưới 500,000₫</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="d-flex align-items-center mb-2 cursor-pointer">
+                            <input type="radio" name="priceRange" value="500000-1000000" class="form-check-input me-2">
+                            <span>500,000₫ - 1,000,000₫</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="d-flex align-items-center mb-2 cursor-pointer">
+                            <input type="radio" name="priceRange" value="1000000-max" class="form-check-input me-2">
+                            <span>Trên 1,000,000₫</span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-dark text-uppercase rounded-0 py-2">Xem kết quả</button>
+                <a href="/products" class="btn btn-outline-secondary text-uppercase rounded-0 py-2">Xóa bộ lọc</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/products.js}"></script>
+<script>
+    function previewColor(el) {
+        let targetId = el.getAttribute('data-target');
+        let newSrc = el.getAttribute('data-img');
+        if(newSrc) document.getElementById(targetId).src = newSrc;
+    }
+</script>
+</body>
+</html>

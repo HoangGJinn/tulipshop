@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head(title=${product.name})}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<link rel="stylesheet" th:href="@{/css/product-detail.css}">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+<div class="container py-4 product-page">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small text-uppercase">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">TỔNG SẢN PHẨM</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${product.name}">Tên sản phẩm</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-1 d-none d-md-block">
+            <div class="d-flex flex-column gap-2 thumbnail-list">
+                <img th:each="img, iter : ${product.variants[0].images}"
+                     th:src="${img}"
+                     class="img-fluid thumbnail-img"
+                     th:classappend="${iter.index == 0} ? 'active-thumb'"
+                     onclick="changeMainImage(this)">
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="main-image-container">
+                <img id="mainImage" class="img-fluid w-100"
+                     th:src="${product.variants[0].images[0]}"
+                     alt="Product Image">
+            </div>
+        </div>
+
+        <div class="col-md-5 ps-md-4">
+            <h1 class="product-title" th:text="${product.name}">Tên sản phẩm</h1>
+
+            <div class="text-muted small mb-3 d-flex align-items-center gap-2">
+                <span>SKU: <span class="fw-bold" th:text="${product.sku != null ? product.sku : '#' + product.id}"></span></span>
+                <span class="text-muted">|</span>
+                <span>Hiện lại còn <span id="stockCount" class="fw-bold">--</span> sản phẩm</span>
+            </div>
+
+            <div class="price-tag mb-4">
+                <span th:text="${#numbers.formatDecimal(product.basePrice, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
+            </div>
+
+            <div class="mb-4">
+                <button class="btn btn-link p-0 text-decoration-none text-dark wishlist-btn" onclick="toggleWishlist(this)">
+                    <i class="far fa-heart fs-5"></i>
+                    <span class="ms-2 small text-uppercase border-bottom border-dark">Thêm vào yêu thích</span>
+                </button>
+            </div>
+
+            <div class="mb-4">
+                <label class="fw-bold mb-2 small text-uppercase d-block">CHỌN MÀU</label>
+                <div class="d-flex gap-2">
+                    <div th:each="variant, iter : ${product.variants}"
+                         class="color-swatch"
+                         th:classappend="${iter.index == 0} ? 'active'"
+                         th:data-index="${iter.index}"
+                         th:title="${variant.colorName}"
+                         onclick="selectColor(this)">
+                        <img th:src="${variant.images[0]}" class="img-cover">
+                        <span class="color-name-overlay" th:text="${variant.colorName}">Màu</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="fw-bold small text-uppercase">KÍCH THƯỚC</label>
+                    <a href="#" class="text-warning small text-decoration-none">Bảng size ></a>
+                </div>
+                <div class="d-flex gap-2">
+                    <button th:each="size : ${product.allSizes}"
+                            type="button"
+                            class="btn btn-size"
+                            th:text="${size}"
+                            th:data-size="${size}"
+                            onclick="selectSize(this)">
+                        S
+                    </button>
+                </div>
+                <div id="stockMessage" class="mt-2 small text-danger fst-italic" style="display: none;"></div>
+            </div>
+
+            <div class="mb-4 d-flex align-items-center">
+                <label class="fw-bold me-3 small text-uppercase mb-0">SỐ LƯỢNG:</label>
+                <div class="input-group quantity-group input-group-sm">
+                    <button class="btn btn-light border" onclick="updateQuantity(-1)">-</button>
+                    <input type="number" class="form-control text-center border-start-0 border-end-0 p-0" id="quantity" value="1" min="1">
+                    <button class="btn btn-light border" onclick="updateQuantity(1)">+</button>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-5">
+                <button id="addToCartBtn" class="btn btn-outline-dark flex-grow-1 py-3 text-uppercase fw-bold rounded-0" onclick="addToCart()">
+                    THÊM VÀO GIỎ
+                </button>
+                <button class="btn btn-danger-custom flex-grow-1 py-3 text-uppercase fw-bold rounded-0">
+                    MUA NGAY
+                </button>
+            </div>
+
+            <div class="product-details-container">
+                <details class="detail-bar">
+                    <summary class="d-flex justify-content-between align-items-center py-3 border-top border-bottom cursor-pointer">
+                        <span class="text-uppercase fw-bold small">CHI TIẾT SẢN PHẨM</span>
+                        <i class="fas fa-plus small"></i>
+                    </summary>
+                    <div class="py-3 text-secondary small detail-content">
+                        <div th:utext="${product.description}">Nội dung mô tả sản phẩm...</div>
+
+                        <div class="mt-3 pt-3 border-top">
+                            <p class="mb-1"><strong>Mã sản phẩm:</strong> <span th:text="${product.sku}"></span></p>
+                            <p class="mb-1"><strong>Danh mục:</strong> <span th:text="${product.categoryName}"></span></p>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="detail-bar">
+                    <summary class="d-flex justify-content-between align-items-center py-3 border-bottom cursor-pointer">
+                        <span class="text-uppercase fw-bold small">HƯỚNG DẪN BẢO QUẢN</span>
+                        <i class="fas fa-plus small"></i>
+                    </summary>
+                    <div class="py-3 text-secondary small">
+                        <p>- Giặt tay hoặc giặt máy ở chế độ nhẹ.</p>
+                        <p>- Không sử dụng chất tẩy rửa mạnh.</p>
+                        <p>- Phơi ở nơi thoáng mát, tránh ánh nắng trực tiếp.</p>
+                    </div>
+                </details>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script th:inline="javascript">
+    const productData = /*[[${product}]]*/ {};
+</script>
+
+<script th:src="@{/js/product-detail.js}"></script>
+
+</body>
+</html>
