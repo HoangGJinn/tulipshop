@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -110,10 +111,19 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public ProductCardDTO convertToCardDTO(Product p) {
-        // test thử phần giảm giá (Ví dụ: ID chẵn thì giảm 10% để xem nó chay sao)
-        boolean isSale = p.getId() % 2 == 0;
-        BigDecimal originalPrice = isSale ? p.getBasePrice().multiply(new BigDecimal("1.1")) : null;
-        Integer discount = isSale ? 10 : null;
+        BigDecimal priceToShow = p.getBasePrice();
+        BigDecimal originPrice = null;
+        Integer discountPercent = null;
+
+        if (p.getDiscountPrice() != null && p.getDiscountPrice().compareTo(BigDecimal.ZERO) > 0
+            && p.getDiscountPrice().compareTo(p.getBasePrice()) < 0){
+                priceToShow = p.getDiscountPrice();
+                originPrice = p.getBasePrice();
+                BigDecimal diff = p.getBasePrice().subtract(p.getDiscountPrice());
+                discountPercent = diff.divide(p.getBasePrice(), 2, RoundingMode.HALF_UP)
+                        .multiply(new BigDecimal(100)).intValue();
+
+        }
 
         // Lấy list màu
         List<String> colors = p.getVariants().stream().map(ProductVariant::getColorCode).collect(Collectors.toList());
@@ -125,9 +135,9 @@ public class ProductServiceImpl implements ProductService {
                 .id(p.getId())
                 .name(p.getName())
                 .thumbnail(p.getThumbnail())
-                .price(p.getBasePrice())
-                .originalPrice(originalPrice)
-                .discountPercent(discount)
+                .price(priceToShow)
+                .originalPrice(originPrice)
+                .discountPercent(discountPercent)
                 .categorySlug(p.getCategory() != null ? p.getCategory().getSlug() : "")
                 .colorCodes(colors)
                 .colorImages(colorImgs)

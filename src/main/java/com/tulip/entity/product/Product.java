@@ -32,6 +32,9 @@ public class Product {
     @Column(name = "base_price")
     private BigDecimal basePrice;
 
+    @Column(name = "discount_price")
+    private BigDecimal discountPrice;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductVariant> variants = new ArrayList<>();
 }
