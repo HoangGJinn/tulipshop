@@ -17,4 +17,7 @@ public class ProductVariantDTO {
 
     // Map lưu số lượng tồn kho theo size. Ví dụ: "S" -> 10, "M" -> 0
     private Map<String, Integer> stockBySize;
+    
+    // Map lưu stockId theo size. Ví dụ: "S" -> 1, "M" -> 2 (để gọi API addToCart)
+    private Map<String, Long> stockIdsBySize;
 }

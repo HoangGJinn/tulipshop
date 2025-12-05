@@ -39,9 +39,12 @@ public class ProductServiceImpl implements ProductService {
         List<ProductVariantDTO> variantDTOs = product.getVariants().stream().map(variant -> {
             // Key là Size Code (S, M...), Value là số lượng
             Map<String, Integer> stockMap = new HashMap<>();
-            variant.getStocks().forEach(stock ->
-                    stockMap.put(stock.getSize().getCode(), stock.getQuantity())
-            );
+            // Key là Size Code (S, M...), Value là stockId
+            Map<String, Long> stockIdsMap = new HashMap<>();
+            variant.getStocks().forEach(stock -> {
+                stockMap.put(stock.getSize().getCode(), stock.getQuantity());
+                stockIdsMap.put(stock.getSize().getCode(), stock.getId());
+            });
 
             // Lấy danh sách ảnh
             List<String> images = variant.getImages().stream()
@@ -55,6 +58,7 @@ public class ProductServiceImpl implements ProductService {
                     .price(product.getBasePrice()) // Có thể lấy variant.getPrice() nếu giá khác nhau
                     .images(images)
                     .stockBySize(stockMap)
+                    .stockIdsBySize(stockIdsMap)
                     .build();
         }).collect(Collectors.toList());
 
