@@ -117,12 +117,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } catch (OAuth2AuthenticationException e) {
             // Nếu đã là OAuth2AuthenticationException thì throw lại luôn, không wrap
             throw e;
-        } catch (Exception e) {
-            log.error("Error processing OAuth2 user", e);
-            throw new OAuth2AuthenticationException(
-                    new org.springframework.security.oauth2.core.OAuth2Error("oauth2_error",
-                            "Lỗi xử lý đăng nhập Google: " + e.getMessage(), null)
-            );
-        }
+} catch (Exception e) {
+    log.error("Error processing OAuth2 user", e);
+    throw new OAuth2AuthenticationException(
+            new org.springframework.security.oauth2.core.OAuth2Error("oauth2_error",
+                    "Lỗi xử lý đăng nhập Google: " + e.getMessage(), null)
+    );
+}
     }
 }

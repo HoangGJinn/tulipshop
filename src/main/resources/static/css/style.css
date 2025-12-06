@@ -28,20 +28,6 @@ body {
     padding: 0 15px;
 }
 
-/* Header Topbar */
-.header-topbar {
-    background-color: #2C2C2C;
-    color: #fff;
-    padding: 8px 0;
-    text-align: center;
-    font-size: 12px;
-}
-
-.header-topbar a {
-    color: #fff;
-    text-decoration: none;
-}
-
 /* Header Main */
 .header-main {
     background-color: #fff;
@@ -111,8 +97,8 @@ body {
     left: 0;
     background: #fff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    padding: 20px;
-    min-width: 500px;
+    padding: 30px 20px;
+    min-width: 600px;
     display: none;
     z-index: 100;
 }
@@ -125,20 +111,46 @@ body {
     padding: 20px 0;
 }
 
+.mega-child-container .row {
+    display: flex;
+    gap: 40px;
+    flex-wrap: nowrap;
+}
+
+.mega-child-container .col-lg-4,
+.mega-child-container .col-md-4,
+.mega-child-container .col-sm-4,
+.mega-child-container .col-xs-6 {
+    flex: 0 0 auto;
+    min-width: 150px;
+    padding: 0 15px;
+    display: block;
+    flex-direction: column;
+}
+
 .mega-child-container .title {
     font-weight: bold;
     font-size: 14px;
     margin-bottom: 15px;
     display: block;
     color: #2C2C2C;
+    white-space: nowrap;
 }
 
 .mega-child {
-    list-style: none;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
 }
 
 .mega-child li {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    display: block !important;
+    width: 100% !important;
+    float: none !important;
+    clear: both !important;
 }
 
 .mega-child a {
@@ -146,6 +158,11 @@ body {
     font-size: 13px;
     text-decoration: none;
     transition: color 0.3s;
+    display: block !important;
+    white-space: nowrap;
+    line-height: 1.5;
+    width: 100% !important;
+    float: none !important;
 }
 
 .mega-child a:hover {
@@ -248,28 +265,124 @@ body {
 
 /* Hero Slider */
 .hero-slider {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 100px 0;
+    position: relative;
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+}
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.slider-item {
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     text-align: center;
 }
 
+.slider-item.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
 .slider-content {
+    position: relative;
+    z-index: 2;
     max-width: 600px;
     margin: 0 auto;
+    padding: 20px;
 }
 
 .slider-title {
     font-size: 48px;
     font-weight: bold;
-    color: #2C2C2C;
+    color: #fff;
     margin-bottom: 20px;
     letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .slider-subtitle {
     font-size: 18px;
-    color: #666;
+    color: #fff;
     margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Slider Navigation Dots */
+.slider-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 10px;
+}
+
+.dot {
+    height: 12px;
+    width: 12px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dot.active,
+.dot:hover {
+    background-color: #fff;
+}
+
+/* Slider Navigation Arrows */
+.slider-prev,
+.slider-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    color: #fff;
+    font-size: 30px;
+    font-weight: bold;
+    padding: 16px;
+    cursor: pointer;
+    user-select: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    transition: background-color 0.3s;
+    text-decoration: none;
+}
+
+.slider-prev {
+    left: 20px;
+}
+
+.slider-next {
+    right: 20px;
+}
+
+.slider-prev:hover,
+.slider-next:hover {
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
 /* Buttons */

@@ -1,6 +1,7 @@
 package com.tulip.controller;
 
 import com.tulip.dto.ProductCardDTO;
+import com.tulip.repository.CategoryRepository;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor; // Thêm Lombok để tự autowired
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,7 @@ import java.util.List;
 public class HomeController {
 
     private final ProductService productService;
+    private final CategoryRepository categoryRepository;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -25,6 +27,7 @@ public class HomeController {
         }
 
         model.addAttribute("products", products);
+        model.addAttribute("homeCategories", categoryRepository.findAll());
         model.addAttribute("title", "Tulip Shop - Trang chủ");
 
         return "index";
