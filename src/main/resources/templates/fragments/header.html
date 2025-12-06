@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">Tulip Shop</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         .active-color {
@@ -25,93 +29,244 @@
 </head>
 <body>
 
-<header th:fragment="header">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/">🌷 TULIP SHOP</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
-                    <li class="nav-item parent-nav position-static h-100 d-flex align-items-center">
-                        <a class="nav-link" href="/products" style="cursor: pointer; font-weight: 500;">
-                            Sản phẩm <i class="fas fa-chevron-down ms-1" style="font-size: 8px; opacity: 0.5;"></i>
-                        </a>
-
-                        <div class="mega-menu-container bg-white shadow-sm">
-                            <div class="container py-4">
-                                <div class="row">
-                                    <div class="col-lg-3 col-md-3 px-3">
-                                        <a href="#" class="mega-img-wrapper d-block position-relative text-decoration-none">
-                                            <img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/mega-image_2-1.jpg?v=663" class="img-fluid w-100" alt="Banner">
-                                            <div class="img-overlay"></div>
-                                            <span class="buy-now-text">Mua ngay</span>
-                                        </a>
-                                    </div>
-
-                                    <div class="col-lg-3 col-md-3 px-3">
-                                        <a href="#" class="mega-img-wrapper d-block position-relative text-decoration-none">
-                                            <img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/mega-image_1-2.jpg?v=663" class="img-fluid w-100" alt="Banner">
-                                            <div class="img-overlay"></div>
-                                            <span class="buy-now-text">Mua ngay</span>
-                                        </a>
-                                    </div>
-
-                                    <div class="col-lg-6 col-md-6 ps-4">
-                                        <div class="row h-100">
-
-                                            <div class="col-4 mega-col-border">
-                                                <h6 class="mega-list-title">Ưu đãi</h6>
-                                                <ul class="list-unstyled mega-menu-list">
-                                                    <li><a href="#">Tặng 50K thành viên mới</a></li>
-                                                    <li><a href="#">Flash Sale tháng 12</a></li>
-                                                    <li><a href="#">Mua 1 tặng 1</a></li>
-                                                </ul>
-                                            </div>
-
-                                            <div class="col-4 mega-col-border">
-                                                <h6 class="mega-list-title">Sản phẩm</h6>
-                                                <ul class="list-unstyled mega-menu-list">
-                                                    <li><a href="/products?category=ao-kieu">Áo kiểu</a></li>
-                                                    <li><a href="/products?category=ao-thun">Áo thun</a></li>
-                                                    <li><a href="/products?category=dam">Đầm</a></li>
-                                                    <li><a href="/products?category=chan-vay">Chân váy</a></li>
-                                                    <li><a href="/products?category=quan">Quần</a></li>
-                                                </ul>
-                                            </div>
-
-                                            <div class="col-4"> <h6 class="mega-list-title">Trending</h6>
-                                                <ul class="list-unstyled mega-menu-list">
-                                                    <li><a href="#">Phối Blazer với Đầm</a></li>
-                                                    <li><a href="#">Quần suông hack dáng</a></li>
-                                                    <li><a href="#">Áo thun năng động</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+<!-- Header Fragment -->
+<div th:fragment="header">
+    <!-- Header Main -->
+    <header id="site-header" class="header-main">
+        <div class="header-main__height">
+            <div class="header-mobile">
+                <div class="container">
+                    <div class="row header-row">
+                        <div class="col-xs-4 col-sm-6 col-md-2 col-lg-2">
+                            <div class="header-mobile__left">
+                                <span class="hamburger-menu hidden-md hidden-lg" id="menu-toggle">
+                                    <i class="fas fa-bars"></i>
+                                </span>
+                                <a th:href="@{/}" class="logo-shop">
+                                    <span class="logo-text">TULIP SHOP</span>
+                                </a>
                             </div>
                         </div>
-                    </li>
-                </ul>
-
-                <div class="d-flex align-items-center">
-                    <a href="#" class="text-dark me-3"><i class="fas fa-search"></i></a>
-                    <a href="#" class="text-dark me-3 position-relative">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            0
-                        </span>
-                    </a>
-                    <a href="/login" class="text-dark"><i class="fas fa-user"></i></a>
+                        <div class="col-xs-4 col-sm-8 col-md-7 col-lg-8 hidden-xs hidden-sm position-menu">
+                            <div class="header-desktop__nav">
+                                <nav class="main-nav text-center">
+                                    <ul class="clearfix">
+                                        <li class="position-relative">
+                                            <a th:href="@{/}" title="New in">New in</a>
+                                        </li>
+                                        <li class="has-mega">
+                                            <a th:href="@{/products}" title="Sản phẩm">Sản phẩm</a>
+                                            <div class="mega-item">
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 mega-child-container">
+                                                            <div class="row">
+                                                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-6">
+                                                                    <span class="title">Sản phẩm</span>
+                                                                    <ul class="mega-child">
+                                                                        <li><a th:href="@{/products(category='ao-so-mi')}">Áo sơ mi</a></li>
+                                                                        <li><a th:href="@{/products(category='ao-kieu')}">Áo kiểu</a></li>
+                                                                        <li><a th:href="@{/products(category='ao-thun')}">Áo thun</a></li>
+                                                                        <li><a th:href="@{/products(category='dam')}">Đầm</a></li>
+                                                                        <li><a th:href="@{/products(category='vay')}">Váy</a></li>
+                                                                        <li><a th:href="@{/products(category='quan')}">Quần</a></li>
+                                                                    </ul>
+                                                                </div>
+                                                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-6">
+                                                                    <span class="title">Trending</span>
+                                                                    <ul class="mega-child">
+                                                                        <li><a th:href="@{/trending}">Xu hướng mới</a></li>
+                                                                        <li><a th:href="@{/sale}">Sale off</a></li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <a th:href="@{/about}" title="Về chúng tôi">Về chúng tôi</a>
+                                        </li>
+                                        <li>
+                                            <a th:href="@{/contact}" title="Liên hệ">Liên hệ</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                        <div class="col-xs-4 col-sm-6 col-md-3 col-lg-2">
+                            <div class="header-mobile__right">
+                                <ul class="header-actions">
+                                    <li>
+                                        <a th:href="@{/search}" class="header-search-icon">
+                                            <i class="fas fa-search"></i>
+                                        </a>
+                                    </li>
+                                    <li class="user-menu-item">
+                                        <!-- Hiển thị khi đã đăng nhập -->
+                                        <div sec:authorize="isAuthenticated()" class="user-dropdown">
+                                            <a href="#" class="header-account-icon" id="user-menu-toggle">
+                                                <i class="fas fa-user"></i>
+                                                <span class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.name}">User</span>
+                                            </a>
+                                            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                                <a th:href="@{/account}" class="dropdown-item">
+                                                    <i class="fas fa-user-circle"></i> Tài khoản
+                                                </a>
+                                                <a th:href="@{/logout}" class="dropdown-item logout-item">
+                                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <!-- Hiển thị khi chưa đăng nhập -->
+                                        <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="header-account-icon">
+                                            <i class="fas fa-user"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a th:href="@{/cart}" class="header-cart-icon">
+                                            <i class="fas fa-shopping-bag"></i>
+                                            <span class="cart-count">0</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </nav>
-</header>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="site-menu menu-mobile" id="mobile-menu">
+        <div class="site-menu__container">
+            <span class="close-menumb" id="close-menu">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="site-menu__box">
+                <ul class="site-menu__list">
+                    <li class="nav-item">
+                        <a th:href="@{/}">Trang chủ</a>
+                    </li>
+                    <li class="nav-item nav-child">
+                        <a th:href="@{/products}">Sản phẩm <i class="fas fa-chevron-down"></i></a>
+                        <ul class="submenu-mb submb-lv2">
+                            <li class="nav-item"><a th:href="@{/products(category='ao-so-mi')}">Áo sơ mi</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='ao-kieu')}">Áo kiểu</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='ao-thun')}">Áo thun</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='dam')}">Đầm</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='vay')}">Váy</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='quan')}">Quần</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/about}">Về chúng tôi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/contact}">Liên hệ</a>
+                    </li>
+                    <!-- User menu trong mobile -->
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/account}">
+                            <i class="fas fa-user-circle"></i> Tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/logout}">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Header Scripts Fragment -->
+<script th:fragment="header-scripts">
+    // Mobile menu toggle
+    document.getElementById('menu-toggle')?.addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.add('active');
+    });
+    
+    document.getElementById('close-menu')?.addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.remove('active');
+    });
+
+    // User dropdown menu toggle
+    const userMenuToggle = document.getElementById('user-menu-toggle');
+    const userDropdownMenu = document.getElementById('user-dropdown-menu');
+    
+    if (userMenuToggle && userDropdownMenu) {
+        userMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            userDropdownMenu.classList.toggle('active');
+        });
+
+        // Đóng dropdown khi click bên ngoài
+        document.addEventListener('click', function(e) {
+            if (!userMenuToggle.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                userDropdownMenu.classList.remove('active');
+            }
+        });
+    }
+
+    // Hero Slider functionality
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slider-item');
+    const dots = document.querySelectorAll('.dot');
+
+    function showSlide(index) {
+        if (index >= slides.length) {
+            currentSlideIndex = 0;
+        } else if (index < 0) {
+            currentSlideIndex = slides.length - 1;
+        } else {
+            currentSlideIndex = index;
+        }
+
+        // Hide all slides
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+
+        // Show current slide
+        if (slides[currentSlideIndex]) {
+            slides[currentSlideIndex].classList.add('active');
+        }
+        if (dots[currentSlideIndex]) {
+            dots[currentSlideIndex].classList.add('active');
+        }
+    }
+
+    function changeSlide(direction) {
+        showSlide(currentSlideIndex + direction);
+    }
+
+    function currentSlide(index) {
+        showSlide(index - 1);
+    }
+
+    // Auto-play slider (optional)
+    if (slides.length > 0) {
+        setInterval(function() {
+            changeSlide(1);
+        }, 5000); // Change slide every 5 seconds
+
+        // Initialize first slide
+        showSlide(0);
+    }
+
+    // Make functions global for onclick handlers
+    window.changeSlide = changeSlide;
+    window.currentSlide = currentSlide;
+</script>
 
 </body>
 </html>
