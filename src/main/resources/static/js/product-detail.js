@@ -137,17 +137,51 @@ function toggleWishlist(btn) {
     }
 }
 
-// Thêm vào giỏ
+// Thêm vào giỏ (sử dụng jQuery AJAX)
 function addToCart() {
     if (!selectedSize) {
         alert("Vui lòng chọn kích thước!");
         return;
     }
     const variant = productData.variants[selectedVariantIndex];
-    const quantity = document.getElementById('quantity').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+    
+    // Lấy stockId từ map stockIdsBySize
+    if (!variant.stockIdsBySize || !variant.stockIdsBySize[selectedSize]) {
+        alert("Không tìm thấy thông tin sản phẩm!");
+        return;
+    }
+    
+    const stockId = variant.stockIdsBySize[selectedSize];
+    
+    // Kiểm tra tồn kho
+    const stock = variant.stockBySize[selectedSize];
+    if (stock < quantity) {
+        alert(`Chỉ còn ${stock} sản phẩm trong kho!`);
+        return;
+    }
 
-    // TODO: Gọi API thêm vào giỏ hàng (Giai đoạn sau)
-    alert(`Đã thêm vào giỏ:\nSản phẩm: ${productData.name}\nMàu: ${variant.colorName}\nSize: ${selectedSize}\nSố lượng: ${quantity}`);
+    // Gọi API thêm vào giỏ hàng
+    $.ajax({
+        url: '/v1/api/cart/add',
+        type: 'POST',
+        data: {
+            stockId: stockId,
+            quantity: quantity
+        },
+        success: function(data) {
+        // Cập nhật số lượng trên icon giỏ hàng nếu có
+            const cartBadge = $('.cart-badge, .cart-count');
+            if (cartBadge.length && data.totalItems !== undefined) {
+                cartBadge.text(data.totalItems);
+        }
+        
+        alert(data.message || 'Đã thêm vào giỏ hàng!');
+        },
+        error: function(xhr, status, error) {
+            alert('Lỗi: ' + (xhr.responseText || error));
+        }
+    });
 }
 
 function initImageZoom() {

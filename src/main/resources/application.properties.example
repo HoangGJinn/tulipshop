@@ -1,0 +1,68 @@
+spring.application.name=tulipshop
+server.port=8787
+
+# recommended: use context-path instead of custom base-url
+#server.servlet.context-path=/v1/api
+
+api.base-url=http://localhost:8787/v1/api
+
+# Thymeleaf configuration (default - kh�ng c?n c?u h�nh v� Spring Boot t? ??ng)
+# spring.thymeleaf.prefix=classpath:/templates/
+# spring.thymeleaf.suffix=.html
+
+spring.datasource.url=jdbc:mysql://localhost:3306/tulipshop?createDatabaseIfNotExist=true
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+
+
+# SQL Script Execution
+# Spring Boot will automatically run schema.sql on startup
+spring.sql.init.mode=always
+spring.sql.init.continue-on-error=true
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.format_sql=true
+
+storage.location=src/main/resources/static/images/upload
+# Static resources are served from classpath:/static/ by default
+# spring.web.resources.static-locations=classpath:/static/
+
+# Cloudinary Settings
+cloudinary.cloud-name=your_cloudinary_cloud_name
+cloudinary.api-key=your_cloudinary_api_key
+cloudinary.api-secret=your_cloudinary_api_secret
+
+# Remember-Me Configuration
+# Generate a secure random key for production use
+security.remember-me.key=tulipshop2025-group3ahihi1234567
+
+# Google OAuth2 Configuration
+# Get your credentials from: https://console.cloud.google.com/apis/credentials
+spring.security.oauth2.client.registration.google.client-id=your_google_client_id
+spring.security.oauth2.client.registration.google.client-secret=your_google_client_secret
+spring.security.oauth2.client.registration.google.scope=profile,email
+
+# Email Configuration (Gmail example)
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your_email@gmail.com
+spring.mail.password=your_app_password
+
+# For Gmail, you need to use an App Password, not your regular password
+# Generate it from: https://myaccount.google.com/apppasswords
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+
+logging.level.org.springframework.security=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.com.opensymphony.sitemesh=DEBUG
+logging.level.org.springframework.mail=DEBUG
+
+# OAuth2 Debug Logging
+logging.level.com.tulip.service.impl.CustomOAuth2UserService=DEBUG
+logging.level.org.springframework.security.oauth2=DEBUG
+logging.level.org.springframework.security.web=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE

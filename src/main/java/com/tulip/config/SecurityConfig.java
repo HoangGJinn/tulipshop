@@ -82,7 +82,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
                 .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
-                .requestMatchers("/products/**", "/about", "/contact").permitAll()
+                .requestMatchers("/products/**", "/product/**", "/trending", "/sale", "/about", "/contact").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
