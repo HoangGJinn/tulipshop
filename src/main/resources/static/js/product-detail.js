@@ -137,7 +137,7 @@ function toggleWishlist(btn) {
     }
 }
 
-// Thêm vào giỏ
+// Thêm vào giỏ (sử dụng jQuery AJAX)
 function addToCart() {
     if (!selectedSize) {
         alert("Vui lòng chọn kích thước!");
@@ -162,32 +162,25 @@ function addToCart() {
     }
 
     // Gọi API thêm vào giỏ hàng
-    const formData = new FormData();
-    formData.append('stockId', stockId);
-    formData.append('quantity', quantity);
-
-    fetch('/api/cart/add', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            return response.text().then(text => { throw new Error(text) });
-        }
-    })
-    .then(data => {
+    $.ajax({
+        url: '/v1/api/cart/add',
+        type: 'POST',
+        data: {
+            stockId: stockId,
+            quantity: quantity
+        },
+        success: function(data) {
         // Cập nhật số lượng trên icon giỏ hàng nếu có
-        const cartBadge = document.querySelector('.cart-badge, .cart-count');
-        if (cartBadge && data.totalItems !== undefined) {
-            cartBadge.textContent = data.totalItems;
+            const cartBadge = $('.cart-badge, .cart-count');
+            if (cartBadge.length && data.totalItems !== undefined) {
+                cartBadge.text(data.totalItems);
         }
         
         alert(data.message || 'Đã thêm vào giỏ hàng!');
-    })
-    .catch(error => {
-        alert('Lỗi: ' + error.message);
+        },
+        error: function(xhr, status, error) {
+            alert('Lỗi: ' + (xhr.responseText || error));
+        }
     });
 }
 

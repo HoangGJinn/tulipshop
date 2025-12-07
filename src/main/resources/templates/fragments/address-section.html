@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Address Section Fragment -->
+<div th:fragment="address-section" class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <!-- Address Header -->
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-truck me-2 text-primary"></i>
+                        <h5 class="mb-0 fw-bold">DANH SÁCH ĐỊA CHỈ</h5>
+                    </div>
+                    <a href="#" class="text-danger text-decoration-none" id="viewAllAddresses" style="display: none;">
+                        Xem tất cả
+                    </a>
+                </div>
+
+                <!-- Address List Container -->
+                <div id="addressList" class="mb-3">
+                    <!-- Addresses will be loaded here via AJAX -->
+                </div>
+
+                <!-- Add Address Button -->
+                <div class="text-center border border-2 border-dashed rounded p-4" 
+                     style="border-color: #ddd !important; cursor: pointer;"
+                     id="addAddressBtn">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center mb-2"
+                             style="width: 30px; height: 30px;">
+                            <i class="fas fa-plus fs-5"></i>
+                        </div>
+                        <a href="#" class="text-danger text-decoration-none">Thêm địa chỉ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Address Management JavaScript -->
+<script th:fragment="address-scripts">
+    $(document).ready(function() {
+        loadAddresses();
+
+        // Load provinces when modal opens
+        $('#addressModal').on('show.bs.modal', function() {
+            loadProvinces();
+        });
+
+        // Open modal to add new address
+        $('#addAddressBtn').click(function() {
+            resetAddressForm();
+            $('#addressModalLabel').text('Thêm địa chỉ mới');
+            $('#addressModal').modal('show');
+        });
+
+        // Province change event
+        $('#province').on('change', function() {
+            const provinceCode = $(this).val();
+            if (provinceCode) {
+                loadDistricts(provinceCode);
+            } else {
+                resetDistricts();
+                resetWards();
+            }
+        });
+
+        // District change event
+        $('#district').on('change', function() {
+            const districtCode = $(this).val();
+            if (districtCode) {
+                loadWards(districtCode);
+            } else {
+                resetWards();
+            }
+        });
+
+        // Save address (create or update)
+        $('#saveAddressBtn').click(function() {
+            saveAddress();
+        });
+
+        // Load addresses on page load
+        function loadAddresses() {
+            $.ajax({
+                url: '/v1/api/addresses',
+                type: 'GET',
+                success: function(addresses) {
+                    displayAddresses(addresses);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401) {
+                        console.log('Chưa đăng nhập');
+                    } else {
+                        alert('Lỗi khi tải danh sách địa chỉ');
+                    }
+                }
+            });
+        }
+
+        // Display addresses
+        function displayAddresses(addresses) {
+            const $container = $('#addressList');
+            $container.empty();
+
+            if (addresses.length === 0) {
+                $container.html('<p class="text-muted text-center">Chưa có địa chỉ nào</p>');
+                return;
+            }
+
+            // Show only first 3 addresses, show "Xem tất cả" if more
+            const displayCount = Math.min(3, addresses.length);
+            if (addresses.length > 3) {
+                $('#viewAllAddresses').show();
+            }
+
+            addresses.slice(0, displayCount).forEach(function(address) {
+                const addressHtml = createAddressCard(address);
+                $container.append(addressHtml);
+            });
+        }
+
+        // Create address card HTML
+        function createAddressCard(address) {
+            const defaultBadge = address.isDefault 
+                ? '<span class="badge bg-primary position-absolute top-0 end-0 m-2" style="font-size: 0.75rem;">Mặc định</span>'
+                : '';
+            
+            const fullAddress = address.fullAddress || 
+                [address.addressLine, address.village, address.district, address.province]
+                    .filter(Boolean).join(', ');
+
+            return `
+                <div class="card mb-3 position-relative" style="border: 1px solid #e0e0e0;">
+                    <div class="card-body">
+                        ${defaultBadge}
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 pe-2">
+                                <h6 class="mb-1 fw-bold">${address.recipientName} - ${address.recipientPhone}</h6>
+                                <p class="mb-0 text-muted small">${fullAddress}</p>
+                            </div>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-light edit-address-btn" 
+                                        data-address-id="${address.id}"
+                                        style="width: 36px; height: 36px; padding: 0; background-color: #ffe0e0;"
+                                        title="Sửa địa chỉ">
+                                    <i class="fas fa-pencil-alt text-primary"></i>
+                                </button>
+                                <button class="btn btn-sm btn-light delete-address-btn" 
+                                        data-address-id="${address.id}"
+                                        style="width: 36px; height: 36px; padding: 0; background-color: #ffe0e0;"
+                                        title="Xóa địa chỉ">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Edit address
+        $(document).on('click', '.edit-address-btn', function() {
+            const addressId = $(this).data('address-id');
+            loadAddressForEdit(addressId);
+        });
+
+        // Load address data for editing
+        function loadAddressForEdit(addressId) {
+            $.ajax({
+                url: '/v1/api/addresses',
+                type: 'GET',
+                success: function(addresses) {
+                    const address = addresses.find(a => a.id === addressId);
+                    if (address) {
+                        fillAddressForm(address);
+                        $('#addressModalLabel').text('Sửa địa chỉ');
+                        $('#addressModal').modal('show');
+                    }
+                },
+                error: function() {
+                    alert('Lỗi khi tải thông tin địa chỉ');
+                }
+            });
+        }
+
+        // Fill form with address data
+        function fillAddressForm(address) {
+            $('#addressId').val(address.id);
+            $('#recipientName').val(address.recipientName);
+            $('#recipientPhone').val(address.recipientPhone);
+            $('#addressLine').val(address.addressLine);
+            $('#isDefault').prop('checked', address.isDefault || false);
+
+            // Load provinces first, then set values
+            loadProvinces().done(function() {
+                // Try to find province by name if we have province name
+                if (address.province) {
+                    const $provinceSelect = $('#province');
+                    let foundProvince = false;
+                    
+                    $provinceSelect.find('option').each(function() {
+                        if ($(this).text() === address.province || $(this).text().includes(address.province)) {
+                            $provinceSelect.val($(this).val());
+                            foundProvince = true;
+                            
+                            // Trigger change to load districts
+                            $provinceSelect.trigger('change');
+                            
+                            // Wait for districts to load, then set district
+                            setTimeout(function() {
+                                if (address.district) {
+                                    const $districtSelect = $('#district');
+                                    $districtSelect.find('option').each(function() {
+                                        if ($(this).text() === address.district || $(this).text().includes(address.district)) {
+                                            $districtSelect.val($(this).val());
+                                            $districtSelect.trigger('change');
+                                            
+                                            // Wait for wards to load, then set ward
+                                            setTimeout(function() {
+                                                if (address.village) {
+                                                    const $wardSelect = $('#village');
+                                                    $wardSelect.find('option').each(function() {
+                                                        if ($(this).text() === address.village || $(this).text().includes(address.village)) {
+                                                            $wardSelect.val($(this).val());
+                                                        }
+                                                    });
+                                                }
+                                            }, 500);
+                                        }
+                                    });
+                                }
+                            }, 800);
+                            
+                            return false; // Break loop
+                        }
+                    });
+                    
+                    if (!foundProvince) {
+                        // If province not found, just set text values as fallback
+                        console.log('Province not found in list:', address.province);
+                    }
+                }
+            });
+        }
+
+        // Load provinces
+        function loadProvinces() {
+            const $provinceSelect = $('#province');
+            if ($provinceSelect.find('option').length > 1) {
+                return $.Deferred().resolve().promise(); // Already loaded
+            }
+
+            return AddressAPI.getListProvinces()
+                .done(function(provinces) {
+                    provinces.forEach(function(province) {
+                        $provinceSelect.append(
+                            $('<option></option>')
+                                .attr('value', province.code)
+                                .text(province.name)
+                        );
+                    });
+                })
+                .fail(function() {
+                    alert('Lỗi khi tải danh sách tỉnh/thành phố');
+                });
+        }
+
+        // Load districts by province
+        function loadDistricts(provinceCode) {
+            const $districtSelect = $('#district');
+            $districtSelect.prop('disabled', true).html('<option value="">Đang tải...</option>');
+
+            AddressAPI.getDistrictsByProvince(provinceCode)
+                .done(function(province) {
+                    $districtSelect.html('<option value="">-- Chọn Quận/Huyện --</option>');
+                    if (province.districts && province.districts.length > 0) {
+                        province.districts.forEach(function(district) {
+                            $districtSelect.append(
+                                $('<option></option>')
+                                    .attr('value', district.code)
+                                    .text(district.name)
+                            );
+                        });
+                        $districtSelect.prop('disabled', false);
+                    } else {
+                        $districtSelect.html('<option value="">Không có dữ liệu</option>');
+                    }
+                    resetWards();
+                })
+                .fail(function() {
+                    $districtSelect.html('<option value="">Lỗi khi tải dữ liệu</option>');
+                    alert('Lỗi khi tải danh sách quận/huyện');
+                });
+        }
+
+        // Load wards by district
+        function loadWards(districtCode) {
+            const $wardSelect = $('#village');
+            $wardSelect.prop('disabled', true).html('<option value="">Đang tải...</option>');
+
+            AddressAPI.getWardsByDistrict(districtCode)
+                .done(function(district) {
+                    $wardSelect.html('<option value="">-- Chọn Phường/Xã --</option>');
+                    if (district.wards && district.wards.length > 0) {
+                        district.wards.forEach(function(ward) {
+                            $wardSelect.append(
+                                $('<option></option>')
+                                    .attr('value', ward.code)
+                                    .text(ward.name)
+                            );
+                        });
+                        $wardSelect.prop('disabled', false);
+                    } else {
+                        $wardSelect.html('<option value="">Không có dữ liệu</option>');
+                    }
+                })
+                .fail(function() {
+                    $wardSelect.html('<option value="">Lỗi khi tải dữ liệu</option>');
+                    alert('Lỗi khi tải danh sách phường/xã');
+                });
+        }
+
+        // Reset districts
+        function resetDistricts() {
+            $('#district').html('<option value="">-- Chọn Quận/Huyện --</option>').prop('disabled', true);
+        }
+
+        // Reset wards
+        function resetWards() {
+            $('#village').html('<option value="">-- Chọn Phường/Xã --</option>').prop('disabled', true);
+        }
+
+        // Reset form
+        function resetAddressForm() {
+            $('#addressForm')[0].reset();
+            $('#addressId').val('');
+            $('#addressForm .is-invalid').removeClass('is-invalid');
+            $('#addressForm .invalid-feedback').text('');
+            resetDistricts();
+            resetWards();
+        }
+
+        // Save address
+        function saveAddress() {
+            const addressId = $('#addressId').val();
+            const provinceCode = $('#province').val();
+            const districtCode = $('#district').val();
+            const wardCode = $('#village').val();
+            
+            // Get text values for display
+            const provinceName = $('#province option:selected').text();
+            const districtName = $('#district option:selected').text();
+            const wardName = $('#village option:selected').text();
+
+            const addressData = {
+                recipientName: $('#recipientName').val(),
+                recipientPhone: $('#recipientPhone').val(),
+                addressLine: $('#addressLine').val(),
+                village: wardName !== '-- Chọn Phường/Xã --' ? wardName : '',
+                district: districtName !== '-- Chọn Quận/Huyện --' ? districtName : '',
+                province: provinceName !== '-- Chọn Tỉnh/Thành phố --' ? provinceName : '',
+                isDefault: $('#isDefault').is(':checked')
+            };
+
+            // Validation
+            if (!addressData.recipientName || !addressData.recipientPhone || !addressData.addressLine) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+                return;
+            }
+
+            const url = addressId 
+                ? `/v1/api/addresses/${addressId}`
+                : '/v1/api/addresses';
+            const method = addressId ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(addressData),
+                success: function(response) {
+                    $('#addressModal').modal('hide');
+                    loadAddresses();
+                    alert(addressId ? 'Cập nhật địa chỉ thành công!' : 'Thêm địa chỉ thành công!');
+                },
+                error: function(xhr) {
+                    if (xhr.status === 400) {
+                        const errors = xhr.responseJSON;
+                        if (typeof errors === 'object') {
+                            let errorMsg = 'Có lỗi xảy ra:\n';
+                            for (let field in errors) {
+                                errorMsg += `- ${errors[field]}\n`;
+                            }
+                            alert(errorMsg);
+                        } else {
+                            alert(errors || 'Có lỗi xảy ra khi lưu địa chỉ');
+                        }
+                    } else {
+                        alert('Có lỗi xảy ra khi lưu địa chỉ');
+                    }
+                }
+            });
+        }
+
+        // Delete address
+        $(document).on('click', '.delete-address-btn', function() {
+            const addressId = $(this).data('address-id');
+            if (!confirm('Bạn chắc chắn muốn xóa địa chỉ này?')) {
+                return;
+            }
+
+            $.ajax({
+                url: `/v1/api/addresses/${addressId}`,
+                type: 'DELETE',
+                success: function() {
+                    loadAddresses();
+                    alert('Đã xóa địa chỉ thành công');
+                },
+                error: function(xhr) {
+                    const errorMsg = xhr.responseText || 'Có lỗi xảy ra khi xóa địa chỉ';
+                    alert(errorMsg);
+                }
+            });
+        });
+
+        // Set default address (if needed in future)
+        $(document).on('click', '.set-default-btn', function() {
+            const addressId = $(this).data('address-id');
+            $.ajax({
+                url: `/v1/api/addresses/${addressId}/set-default`,
+                type: 'POST',
+                success: function() {
+                    loadAddresses();
+                    alert('Đã đặt làm địa chỉ mặc định');
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra');
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
+
