@@ -38,7 +38,7 @@ public class CartController {
     }
 
     // 2. API Thêm vào giỏ (AJAX)
-    @PostMapping("/api/cart/add")
+    @PostMapping("/v1/api/cart/add")
     @ResponseBody
     public ResponseEntity<?> addToCart(@RequestParam Long stockId,
                                        @RequestParam int quantity,
@@ -64,7 +64,7 @@ public class CartController {
     }
 
     // 3. API Cập nhật số lượng (AJAX)
-    @PostMapping("/api/cart/update")
+    @PostMapping("/v1/api/cart/update")
     @ResponseBody
     public ResponseEntity<?> updateQuantity(@RequestParam Long itemId,
                                             @RequestParam int quantity,
@@ -81,7 +81,7 @@ public class CartController {
     }
 
     // 4. API Xóa item (AJAX)
-    @DeleteMapping("/api/cart/remove/{itemId}")
+    @DeleteMapping("/v1/api/cart/remove/{itemId}")
     @ResponseBody
     public ResponseEntity<?> removeItem(@PathVariable Long itemId,
                                         @AuthenticationPrincipal CustomUserDetails userDetails) {

@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "user_profiles")
@@ -50,6 +52,13 @@ public class UserProfile {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Quan hệ OneToMany với UserAddress
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<UserAddress> addresses = new ArrayList<>();
+
     public void setUser(User user) {
         this.user = user; // Bước 1: Profile nhận User này làm chủ sở hữu.
 
@@ -58,5 +67,11 @@ public class UserProfile {
         if (user != null && user.getProfile() != this) {
             user.setProfile(this); // Bước 3: ...thì bắt User phải trỏ lại Profile này.
         }
+    }
+
+    // Helper method để thêm địa chỉ
+    public void addAddress(UserAddress address) {
+        this.addresses.add(address);
+        address.setProfile(this);
     }
 }

@@ -59,6 +59,4 @@ public class User {
             profile.setUser(this);
         }
     }
-
-
 }
