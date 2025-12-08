@@ -1,9 +1,6 @@
 package com.tulip.service.impl;
 
-import com.tulip.dto.ProductCardDTO;
-import com.tulip.dto.ProductCreateDTO;
-import com.tulip.dto.ProductDetailDTO;
-import com.tulip.dto.ProductVariantDTO;
+import com.tulip.dto.*;
 import com.tulip.entity.product.*;
 import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.ProductRepository;
@@ -28,6 +25,79 @@ public class ProductServiceImpl implements ProductService {
     private final CloudinaryService cloudinaryService;
     private final CategoryRepository categoryRepository;
     private final VariantRepository variantRepository;
+
+    @Transactional
+    public void CreateFullProduct(ProductCompositeDTO dto){
+        String mainThumbnail = "https://placehold.co/600x800?text=No+Image";
+        if (dto.getMainImageFile() != null && !dto.getMainImageFile().isEmpty()) {
+            mainThumbnail = cloudinaryService.uploadImage(dto.getMainImageFile());
+        }
+
+        Category category = categoryRepository.findBySlug(dto.getCategorySlug())
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+        Product product = Product.builder()
+                .name(dto.getName())
+                .basePrice(dto.getPrice())
+                .discountPrice(dto.getDiscountPrice())
+                .description(dto.getDescription())
+                .category(category)
+                .thumbnail(mainThumbnail)
+                .variants(new ArrayList<>())
+                .build();
+
+        Product savedProduct = productRepository.save(product);
+
+        if (dto.getVariants() != null) {
+            for (ProductCompositeDTO.VariantInput vInput : dto.getVariants()) {
+                // Bỏ qua nếu không nhập tên màu
+                if (vInput.getColorName() == null || vInput.getColorName().isBlank()) continue;
+                // Upload ảnh của Variant này (nếu có)
+                String variantImageUrl = null;
+                if (vInput.getImageFiles() != null && !vInput.getImageFiles().isEmpty()) {
+                    variantImageUrl = cloudinaryService.uploadImage(vInput.getImageFiles());
+                }
+
+                // Tạo Variant Entity
+                ProductVariant variant = ProductVariant.builder()
+                        .product(savedProduct)
+                        .colorName(vInput.getColorName())
+                        .colorCode(vInput.getColorCode())
+                        .images(new ArrayList<>())
+                        .stocks(new ArrayList<>())
+                        .build();
+
+                // Lưu ảnh vào list ảnh của variant
+                if (variantImageUrl != null) {
+                    variant.getImages().add(ProductVariantImage.builder()
+                            .variant(variant)
+                            .imageUrl(variantImageUrl)
+                            .build());
+                }
+
+                // Tạo Stock (Kho hàng) từ Map
+                if (vInput.getStockPerSize() != null) {
+                    for (Map.Entry<String, Integer> entry : vInput.getStockPerSize().entrySet()) {
+                        String sizeCode = entry.getKey();
+                        Integer quantity = entry.getValue();
+
+                        sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                            ProductStock stock = ProductStock.builder()
+                                    .variant(variant)
+                                    .size(size)
+                                    .quantity(quantity != null ? quantity : 0)
+                                    .sku(savedProduct.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
+                                    .build();
+                            variant.getStocks().add(stock);
+                        });
+                    }
+                }
+
+                variantRepository.save(variant);
+            }
+        }
+
+    }
 
     @Override
     @Transactional(readOnly = true)

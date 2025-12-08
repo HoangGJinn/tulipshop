@@ -853,3 +853,14 @@ body {
     color: #000;
     padding-left: 5px; /* Di chuyển nhẹ sang phải */
 }
+
+.main-nav .mega-menu-list {
+    display: block !important;
+    padding-left: 0;
+}
+
+.main-nav .mega-menu-list li {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px; /* Khoảng cách giữa các dòng */
+}

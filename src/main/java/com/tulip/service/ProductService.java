@@ -1,6 +1,7 @@
 package com.tulip.service;
 
 import com.tulip.dto.ProductCardDTO;
+import com.tulip.dto.ProductCompositeDTO;
 import com.tulip.dto.ProductCreateDTO;
 import com.tulip.dto.ProductDetailDTO;
 import com.tulip.entity.product.Product;
@@ -16,4 +17,5 @@ public interface ProductService {
     void addVariant(Long productId, String colorName, String colorCode);
     void updateVariantStock(Long variantId, Map<String, Integer> stockData);
     void deleteVariant(Long variantId);
+    void CreateFullProduct(ProductCompositeDTO dto);
 }
