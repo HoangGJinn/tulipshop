@@ -10,6 +10,7 @@ import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -50,15 +51,8 @@ public class ProductServiceImpl implements ProductService {
 
         if (dto.getVariants() != null) {
             for (ProductCompositeDTO.VariantInput vInput : dto.getVariants()) {
-                // Bỏ qua nếu không nhập tên màu
                 if (vInput.getColorName() == null || vInput.getColorName().isBlank()) continue;
-                // Upload ảnh của Variant này (nếu có)
-                String variantImageUrl = null;
-                if (vInput.getImageFiles() != null && !vInput.getImageFiles().isEmpty()) {
-                    variantImageUrl = cloudinaryService.uploadImage(vInput.getImageFiles());
-                }
 
-                // Tạo Variant Entity
                 ProductVariant variant = ProductVariant.builder()
                         .product(savedProduct)
                         .colorName(vInput.getColorName())
@@ -67,15 +61,21 @@ public class ProductServiceImpl implements ProductService {
                         .stocks(new ArrayList<>())
                         .build();
 
-                // Lưu ảnh vào list ảnh của variant
-                if (variantImageUrl != null) {
-                    variant.getImages().add(ProductVariantImage.builder()
-                            .variant(variant)
-                            .imageUrl(variantImageUrl)
-                            .build());
+
+                if (vInput.getImageFiles() != null) {
+                    for (MultipartFile file : vInput.getImageFiles()) {
+                        if (!file.isEmpty()) {
+                            String url = cloudinaryService.uploadImage(file);
+
+                            ProductVariantImage image = ProductVariantImage.builder()
+                                    .variant(variant)
+                                    .imageUrl(url)
+                                    .build();
+                            variant.getImages().add(image);
+                        }
+                    }
                 }
 
-                // Tạo Stock (Kho hàng) từ Map
                 if (vInput.getStockPerSize() != null) {
                     for (Map.Entry<String, Integer> entry : vInput.getStockPerSize().entrySet()) {
                         String sizeCode = entry.getKey();
@@ -105,13 +105,12 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-        // Lấy danh sách tất cả các Size để hiển thị lên giao diện
+
         List<String> allSizeCodes = sizeRepository.findAll().stream()
                 .sorted(Comparator.comparingInt(Size::getSortOrder))
                 .map(Size::getCode)
                 .collect(Collectors.toList());
 
-        // Chuyển đổi danh sách Variant Entity -> DTO
         List<ProductVariantDTO> variantDTOs = product.getVariants().stream().map(variant -> {
             // Key là Size Code (S, M...), Value là số lượng
             Map<String, Integer> stockMap = new HashMap<>();
@@ -122,7 +121,6 @@ public class ProductServiceImpl implements ProductService {
                 stockIdsMap.put(stock.getSize().getCode(), stock.getId());
             });
 
-            // Lấy danh sách ảnh
             List<String> images = variant.getImages().stream()
                     .map(ProductVariantImage::getImageUrl)
                     .collect(Collectors.toList());
@@ -224,7 +222,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-    @Transactional // đảm bảo lưu Product và Variant cùng thành công hoặc cùng thất bại
+    @Transactional
     public Long createProduct(ProductCreateDTO dto){
         String thumbnailUrl = "https://placehold.co/600x800?text=No+Image";
 
@@ -321,7 +319,7 @@ public class ProductServiceImpl implements ProductService {
         variantRepository.save(variant);
     }
 
-    // Hàm cập nhật kho hàng (Nhận vào Map: key="S", value=10)
+
     @Transactional
     public void updateVariantStock(Long variantId, Map<String, Integer> stockData) {
         ProductVariant variant = variantRepository.findById(variantId)
@@ -336,7 +334,7 @@ public class ProductServiceImpl implements ProductService {
         variantRepository.save(variant);
     }
 
-    // Hàm xóa variant
+
     @Transactional
     public void deleteVariant(Long variantId) {
         variantRepository.deleteById(variantId);

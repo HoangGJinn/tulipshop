@@ -133,9 +133,10 @@
                 </div>
                 <div class="mt-2">
                     <label class="btn btn-light btn-sm w-100 border text-start text-truncate">
-                        <i class="fas fa-upload"></i> <span class="file-name">Chọn ảnh màu...</span>
-                        <input type="file" class="d-none variant-file" accept="image/*" onchange="updateFileName(this)">
+                        <i class="fas fa-images"></i> <span class="file-name">Chọn ảnh (Nhiều)...</span>
+                        <input type="file" class="d-none variant-file" accept="image/*" multiple onchange="updateFileName(this)">
                     </label>
+                    <div class="variant-preview-list d-flex gap-1 mt-2 flex-wrap"></div>
                 </div>
             </div>
 
@@ -158,35 +159,27 @@
 
 <script th:inline="javascript">
     $(document).ready(function() {
-        $('#productForm').on('submit', function(e) {
-            e.preventDefault(); // 1. Chặn trình duyệt reload trang
+        addVariantRow();
 
-            // Hiển thị loading (tùy chọn)
+        $('#productForm').on('submit', function(e) {
+            e.preventDefault();
+
             Swal.fire({
                 title: 'Đang xử lý...',
-                text: 'Vui lòng chờ trong giây lát',
+                text: 'Vui lòng chờ upload ảnh...',
                 allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                didOpen: () => { Swal.showLoading(); }
             });
 
-            // 2. Tạo đối tượng FormData từ form
-            // FormData sẽ tự động lấy tất cả input có attribute 'name' (bao gồm cả file)
             var formData = new FormData(this);
 
-            // 3. Gọi AJAX (Theo hướng dẫn PDF)
             $.ajax({
-                // 👇 SỬA ĐƯỜNG DẪN TẠI ĐÂY (Trùng với @RequestMapping của Controller)
                 url: '/admin/products/create',
                 type: 'POST',
                 data: formData,
-
                 processData: false,
                 contentType: false,
-
                 success: function(response) {
-                    Swal.close();
                     Swal.fire({
                         icon: 'success',
                         title: 'Thành công!',
@@ -194,33 +187,20 @@
                         confirmButtonText: 'OK'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Chuyển hướng theo link server trả về hoặc mặc định
                             window.location.href = response.redirectUrl || "/products";
                         }
                     });
                 },
-
-                error: function(xhr, status, error) {
+                error: function(xhr) {
                     Swal.close();
-
-                    var errorMsg = "Có lỗi xảy ra!";
-                    if(xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    }
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Thất bại!',
-                        text: errorMsg
-                    });
-                    console.error(error);
+                    var errorMsg = xhr.responseJSON ? xhr.responseJSON.message : "Có lỗi xảy ra!";
+                    Swal.fire({ icon: 'error', title: 'Thất bại!', text: errorMsg });
                 }
             });
         });
     });
 
-
-    /* --- 1. Xử lý Ảnh Chính (Preview & Remove) --- */
+    /* --- 1. Xử lý Ảnh Chính --- */
     function previewMainImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -235,17 +215,13 @@
     }
 
     function removeMainImage(event) {
-        event.stopPropagation(); // Chặn click lan ra box cha (gây mở lại file dialog)
-        const input = document.getElementById('mainImageInput');
-        input.value = ''; // Reset input file
-
-        document.getElementById('mainImagePreview').src = '#';
+        event.stopPropagation();
+        document.getElementById('mainImageInput').value = '';
         document.getElementById('mainImagePreview').style.display = 'none';
         document.getElementById('mainImagePlaceholder').style.display = 'block';
         document.getElementById('removeMainImageBtn').style.display = 'none';
     }
 
-    /* --- 2. Xử lý Variants Động (Dynamic Form) --- */
     let variantIndex = 0;
 
     function addVariantRow() {
@@ -253,21 +229,19 @@
         const template = document.getElementById('variant-template').content.cloneNode(true);
         const div = template.querySelector('.variant-item');
 
-        // Gán name attribute cho các input để Spring Boot hiểu được List<VariantInput>
-        // Cấu trúc name: variants[0].colorName, variants[0].stockPerSize['S']...
-
         // 1. Tên màu
         div.querySelector('.variant-name').name = `variants[${variantIndex}].colorName`;
 
         // 2. Mã màu
         div.querySelector('.variant-color-code').name = `variants[${variantIndex}].colorCode`;
 
-        // 3. File ảnh
-        div.querySelector('.variant-file').name = `variants[${variantIndex}].imageFile`;
+        // 3. File ảnh (Sửa thành imageFiles số nhiều để khớp DTO List<MultipartFile>)
+        div.querySelector('.variant-file').name = `variants[${variantIndex}].imageFiles`;
 
         // 4. Stock inputs
         div.querySelectorAll('.variant-stock').forEach(input => {
             const sizeCode = input.getAttribute('data-size-code');
+            // Map<String, Integer> stockPerSize
             input.name = `variants[${variantIndex}].stockPerSize['${sizeCode}']`;
         });
 
@@ -277,24 +251,35 @@
 
     function removeVariantRow(btn) {
         btn.closest('.variant-item').remove();
-        // Lưu ý: Khi xóa, index sẽ bị đứt quãng (0, 2, 3...).
-        // Spring Boot List vẫn bind được, nhưng có thể tạo phần tử null.
-        // Để đơn giản ta chấp nhận logic này cho tutorial.
     }
 
+    // Hàm hiển thị preview nhiều ảnh variant
     function updateFileName(input) {
         const label = input.parentElement.querySelector('.file-name');
-        if (input.files && input.files[0]) {
-            label.textContent = input.files[0].name;
+        const previewContainer = input.parentElement.nextElementSibling; // div.variant-preview-list
+        previewContainer.innerHTML = ''; // Xóa preview cũ
+
+        if (input.files && input.files.length > 0) {
+            label.textContent = `Đã chọn ${input.files.length} ảnh`;
+
+            // Loop qua từng file để preview
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '40px';
+                    img.style.height = '40px';
+                    img.style.objectFit = 'cover';
+                    img.className = 'border rounded';
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            });
         } else {
-            label.textContent = 'Chọn ảnh màu...';
+            label.textContent = 'Chọn ảnh (Nhiều)...';
         }
     }
-
-    // Tự động thêm 1 dòng variant khi load trang
-    document.addEventListener('DOMContentLoaded', () => {
-        addVariantRow();
-    });
 </script>
 
 <style>

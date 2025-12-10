@@ -137,51 +137,17 @@ function toggleWishlist(btn) {
     }
 }
 
-// Thêm vào giỏ (sử dụng jQuery AJAX)
+// Thêm vào giỏ
 function addToCart() {
     if (!selectedSize) {
         alert("Vui lòng chọn kích thước!");
         return;
     }
     const variant = productData.variants[selectedVariantIndex];
-    const quantity = parseInt(document.getElementById('quantity').value);
-    
-    // Lấy stockId từ map stockIdsBySize
-    if (!variant.stockIdsBySize || !variant.stockIdsBySize[selectedSize]) {
-        alert("Không tìm thấy thông tin sản phẩm!");
-        return;
-    }
-    
-    const stockId = variant.stockIdsBySize[selectedSize];
-    
-    // Kiểm tra tồn kho
-    const stock = variant.stockBySize[selectedSize];
-    if (stock < quantity) {
-        alert(`Chỉ còn ${stock} sản phẩm trong kho!`);
-        return;
-    }
+    const quantity = document.getElementById('quantity').value;
 
-    // Gọi API thêm vào giỏ hàng
-    $.ajax({
-        url: '/v1/api/cart/add',
-        type: 'POST',
-        data: {
-            stockId: stockId,
-            quantity: quantity
-        },
-        success: function(data) {
-        // Cập nhật số lượng trên icon giỏ hàng nếu có
-            const cartBadge = $('.cart-badge, .cart-count');
-            if (cartBadge.length && data.totalItems !== undefined) {
-                cartBadge.text(data.totalItems);
-        }
-        
-        alert(data.message || 'Đã thêm vào giỏ hàng!');
-        },
-        error: function(xhr, status, error) {
-            alert('Lỗi: ' + (xhr.responseText || error));
-        }
-    });
+    // TODO: Gọi API thêm vào giỏ hàng (Giai đoạn sau)
+    alert(`Đã thêm vào giỏ:\nSản phẩm: ${productData.name}\nMàu: ${variant.colorName}\nSize: ${selectedSize}\nSố lượng: ${quantity}`);
 }
 
 function initImageZoom() {
@@ -228,4 +194,99 @@ changeMainImage = function(element) {
     // Highlight thumbnail (Logic cũ)
     document.querySelectorAll('.thumbnail-img').forEach(el => el.classList.remove('active-thumb'));
     element.classList.add('active-thumb');
+}
+
+function processTryOn() {
+    // 1. Chuẩn bị dữ liệu
+    const currentMainImageSrc = document.getElementById('mainImage').src;
+    document.getElementById('tryOnClothImg').src = currentMainImageSrc;
+
+    const formData = new FormData();
+    formData.append("clothUrl", currentMainImageSrc);
+
+    // Kiểm tra xem user đang ở Tab nào (Upload hay Template)
+    const isUploadTab = document.getElementById('upload-tab').classList.contains('active');
+
+    if (isUploadTab) {
+        const fileInput = document.getElementById('userImageFile');
+        if (fileInput.files.length > 0) {
+            formData.append("userImage", fileInput.files[0]);
+        } else {
+            alert("Vui lòng tải ảnh của bạn lên!");
+            return;
+        }
+    } else {
+        const selectedTemplate = document.querySelector('input[name="modelTemplate"]:checked');
+        if (selectedTemplate) {
+            formData.append("templateUrl", selectedTemplate.value);
+        } else {
+            alert("Vui lòng chọn một người mẫu!");
+            return;
+        }
+    }
+
+    // 2. UI Loading
+    const btn = document.getElementById('btnTryOn');
+    const placeholder = document.getElementById('placeholderResult');
+    const loading = document.getElementById('loadingAi');
+    const resultImg = document.getElementById('resultImage');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG XỬ LÝ...';
+
+    placeholder.style.display = 'none';
+    resultImg.style.display = 'none';
+    loading.style.display = 'block';
+
+    // 3. Gửi FormData (Không cần set Content-Type, browser tự làm)
+    fetch('/api/virtual-try-on', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => {
+            if (!response.ok) throw new Error("Lỗi Server");
+            return response.json();
+        })
+        .then(data => {
+            if (data.resultUrl) {
+                resultImg.src = data.resultUrl;
+                loading.style.display = 'none';
+                resultImg.style.display = 'block';
+            } else {
+                alert("Lỗi: " + (data.error || "Không có kết quả"));
+                resetTryOnUI();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Có lỗi xảy ra: " + error.message);
+            resetTryOnUI();
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = 'TIẾN HÀNH THỬ ĐỒ <i class="fas fa-arrow-right ms-2"></i>';
+        });
+}
+
+function previewUpload(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('uploadPreview').src = e.target.result;
+            document.getElementById('uploadPreviewContainer').style.display = 'block';
+            document.querySelector('.upload-box').style.display = 'none';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function clearUpload() {
+    document.getElementById('userImageFile').value = "";
+    document.getElementById('uploadPreviewContainer').style.display = 'none';
+    document.querySelector('.upload-box').style.display = 'block';
+}
+
+function resetTryOnUI() {
+    document.getElementById('loadingAi').style.display = 'none';
+    document.getElementById('placeholderResult').style.display = 'block';
 }
