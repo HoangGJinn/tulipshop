@@ -19,7 +19,8 @@
 
     <div class="row">
         <div class="col-md-1 d-none d-md-block">
-            <div class="d-flex flex-column gap-2 thumbnail-list">
+            <div class="d-flex flex-column gap-2 thumbnail-list"
+                 th:if="${not #lists.isEmpty(product.variants) and not #lists.isEmpty(product.variants[0].images)}">
                 <img th:each="img, iter : ${product.variants[0].images}"
                      th:src="${img}"
                      class="img-fluid thumbnail-img"
@@ -31,8 +32,10 @@
         <div class="col-md-6 mb-4">
             <div class="main-image-container">
                 <img id="mainImage" class="img-fluid w-100"
+                     th:if="${not #lists.isEmpty(product.variants) and not #lists.isEmpty(product.variants[0].images)}"
                      th:src="${product.variants[0].images[0]}"
                      alt="Product Image">
+
             </div>
         </div>
 
@@ -65,7 +68,7 @@
                          th:data-index="${iter.index}"
                          th:title="${variant.colorName}"
                          onclick="selectColor(this)">
-                        <img th:src="${variant.images[0]}" class="img-cover">
+                        <img th:if="${not #lists.isEmpty(product.variants)}" th:src="${variant.images[0]}" class="img-cover">
                         <span class="color-name-overlay" th:text="${variant.colorName}">Màu</span>
                     </div>
                 </div>

@@ -12,7 +12,7 @@ public class ProductVariantDTO {
     private Long id;
     private String colorName;
     private String colorCode;
-    private BigDecimal price; // Giá riêng của màu này (nếu có)
+    private BigDecimal price;
     private List<String> images; // List URL ảnh của màu này
 
     // Map lưu số lượng tồn kho theo size. Ví dụ: "S" -> 10, "M" -> 0

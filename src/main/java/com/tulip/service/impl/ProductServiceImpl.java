@@ -1,15 +1,16 @@
 package com.tulip.service.impl;
 
-import com.tulip.dto.ProductCardDTO;
-import com.tulip.dto.ProductDetailDTO;
-import com.tulip.dto.ProductVariantDTO;
+import com.tulip.dto.*;
 import com.tulip.entity.product.*;
+import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.ProductRepository;
 import com.tulip.repository.SizeRepository;
+import com.tulip.repository.VariantRepository;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,6 +23,81 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final SizeRepository sizeRepository;
+    private final CloudinaryService cloudinaryService;
+    private final CategoryRepository categoryRepository;
+    private final VariantRepository variantRepository;
+
+    @Transactional
+    public void CreateFullProduct(ProductCompositeDTO dto){
+        String mainThumbnail = "https://placehold.co/600x800?text=No+Image";
+        if (dto.getMainImageFile() != null && !dto.getMainImageFile().isEmpty()) {
+            mainThumbnail = cloudinaryService.uploadImage(dto.getMainImageFile());
+        }
+
+        Category category = categoryRepository.findBySlug(dto.getCategorySlug())
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+        Product product = Product.builder()
+                .name(dto.getName())
+                .basePrice(dto.getPrice())
+                .discountPrice(dto.getDiscountPrice())
+                .description(dto.getDescription())
+                .category(category)
+                .thumbnail(mainThumbnail)
+                .variants(new ArrayList<>())
+                .build();
+
+        Product savedProduct = productRepository.save(product);
+
+        if (dto.getVariants() != null) {
+            for (ProductCompositeDTO.VariantInput vInput : dto.getVariants()) {
+                if (vInput.getColorName() == null || vInput.getColorName().isBlank()) continue;
+
+                ProductVariant variant = ProductVariant.builder()
+                        .product(savedProduct)
+                        .colorName(vInput.getColorName())
+                        .colorCode(vInput.getColorCode())
+                        .images(new ArrayList<>())
+                        .stocks(new ArrayList<>())
+                        .build();
+
+
+                if (vInput.getImageFiles() != null) {
+                    for (MultipartFile file : vInput.getImageFiles()) {
+                        if (!file.isEmpty()) {
+                            String url = cloudinaryService.uploadImage(file);
+
+                            ProductVariantImage image = ProductVariantImage.builder()
+                                    .variant(variant)
+                                    .imageUrl(url)
+                                    .build();
+                            variant.getImages().add(image);
+                        }
+                    }
+                }
+
+                if (vInput.getStockPerSize() != null) {
+                    for (Map.Entry<String, Integer> entry : vInput.getStockPerSize().entrySet()) {
+                        String sizeCode = entry.getKey();
+                        Integer quantity = entry.getValue();
+
+                        sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                            ProductStock stock = ProductStock.builder()
+                                    .variant(variant)
+                                    .size(size)
+                                    .quantity(quantity != null ? quantity : 0)
+                                    .sku(savedProduct.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
+                                    .build();
+                            variant.getStocks().add(stock);
+                        });
+                    }
+                }
+
+                variantRepository.save(variant);
+            }
+        }
+
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -29,13 +105,12 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-        // Lấy danh sách tất cả các Size để hiển thị lên giao diện
+
         List<String> allSizeCodes = sizeRepository.findAll().stream()
                 .sorted(Comparator.comparingInt(Size::getSortOrder))
                 .map(Size::getCode)
                 .collect(Collectors.toList());
 
-        // Chuyển đổi danh sách Variant Entity -> DTO
         List<ProductVariantDTO> variantDTOs = product.getVariants().stream().map(variant -> {
             // Key là Size Code (S, M...), Value là số lượng
             Map<String, Integer> stockMap = new HashMap<>();
@@ -46,7 +121,6 @@ public class ProductServiceImpl implements ProductService {
                 stockIdsMap.put(stock.getSize().getCode(), stock.getId());
             });
 
-            // Lấy danh sách ảnh
             List<String> images = variant.getImages().stream()
                     .map(ProductVariantImage::getImageUrl)
                     .collect(Collectors.toList());
@@ -146,6 +220,124 @@ public class ProductServiceImpl implements ProductService {
                 .colorCodes(colors)
                 .colorImages(colorImgs)
                 .build();
+    }
+
+    @Transactional
+    public Long createProduct(ProductCreateDTO dto){
+        String thumbnailUrl = "https://placehold.co/600x800?text=No+Image";
+
+        if (dto.getThumbnailFile() != null && !dto.getThumbnailFile().isEmpty()) {
+            thumbnailUrl = cloudinaryService.uploadImage(dto.getThumbnailFile());
+        }
+
+        Category category = categoryRepository.findBySlug(dto.getCategorySlug())
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+
+        Product product = Product.builder()
+                .name(dto.getName())
+                .basePrice(dto.getPrice())
+                .discountPrice(dto.getDiscountPrice())
+                .description(dto.getDescription())
+                .category(category)
+                .thumbnail(thumbnailUrl)// Lưu link ảnh từ Cloudinary
+                .variants(new ArrayList<>())
+                .build();
+
+        Product savedProduct = productRepository.save(product);
+
+        if (dto.getColors() != null && !dto.getColors().isBlank()) {
+            // Tách chuỗi "Trắng, Đen" thành mảng ["Trắng", "Đen"]
+            String[] colorList = dto.getColors().split(",");
+
+            List<Size> selectedSizes = new ArrayList<>();
+            if (dto.getSizes() != null && !dto.getSizes().isEmpty()) {
+                selectedSizes = sizeRepository.findAll().stream()
+                        .filter(s -> dto.getSizes().contains(s.getCode()))
+                        .toList();
+
+            }else{
+                selectedSizes = sizeRepository.findAll();
+            }
+
+
+
+            for (String colorName : colorList){
+                colorName = colorName.trim(); // xoá khoảng trắng thừa
+                if (colorName.isEmpty()) continue;
+
+                ProductVariant variant = ProductVariant.builder()
+                        .product(savedProduct)
+                        .colorName(colorName)
+                        .colorCode("#000000") // để tạm
+                        .stocks(new ArrayList<>())
+                        .build();
+
+                // Tạo Stock (Kho hàng) cho từng Size (Mặc định số lượng = 0)
+                for (Size size : selectedSizes) {
+                    ProductStock stock = ProductStock.builder()
+                            .variant(variant)
+                            .size(size)
+                            .quantity(0) // Mặc định 0
+                            .sku(savedProduct.getId() + "-" + colorName.toUpperCase() + "-" + size.getCode())
+                            .build();
+                    variant.getStocks().add(stock);
+                }
+
+                variantRepository.save(variant);
+
+            }
+        }
+        return savedProduct.getId();
+    }
+
+    @Transactional
+    public void addVariant(Long productId, String colorName, String colorCode) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+        ProductVariant variant = ProductVariant.builder()
+                .product(product)
+                .colorName(colorName)
+                .colorCode(colorCode)
+                .build();
+
+        // Tự động tạo kho hàng = 0 cho tất cả các size hiện có
+        List<Size> sizes = sizeRepository.findAll();
+        List<ProductStock> stocks = new ArrayList<>();
+
+        for (Size size : sizes) {
+            ProductStock stock = ProductStock.builder()
+                    .variant(variant)
+                    .size(size)
+                    .quantity(0) // Mặc định 0
+                    .sku(product.getId() + "-" + colorName.toUpperCase() + "-" + size.getCode())
+                    .build();
+            stocks.add(stock);
+        }
+        variant.setStocks(stocks);
+        variantRepository.save(variant);
+    }
+
+
+    @Transactional
+    public void updateVariantStock(Long variantId, Map<String, Integer> stockData) {
+        ProductVariant variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant không tồn tại"));
+
+        for (ProductStock stock : variant.getStocks()) {
+            String sizeCode = stock.getSize().getCode();
+            if (stockData.containsKey(sizeCode)) {
+                stock.setQuantity(stockData.get(sizeCode));
+            }
+        }
+        variantRepository.save(variant);
+    }
+
+
+    @Transactional
+    public void deleteVariant(Long variantId) {
+        variantRepository.deleteById(variantId);
     }
 
 }
