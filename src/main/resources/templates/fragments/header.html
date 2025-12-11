@@ -124,13 +124,43 @@
                                 </nav>
                             </div>
                         </div>
+
                         <div class="col-xs-4 col-sm-6 col-md-3 col-lg-2">
                             <div class="header-mobile__right">
                                 <ul class="header-actions">
                                     <li>
-                                        <a th:href="@{/search}" class="header-search-icon">
+                                        <a href="javascript:void(0)" class="text-dark me-3 search-trigger" onclick="toggleSearchPanel()">
                                             <i class="fas fa-search"></i>
                                         </a>
+
+                                        <div id="searchOverlay" class="search-overlay">
+                                            <div class="container">
+                                                <div class="text-end pt-3">
+                                                    <button class="btn-close-search" onclick="toggleSearchPanel()">
+                                                        <i class="fas fa-times"></i> ĐÓNG
+                                                    </button>
+                                                </div>
+
+                                                <div class="search-box-wrapper text-center mt-3">
+                                                    <form action="/products" method="get" class="position-relative">
+                                                        <input type="text" id="searchInput" name="search" class="form-control search-input"
+                                                               placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+                                                        <button type="submit" class="btn-search-submit"><i class="fas fa-search"></i></button>
+                                                    </form>
+                                                </div>
+
+                                                <div id="searchResults" class="search-results mt-4">
+                                                    <div class="default-suggestions text-center">
+                                                        <p class="text-muted small text-uppercase mb-3">Gợi ý cho bạn</p>
+                                                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                                            <a href="/products?category=dam" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Đầm dạo phố</a>
+                                                            <a href="/products?category=ao-kieu" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Áo kiểu</a>
+                                                            <a href="/products?category=quan" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Quần ống suông</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </li>
                                     <li class="user-menu-item">
                                         <!-- Hiển thị khi đã đăng nhập -->
@@ -281,6 +311,9 @@
     function currentSlide(index) {
         showSlide(index - 1);
     }
+
+
+
 
     // Auto-play slider (optional)
     if (slides.length > 0) {
