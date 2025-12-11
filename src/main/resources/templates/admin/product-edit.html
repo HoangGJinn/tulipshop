@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head(title='Quản lý sản phẩm')}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-uppercase mb-0">Cập nhật sản phẩm</h3>
+            <p class="text-muted mb-0">Quản lý biến thể, hình ảnh và kho hàng</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/products" class="btn btn-outline-secondary">Danh sách SP</a>
+            <a th:href="@{/product/{id}(id=${product.id})}" class="btn btn-outline-primary" target="_blank">
+                <i class="fas fa-eye"></i> Xem trang chi tiết
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <img th:src="${product.thumbnail}" class="img-thumbnail mb-3 rounded" style="height: 180px; object-fit: cover;">
+                    <h5 class="fw-bold" th:text="${product.name}"></h5>
+                    <p class="text-danger fw-bold fs-5" th:text="${#numbers.formatDecimal(product.basePrice, 0, 'COMMA', 0, 'POINT') + '₫'}"></p>
+                    <hr>
+                    <div class="d-grid">
+                        <button class="btn btn-light btn-sm text-start">Danh mục: <b th:text="${product.category.name}"></b></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-uppercase">Danh sách Biến thể (Màu sắc)</h6>
+                    <button class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#addVariantModal">
+                        <i class="fas fa-plus-circle me-1"></i> Thêm màu mới
+                    </button>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th style="width: 15%;">Màu sắc</th>
+                                <th style="width: 25%;">Hình ảnh</th>
+                                <th style="width: 45%;">Kho hàng (Size & Số lượng)</th>
+                                <th style="width: 15%;" class="text-end">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="variant : ${product.variants}">
+
+                                <td>
+                                    <form action="/admin/products/variant/update-color" method="post" class="d-flex flex-column gap-2">
+                                        <input type="hidden" name="variantId" th:value="${variant.id}">
+                                        <span class="fw-bold" th:text="${variant.colorName}"></span>
+                                        <div class="input-group input-group-sm">
+                                            <input type="color" class="form-control form-control-color" name="colorCode" th:value="${variant.colorCode}" title="Chọn màu hiển thị">
+                                            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-check"></i></button>
+                                        </div>
+                                    </form>
+                                </td>
+
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        <img th:each="img : ${variant.images}" th:src="${img.imageUrl}" class="rounded border" style="width: 40px; height: 40px; object-fit: cover;">
+                                    </div>
+                                    <form action="/admin/products/variant/upload-image" method="post" enctype="multipart/form-data" class="d-flex gap-1">
+                                        <input type="hidden" name="variantId" th:value="${variant.id}">
+                                        <label class="btn btn-outline-primary btn-sm" style="cursor: pointer;">
+                                            <i class="fas fa-upload"></i> Chọn ảnh
+                                            <input type="file" name="imageFile" accept="image/*" style="display: none;" onchange="this.form.submit()">
+                                        </label>
+                                    </form>
+                                </td>
+
+                                <td>
+                                    <form action="/admin/products/variant/update-stock" method="post">
+                                        <input type="hidden" name="variantId" th:value="${variant.id}">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-3" th:each="stock : ${variant.stocks}">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text fw-bold bg-light" th:text="${stock.size.code}">S</span>
+                                                    <input type="number" class="form-control px-1 text-center"
+                                                           th:name="'stock_' + ${stock.size.code}"
+                                                           th:value="${stock.quantity}" min="0">
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Lưu số lượng">
+                                                    <i class="fas fa-save"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </td>
+
+                                <td class="text-end">
+                                    <a th:href="@{/admin/products/variant/delete/{id}(id=${variant.id})}"
+                                       class="btn btn-outline-danger btn-sm"
+                                       onclick="return confirm('Bạn có chắc muốn xóa màu này? Toàn bộ ảnh và kho hàng của màu này sẽ mất.');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div th:if="${product.variants.isEmpty()}" class="p-5 text-center">
+                        <div class="text-muted mb-3"><i class="fas fa-box-open fa-3x"></i></div>
+                        <h5>Chưa có biến thể màu sắc nào</h5>
+                        <button class="btn btn-dark btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#addVariantModal">Thêm màu ngay</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addVariantModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Thêm màu sắc mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/products/variant/add" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="productId" th:value="${product.id}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên màu</label>
+                        <input type="text" class="form-control" name="colorName" placeholder="Ví dụ: Xanh Navy, Hồng Pastel..." required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Chọn mã màu (để hiển thị dấu chấm tròn)</label>
+                        <input type="color" class="form-control form-control-color w-100" name="colorCode" value="#000000" title="Chọn màu">
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle"></i> Sau khi thêm, kho hàng các size sẽ được tạo tự động với số lượng bằng 0.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-dark">Thêm mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Address Modal Fragment -->
+<div th:fragment="address-modal">
+    <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addressModalLabel">Thêm địa chỉ mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addressForm">
+                        <input type="hidden" id="addressId" name="id">
+                        
+                        <div class="mb-3">
+                            <label for="recipientName" class="form-label">Họ và tên người nhận <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="recipientName" name="recipientName" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="recipientPhone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="recipientPhone" name="recipientPhone" 
+                                   pattern="[0-9]{10,11}" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="province" class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                            <select class="form-select" id="province" name="province" required>
+                                <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="district" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                            <select class="form-select" id="district" name="district" required disabled>
+                                <option value="">-- Chọn Quận/Huyện --</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="village" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
+                            <select class="form-select" id="village" name="village" required disabled>
+                                <option value="">-- Chọn Phường/Xã --</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="addressLine" class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="addressLine" name="addressLine" 
+                                   placeholder="Số nhà, tên đường, ngõ..." required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="isDefault" name="isDefault">
+                            <label class="form-check-label" for="isDefault">
+                                Đặt làm địa chỉ mặc định
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark btn-secondary" id="saveAddressBtn">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+

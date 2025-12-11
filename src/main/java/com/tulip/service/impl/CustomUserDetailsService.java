@@ -1,18 +1,12 @@
 package com.tulip.service.impl;
 
-import com.tulip.entity.Role;
 import com.tulip.entity.User;
 import com.tulip.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,17 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
 
-        Role role = user.getRole();
-        String roleValue = role != null ? role.getValue() : Role.CUSTOMER.getValue();
-        String roleWithPrefix = "ROLE_" + roleValue;
-        Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(roleWithPrefix));
-
-        // Đây là class User có sẵn của Spring, không phải Entity com.tulip.entity.User của bạn.
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPasswordHash())
-                .authorities(authorities)
-                .accountLocked(!user.getStatus()) // Nếu status = false thì tài khoản bị khóa
-                .build();
+        // Sử dụng CustomUserDetails để lưu userId và fullName vào session
+        return new CustomUserDetails(user);
     }
 }

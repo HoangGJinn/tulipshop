@@ -3,11 +3,18 @@ package com.tulip.config;
 import com.tulip.entity.Role;
 import com.tulip.entity.User;
 import com.tulip.entity.UserProfile;
+import com.tulip.entity.product.*;
+import com.tulip.repository.CategoryRepository;
+import com.tulip.repository.ProductRepository;
+import com.tulip.repository.SizeRepository;
 import com.tulip.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
@@ -15,12 +22,17 @@ public class DataInitializer {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final SizeRepository sizeRepository;
+
     @PostConstruct
     public void init() {
         if (!userRepository.existsByEmail("admin@local")) {
             User admin = User.builder()
                     .email("admin@local")
                     .passwordHash(passwordEncoder.encode("admin123"))
+                    .authProvider("LOCAL")
                     .role(Role.ADMIN)
                     .status(true)
                     .build();
@@ -30,5 +42,71 @@ public class DataInitializer {
             admin.setProfile(p);
             userRepository.save(admin);
         }
+        initProducts();
+    }
+
+    private void initProducts() {
+
+        if (productRepository.count() > 0) return; // Đã có dữ liệu thì thôi
+
+        // 1. Tạo Sizes
+        Size s = sizeRepository.save(Size.builder().code("S").sortOrder(1).build());
+        Size m = sizeRepository.save(Size.builder().code("M").sortOrder(2).build());
+        Size l = sizeRepository.save(Size.builder().code("L").sortOrder(3).build());
+        Size xl = sizeRepository.save(Size.builder().code("XL").sortOrder(4).build());
+
+        // 2. Tạo Category
+        Category aoKieu = categoryRepository.save(Category.builder().name("Áo Kiểu").slug("ao-kieu").build());
+
+        // 3. Tạo Sản Phẩm: Áo kiểu voan tay dài kèm hoa
+        Product product = Product.builder()
+                .name("Áo kiểu voan tay dài kèm hoa")
+                .category(aoKieu)
+                .basePrice(new BigDecimal("555000"))
+                .description("Áo kiểu voan tay dài kèm hoa mang đến vẻ đẹp nhẹ nhàng, nữ tính...")
+                // Tôi dùng ảnh mẫu placeholder, sau này bạn sẽ thay bằng link Cloudinary thật
+                .thumbnail("https://cdn.hstatic.net/products/1000197303/pro_trang___1__6eda201ee5f948b3af240cc3187bdce5_master.jpg")
+                .build();
+
+        // --- Variant 1: Màu Trắng ---
+        ProductVariant whiteVar = ProductVariant.builder()
+                .product(product)
+                .colorName("Trắng")
+                .colorCode("#FFFFFF")
+                .build();
+
+        // Ảnh cho màu trắng
+        ProductVariantImage imgWhite1 = ProductVariantImage.builder().variant(whiteVar).imageUrl("https://cdn.hstatic.net/products/1000197303/pro_trang___1__6eda201ee5f948b3af240cc3187bdce5_master.jpg").build();
+        ProductVariantImage imgWhite2 = ProductVariantImage.builder().variant(whiteVar).imageUrl("https://cdn.hstatic.net/products/1000197303/pro_trang___3__9f09b60c9fe94ce4bac164437049558f_master.jpg").build();
+        whiteVar.setImages(Arrays.asList(imgWhite1, imgWhite2));
+
+        // Kho hàng cho màu trắng
+        ProductStock stockWhiteS = ProductStock.builder().variant(whiteVar).size(s).quantity(23).sku("AK-TRANG-S").build();
+        ProductStock stockWhiteM = ProductStock.builder().variant(whiteVar).size(m).quantity(31).sku("AK-TRANG-M").build();
+        ProductStock stockWhiteL = ProductStock.builder().variant(whiteVar).size(l).quantity(17).sku("AK-TRANG-L").build();
+        ProductStock stockWhiteXL = ProductStock.builder().variant(whiteVar).size(xl).quantity(0).sku("AK-TRANG-XL").build(); // Hết hàng
+        whiteVar.setStocks(Arrays.asList(stockWhiteS, stockWhiteM, stockWhiteL, stockWhiteXL));
+
+        // --- Variant 2: Màu Đen ---
+        ProductVariant blackVar = ProductVariant.builder()
+                .product(product)
+                .colorName("Đen")
+                .colorCode("#000000")
+                .build();
+
+        // Ảnh cho màu đen
+        ProductVariantImage imgBlack1 = ProductVariantImage.builder().variant(blackVar).imageUrl("https://cdn.kkfashion.vn/6035-large_default/ao-voan-den-tay-dai-asm05-08.jpg").build();
+        blackVar.setImages(Arrays.asList(imgBlack1));
+
+        // Kho hàng cho màu đen
+        ProductStock stockBlackS = ProductStock.builder().variant(blackVar).size(s).quantity(0).sku("AK-DEN-S").build();
+        ProductStock stockBlackM = ProductStock.builder().variant(blackVar).size(m).quantity(10).sku("AK-DEN-M").build();
+        blackVar.setStocks(Arrays.asList(stockBlackS, stockBlackM));
+
+        // Lưu Product (Cascade sẽ tự lưu Variants, Images và Stock)
+        product.setVariants(Arrays.asList(whiteVar, blackVar));
+        productRepository.save(product);
+
+        System.out.println("✅ Đã khởi tạo dữ liệu áo kiểu thành công!");
     }
 }

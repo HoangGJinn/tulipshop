@@ -28,20 +28,6 @@ body {
     padding: 0 15px;
 }
 
-/* Header Topbar */
-.header-topbar {
-    background-color: #2C2C2C;
-    color: #fff;
-    padding: 8px 0;
-    text-align: center;
-    font-size: 12px;
-}
-
-.header-topbar a {
-    color: #fff;
-    text-decoration: none;
-}
-
 /* Header Main */
 .header-main {
     background-color: #fff;
@@ -111,8 +97,8 @@ body {
     left: 0;
     background: #fff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    padding: 20px;
-    min-width: 500px;
+    padding: 30px 20px;
+    min-width: 600px;
     display: none;
     z-index: 100;
 }
@@ -125,20 +111,46 @@ body {
     padding: 20px 0;
 }
 
+.mega-child-container .row {
+    display: flex;
+    gap: 40px;
+    flex-wrap: nowrap;
+}
+
+.mega-child-container .col-lg-4,
+.mega-child-container .col-md-4,
+.mega-child-container .col-sm-4,
+.mega-child-container .col-xs-6 {
+    flex: 0 0 auto;
+    min-width: 150px;
+    padding: 0 15px;
+    display: block;
+    flex-direction: column;
+}
+
 .mega-child-container .title {
     font-weight: bold;
     font-size: 14px;
     margin-bottom: 15px;
     display: block;
     color: #2C2C2C;
+    white-space: nowrap;
 }
 
 .mega-child {
-    list-style: none;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
 }
 
 .mega-child li {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    display: block !important;
+    width: 100% !important;
+    float: none !important;
+    clear: both !important;
 }
 
 .mega-child a {
@@ -146,6 +158,11 @@ body {
     font-size: 13px;
     text-decoration: none;
     transition: color 0.3s;
+    display: block !important;
+    white-space: nowrap;
+    line-height: 1.5;
+    width: 100% !important;
+    float: none !important;
 }
 
 .mega-child a:hover {
@@ -248,28 +265,124 @@ body {
 
 /* Hero Slider */
 .hero-slider {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 100px 0;
+    position: relative;
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+}
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.slider-item {
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     text-align: center;
 }
 
+.slider-item.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
 .slider-content {
+    position: relative;
+    z-index: 2;
     max-width: 600px;
     margin: 0 auto;
+    padding: 20px;
 }
 
 .slider-title {
     font-size: 48px;
     font-weight: bold;
-    color: #2C2C2C;
+    color: #fff;
     margin-bottom: 20px;
     letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .slider-subtitle {
     font-size: 18px;
-    color: #666;
+    color: #fff;
     margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Slider Navigation Dots */
+.slider-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 10px;
+}
+
+.dot {
+    height: 12px;
+    width: 12px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dot.active,
+.dot:hover {
+    background-color: #fff;
+}
+
+/* Slider Navigation Arrows */
+.slider-prev,
+.slider-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    color: #fff;
+    font-size: 30px;
+    font-weight: bold;
+    padding: 16px;
+    cursor: pointer;
+    user-select: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    transition: background-color 0.3s;
+    text-decoration: none;
+}
+
+.slider-prev {
+    left: 20px;
+}
+
+.slider-next {
+    right: 20px;
+}
+
+.slider-prev:hover,
+.slider-next:hover {
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
 /* Buttons */
@@ -611,3 +724,238 @@ body {
     color: #d32f2f;
 }
 
+/* --- MEGA MENU --- */
+
+/* 1. Font & Container */
+@font-face {
+    font-family: 'MTD Balerno';
+    /* src: url('../fonts/MTDBalerno.woff2') format('woff2'); */
+    font-weight: normal;
+    font-style: normal;
+}
+
+.mega-menu-container {
+    font-family: 'MTD Balerno', 'Playfair Display', 'Times New Roman', serif;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #f0f0f0;
+    background-color: #fff;
+
+    /* Hiệu ứng xuất hiện */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease-out;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.parent-nav:hover .mega-menu-container {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 2. IMAGE STYLING (Gradient Shadow Effect) */
+.mega-img-wrapper {
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    display: block;
+    position: relative;
+}
+
+.mega-img-wrapper img {
+    transition: none; /* Bỏ zoom ảnh */
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Lớp phủ Gradient (Chỉ nửa dưới) */
+.img-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60%; /* Phủ 60% chiều cao từ dưới lên */
+
+    /* Gradient từ trong suốt -> đen mờ */
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+
+    opacity: 0; /* Ẩn mặc định */
+    transition: opacity 0.4s ease;
+}
+
+/* Chữ Mua Ngay (Góc phải dưới) */
+.buy-now-text {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+
+    color: #fff;
+    font-family: 'MTD Balerno', sans-serif; /* Font sans cho chữ nhỏ dễ đọc */
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    /* Hiệu ứng bay lên */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s ease;
+
+    /* Bóng chữ nhẹ để nổi trên nền ảnh */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Hover Events */
+.mega-img-wrapper:hover .img-overlay {
+    opacity: 1;
+}
+
+.mega-img-wrapper:hover .buy-now-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 3. LIST STYLING (Thanh mảnh, gạch dọc) */
+.mega-col-border {
+    border-right: 1px solid #eee; /* Đường gạch dọc mảnh */
+}
+
+.mega-list-title {
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 12px;
+    font-weight: 400 !important; /* Không in đậm */
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.mega-menu-list li {
+    margin-bottom: 6px;
+}
+
+.mega-menu-list li a {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    font-weight: 300; /* Nét mảnh */
+    transition: color 0.2s, padding-left 0.2s;
+    display: block;
+}
+
+.mega-menu-list li a:hover {
+    color: #000;
+    padding-left: 5px; /* Di chuyển nhẹ sang phải */
+}
+
+.main-nav .mega-menu-list {
+    display: block !important;
+    padding-left: 0;
+}
+
+.main-nav .mega-menu-list li {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px; /* Khoảng cách giữa các dòng */
+}
+
+
+/* --- SEARCH OVERLAY STYLE --- */
+.search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh; /* Full màn hình hoặc để auto nếu muốn chỉ 1 phần */
+    background-color: rgba(255, 255, 255, 0.98); /* Nền trắng mờ nhẹ */
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: all 0.3s ease-in-out;
+    overflow-y: auto;
+}
+
+.search-overlay.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.btn-close-search {
+    background: none;
+    border: none;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: #333;
+    transition: color 0.3s;
+}
+.btn-close-search:hover { color: #d37171; }
+
+.search-input {
+    border: none;
+    border-bottom: 2px solid #ddd;
+    background: transparent;
+    border-radius: 0;
+    font-size: 24px;
+    padding: 15px 50px 15px 0; /* Chừa chỗ cho icon search */
+    box-shadow: none !important;
+    font-family: 'Playfair Display', serif; /* Font sang trọng */
+}
+
+.search-input:focus {
+    border-bottom-color: #000;
+}
+
+.btn-search-submit {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #333;
+}
+
+/* --- Search Result Items --- */
+.search-item {
+    transition: background 0.2s;
+    border-bottom: 1px solid #eee;
+    padding: 10px;
+}
+.search-item:hover {
+    background-color: #f9f9f9;
+}
+.search-item img {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.search-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    color: #333;
+    text-decoration: none;
+    display: block;
+}
+.search-item-price {
+    font-size: 13px;
+    font-weight: bold;
+    color: #000;
+}
+.search-item-old-price {
+    font-size: 12px;
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 5px;
+}
