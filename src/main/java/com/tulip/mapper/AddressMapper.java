@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class AddressMapper {
 
     public UserAddressDTO toDTO(UserAddress address) {
+
         if (address == null) {
             return null;
         }

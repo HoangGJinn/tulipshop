@@ -144,10 +144,68 @@ function addToCart() {
         return;
     }
     const variant = productData.variants[selectedVariantIndex];
-    const quantity = document.getElementById('quantity').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+    
+    // Lấy stockId từ stockBySize map
+    const stockInfo = variant.stockBySize[selectedSize];
+    if (!stockInfo || !stockInfo.id) {
+        alert("Lỗi: Không tìm thấy thông tin tồn kho!");
+        return;
+    }
+    const stockId = stockInfo.id;
 
-    // TODO: Gọi API thêm vào giỏ hàng (Giai đoạn sau)
-    alert(`Đã thêm vào giỏ:\nSản phẩm: ${productData.name}\nMàu: ${variant.colorName}\nSize: ${selectedSize}\nSố lượng: ${quantity}`);
+    // Disable button và hiển thị loading
+    const btn = document.getElementById('addToCartBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+
+    // Gọi API thêm vào giỏ hàng
+    const formData = new FormData();
+    formData.append('stockId', stockId);
+    formData.append('quantity', quantity);
+
+    fetch('/v1/api/cart/add', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => {
+            if (response.status === 401) {
+                return response.text().then(text => {
+                    throw new Error(text || 'Vui lòng đăng nhập để mua hàng');
+                });
+            }
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || 'Có lỗi xảy ra');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // Hiển thị thông báo thành công
+                alert(data.message || 'Đã thêm vào giỏ hàng thành công!');
+                
+                // Cập nhật số lượng trên icon giỏ hàng nếu có
+                if (data.totalItems !== undefined) {
+                    const cartBadge = document.querySelector('.cart-badge, .cart-count');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.totalItems;
+                        cartBadge.style.display = data.totalItems > 0 ? 'inline' : 'none';
+                    }
+                }
+            } else {
+                throw new Error(data.message || 'Có lỗi xảy ra');
+            }
+        })
+        .catch(error => {
+            alert('Lỗi: ' + error.message);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
 }
 
 function initImageZoom() {

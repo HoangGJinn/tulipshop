@@ -1,7 +1,10 @@
 package com.tulip.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -13,11 +16,15 @@ public class ProductVariantDTO {
     private String colorName;
     private String colorCode;
     private BigDecimal price;
-    private List<String> images; // List URL ảnh của màu này
+    private List<String> images;
 
-    // Map lưu số lượng tồn kho theo size. Ví dụ: "S" -> 10, "M" -> 0
-    private Map<String, Integer> stockBySize;
-    
-    // Map lưu stockId theo size. Ví dụ: "S" -> 1, "M" -> 2 (để gọi API addToCart)
-    private Map<String, Long> stockIdsBySize;
+    private Map<String, StockInfo> stockBySize;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class StockInfo {
+        private Long id;      // Đây chính là stockId cần thiết!
+        private int quantity; // Số lượng tồn kho
+    }
 }
