@@ -10,6 +10,7 @@ import com.tulip.entity.product.ProductVariantImage;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +71,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public List<CartItemDTO> getCartItems(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        Cart cart = cartRepository.findByUserIdWithItems(userId).orElse(null);
         if (cart == null) return new ArrayList<>();
 
         return cart.getCartItems().stream().map(this::convertToDTO).collect(Collectors.toList());
@@ -109,15 +110,17 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countItems(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        Cart cart = cartRepository.findByUserIdWithItems(userId).orElse(null);
         if (cart == null) return 0;
         return cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BigDecimal getTotalPrice(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        Cart cart = cartRepository.findByUserIdWithItems(userId).orElse(null);
         if (cart == null) return BigDecimal.ZERO;
 
         return cart.getCartItems().stream()
@@ -132,9 +135,16 @@ public class CartServiceImpl implements CartService {
 
         // Lấy ảnh: Ưu tiên ảnh của Variant, nếu không có lấy ảnh Product
         String img = product.getThumbnail();
-        List<ProductVariantImage> varImgs = stock.getVariant().getImages();
-        if (varImgs != null && !varImgs.isEmpty()) {
-            img = varImgs.get(0).getImageUrl();
+        try {
+            // Force initialize images collection trong cùng transaction
+            Hibernate.initialize(stock.getVariant().getImages());
+            List<ProductVariantImage> varImgs = stock.getVariant().getImages();
+            if (varImgs != null && !varImgs.isEmpty()) {
+                img = varImgs.get(0).getImageUrl();
+            }
+        } catch (Exception e) {
+            // Nếu có lỗi lazy loading, sử dụng thumbnail của product
+            // (đã được set ở trên)
         }
 
         // Lấy giá bán (đã giảm giá nếu có)
