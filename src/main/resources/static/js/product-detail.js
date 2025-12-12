@@ -290,3 +290,69 @@ function resetTryOnUI() {
     document.getElementById('loadingAi').style.display = 'none';
     document.getElementById('placeholderResult').style.display = 'block';
 }
+
+    // Zoom ảnh review
+    function zoomReviewImage(img) {
+    document.getElementById('reviewImageZoom').src = img.src;
+    var myModal = new bootstrap.Modal(document.getElementById('reviewImageModal'));
+    myModal.show();
+}
+
+function toggleFilter(filterType, checkboxInput) {
+    // 1. Logic Checkbox (Giữ nguyên)
+    if (checkboxInput.checked) {
+        document.querySelectorAll('.filter-cb').forEach(cb => {
+            if (cb !== checkboxInput) cb.checked = false;
+        });
+    }
+
+    const finalType = checkboxInput.checked ? filterType : 'all';
+    console.log("👉 ĐANG LỌC THEO:", finalType); // Kiểm tra xem nhận đúng số 5 chưa
+
+    // 2. Logic Ẩn/Hiện
+    const reviews = document.querySelectorAll('.review-item');
+
+    if (reviews.length === 0) {
+        console.error("❌ Không tìm thấy thẻ nào có class '.review-item'. Kiểm tra lại HTML!");
+        return;
+    }
+
+    let countVisible = 0;
+
+    reviews.forEach((review, index) => {
+        // Lấy dữ liệu từ HTML
+        const starAttr = review.getAttribute('data-star');
+        const mediaAttr = review.getAttribute('data-has-media');
+
+        // Debug từng dòng review
+        // console.log(`Review ${index}: Star=${starAttr}, Media=${mediaAttr}`);
+
+        const starRating = parseInt(starAttr);
+        const hasMedia = (mediaAttr === 'true');
+
+        let shouldShow = false;
+
+        if (finalType === 'all') {
+            shouldShow = true;
+        } else if (finalType === 'media') {
+            shouldShow = hasMedia;
+        } else {
+            // So sánh số với số
+            shouldShow = (starRating === parseInt(finalType));
+        }
+
+        if (shouldShow) {
+            review.style.display = 'block'; // Hiện
+            // Hiệu ứng fade in
+            review.classList.remove('animate__fadeIn');
+            void review.offsetWidth;
+            review.classList.add('animate__animated', 'animate__fadeIn');
+            countVisible++;
+        } else {
+            review.style.display = 'none'; // Ẩn
+        }
+    });
+
+    console.log(`✅ Kết quả: Hiển thị ${countVisible} / ${reviews.length} đánh giá.`);
+}
+

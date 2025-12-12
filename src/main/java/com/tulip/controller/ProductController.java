@@ -2,8 +2,11 @@ package com.tulip.controller;
 
 import com.tulip.dto.ProductCardDTO;
 import com.tulip.dto.ProductDetailDTO;
+import com.tulip.dto.RatingDTO;
+import com.tulip.dto.RatingSummaryDTO;
 import com.tulip.repository.CategoryRepository;
 import com.tulip.service.ProductService;
+import com.tulip.service.RatingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,6 +23,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
+    private final RatingService ratingService;
 
     // --- CHI TIẾT SẢN PHẨM ---
     @GetMapping("/product/{id}")
@@ -29,6 +33,13 @@ public class ProductController {
             model.addAttribute("product", productDTO);
             // Dữ liệu này sẽ được JS dùng để xử lý logic chọn màu/size
             model.addAttribute("productJson", productDTO);
+
+            List<RatingDTO> reviews = ratingService.getRatingsByProduct(id);
+            RatingSummaryDTO ratingSummary = ratingService.getRatingSummary(id);
+
+            model.addAttribute("reviews", reviews);
+            model.addAttribute("ratingSummary", ratingSummary);
+
             return "product-detail";
         } catch (RuntimeException e) {
             return "redirect:/products";
