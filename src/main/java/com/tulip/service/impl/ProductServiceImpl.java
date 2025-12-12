@@ -102,43 +102,51 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductDetailDTO getProductDetail(Long productId) {
+        // 1. Tìm sản phẩm
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-
+        // 2. Lấy danh sách tất cả các size để hiển thị
         List<String> allSizeCodes = sizeRepository.findAll().stream()
                 .sorted(Comparator.comparingInt(Size::getSortOrder))
                 .map(Size::getCode)
                 .collect(Collectors.toList());
 
+        // 3. Map dữ liệu Variant (Màu sắc) và Stock (Kho hàng)
         List<ProductVariantDTO> variantDTOs = product.getVariants().stream().map(variant -> {
-            // Key là Size Code (S, M...), Value là số lượng
-            Map<String, Integer> stockMap = new HashMap<>();
-            // Key là Size Code (S, M...), Value là stockId
-            Map<String, Long> stockIdsMap = new HashMap<>();
-            variant.getStocks().forEach(stock -> {
-                stockMap.put(stock.getSize().getCode(), stock.getQuantity());
-                stockIdsMap.put(stock.getSize().getCode(), stock.getId());
-            });
 
+            // --- PHẦN QUAN TRỌNG: Map Size -> {StockId, Quantity} ---
+            Map<String, ProductVariantDTO.StockInfo> stockMap = new HashMap<>();
+
+            variant.getStocks().forEach(stock ->
+                    stockMap.put(
+                            stock.getSize().getCode(),
+                            // Lưu cả ID để nút Mua hàng dùng
+                            new ProductVariantDTO.StockInfo(stock.getId(), stock.getQuantity())
+                    )
+            );
+
+            // Lấy danh sách ảnh
             List<String> images = variant.getImages().stream()
                     .map(ProductVariantImage::getImageUrl)
                     .collect(Collectors.toList());
 
+            // Trả về DTO
             return ProductVariantDTO.builder()
                     .id(variant.getId())
                     .colorName(variant.getColorName())
                     .colorCode(variant.getColorCode())
-                    .price(product.getBasePrice()) // Có thể lấy variant.getPrice() nếu giá khác nhau
+                    .price(product.getBasePrice())
                     .images(images)
-                    .stockBySize(stockMap)
-                    .stockIdsBySize(stockIdsMap)
+                    .stockBySize(stockMap) // Map này giờ đã chứa StockId
                     .build();
         }).collect(Collectors.toList());
 
+        // 4. Trả về kết quả cuối cùng
         return ProductDetailDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
+                // Logic tạo SKU hiển thị
                 .sku(product.getVariants().isEmpty() || product.getVariants().get(0).getStocks().isEmpty()
                         ? "SKU-" + product.getId()
                         : product.getVariants().get(0).getStocks().get(0).getSku().split("-")[0] + "-" + product.getId())
