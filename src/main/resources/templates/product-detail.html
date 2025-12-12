@@ -143,6 +143,162 @@
     </div>
 </div>
 
+<div class="container my-5 review-section" id="reviewSection">
+    <div class="row">
+        <div class="col-lg-4 pe-lg-5 mb-4 mb-lg-0">
+            <h2 class="text-uppercase fw-bold mb-4" style="font-family: 'Inter', sans-serif;">ĐÁNH GIÁ<br>SẢN PHẨM</h2>
+
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <span class="display-4 fw-bold" th:text="${ratingSummary.averageRating}">5</span>
+                <div>
+                    <div class="text-warning fs-5">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <div class="text-muted small mt-1">Dựa trên <span th:text="${ratingSummary.totalReviews}">0</span> đánh giá</div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold mb-3">Phù hợp với cơ thể</h6>
+                <div class="fit-progress mb-2">
+                    <div class="row align-items-center g-0 text-muted small">
+                        <div class="col-3">Chật</div>
+                        <div class="col-8 px-2"><div class="progress" style="height: 6px;"><div class="progress-bar bg-dark" style="width: 0%"></div></div></div>
+                        <div class="col-1 text-end">0%</div>
+                    </div>
+                </div>
+                <div class="fit-progress mb-2">
+                    <div class="row align-items-center g-0 text-muted small">
+                        <div class="col-3">Đúng kích thước</div>
+                        <div class="col-8 px-2"><div class="progress" style="height: 6px;"><div class="progress-bar bg-dark" style="width: 100%"></div></div></div>
+                        <div class="col-1 text-end">100%</div>
+                    </div>
+                </div>
+                <div class="fit-progress mb-2">
+                    <div class="row align-items-center g-0 text-muted small">
+                        <div class="col-3">Rộng</div>
+                        <div class="col-8 px-2"><div class="progress" style="height: 6px;"><div class="progress-bar bg-dark" style="width: 0%"></div></div></div>
+                        <div class="col-1 text-end">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold small text-muted">Lọc đánh giá</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 rounded-end-pill shadow-none" placeholder="Tìm kiếm đánh giá">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-muted small mb-3">Phân loại xếp hạng</h6>
+                <div class="d-flex flex-column gap-2">
+                    <label class="d-flex align-items-center cursor-pointer">
+                        <input type="checkbox" class="form-check-input mt-0 me-2 filter-cb"
+                               onchange="toggleFilter(5, this)">
+
+                        <span class="me-2 small fw-bold">5</span>
+                        <div class="text-warning small"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </label>
+
+                    <label class="d-flex align-items-center cursor-pointer">
+                        <input type="checkbox" class="form-check-input mt-0 me-2 filter-cb"
+                               onchange="toggleFilter(4, this)">
+                        <span class="me-2 small fw-bold">4</span>
+                        <div class="small"><span class="text-warning"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span><span class="text-muted"><i class="fas fa-star"></i></span></div>
+                    </label>
+
+                    <label class="d-flex align-items-center cursor-pointer">
+                        <input type="checkbox" class="form-check-input mt-0 me-2 filter-cb"
+                               onchange="toggleFilter(3, this)">
+                        <span class="me-2 small fw-bold">3</span>
+                        <div class="small"><span class="text-warning"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span><span class="text-muted"><i class="fas fa-star"></i><i class="fas fa-star"></i></span></div>
+                    </label>
+
+                    <label class="d-flex align-items-center cursor-pointer mt-2">
+                        <input type="checkbox" class="form-check-input mt-0 me-2 filter-cb"
+                               onchange="toggleFilter('media', this)">
+                        <span class="small">Có Bình luận/Ảnh</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="text-primary small fw-bold mb-4">
+                <i class="fas fa-check-circle me-1"></i> Các review đều đến từ khách hàng đã thực sự mua hàng
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <span class="text-muted small">Hiển thị đánh giá <strong>1-<span th:text="${reviews.size()}">10</span></strong></span>
+                <div class="dropdown">
+                    <button class="btn btn-white border rounded-pill shadow-sm btn-sm px-3 fw-bold" type="button" data-bs-toggle="dropdown">
+                        Sắp xếp <i class="fas fa-chevron-down ms-1 text-muted" style="font-size: 10px;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                        <li><a class="dropdown-item" href="#">Mới nhất</a></li>
+                        <li><a class="dropdown-item" href="#">Cũ nhất</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="review-list">
+                <div class="card border-0 shadow-sm mb-3 review-card review-item"
+                     th:each="review : ${reviews}"
+                     th:data-star="${review.stars}"
+                     th:data-has-media="${!#lists.isEmpty(review.images)}">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold" th:text="${review.userName}">iammyivu</span>
+                                <span class="text-muted small">• <span th:text="${review.timeAgo}">28/10/2025</span></span>
+                            </div>
+                            <div class="text-muted fst-italic small">
+                                Đã xác thực từ <span class="fw-bold text-dark fst-normal"><i class="fas fa-shopping-bag me-1"></i> Tulip Shop</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 text-dark" style="font-size: 10px;">
+                            <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, review.stars)}"></i>
+                            <i class="far fa-star text-muted" th:each="i : ${#numbers.sequence(review.stars + 1, 5)}" th:if="${review.stars < 5}"></i>
+                        </div>
+
+                        <div class="mb-3 small text-muted">
+                            <span th:if="${review.variantInfo}" th:utext="${#strings.replace(review.variantInfo, ',', '</span> &nbsp;|&nbsp; <span>')}"></span>
+                        </div>
+
+                        <p class="text-dark mb-3" style="font-size: 14px;" th:text="${review.content}">Nội dung đánh giá...</p>
+
+                        <div class="d-flex gap-2" th:if="${!review.images.isEmpty()}">
+                            <img th:each="img : ${review.images}"
+                                 th:src="${img}"
+                                 class="rounded border"
+                                 style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+                                 onclick="zoomReviewImage(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${reviews.isEmpty()}" class="text-center py-5 text-muted bg-light rounded">
+                    <p>Chưa có đánh giá nào.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reviewImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-body p-0 text-center position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                <img src="" id="reviewImageZoom" class="img-fluid rounded shadow-lg" style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script th:inline="javascript">
