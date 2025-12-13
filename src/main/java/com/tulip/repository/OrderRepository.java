@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    // Lấy danh sách đơn hàng của 1 user (để hiển thị lịch sử mua hàng)
+    // Lấy danh sách đơn hàng của 1 user (để làm trang lịch sử mua hàng sau này)
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
 }
