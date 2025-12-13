@@ -18,4 +18,7 @@ public interface ProductService {
     void updateVariantStock(Long variantId, Map<String, Integer> stockData);
     void deleteVariant(Long variantId);
     void CreateFullProduct(ProductCompositeDTO dto);
+    List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId);
+    List<ProductCardDTO> getViewedProducts(List<Long> productIds);
+
 }
