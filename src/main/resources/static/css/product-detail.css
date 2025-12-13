@@ -285,3 +285,97 @@ body {
 .text-primary {
     color: #1d4ed8 !important; /* Màu xanh của text "đã mua hàng" */
 }
+
+/* --- Product Card Styles --- */
+
+/* 1. Cờ giảm giá (Flag Shape) */
+.product-sale-flag {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: 40px;
+    height: 45px;
+    background-color: #D32F2F; /* Đỏ đậm */
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 10px; /* Đẩy chữ lên trên phần cắt */
+    z-index: 9;
+    /* Tạo hình đuôi cá (Swallowtail) */
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+
+.pro-name a {
+    font-family: 'TMTD Balerno', Times, serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+
+    /* Logic ngắt dòng */
+    display: block;
+    white-space: nowrap;      /* Bắt buộc 1 dòng */
+    overflow: hidden;         /* Ẩn phần thừa */
+    text-overflow: ellipsis;  /* Thêm dấu ... */
+
+    transition: color 0.2s;
+}
+
+.pro-name a:hover {
+    color: #D32F2F; /* Hover màu đỏ */
+}
+
+/* 3. Giá: Màu đỏ */
+.price-font {
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif; /* Số dùng font sans cho rõ */
+    color: #D32F2F !important; /* Đỏ */
+}
+
+/* Căn lề trái nội dung */
+.box-pro-detail {
+    text-align: left !important;
+}
+
+/* Swatch màu (Chấm tròn nhỏ) */
+.swatch-element {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+
+    /* Viền ngoài màu xám */
+    border: 1px solid #ccc;
+    border-radius: 50%;
+
+    /* Tạo khoảng trắng giữa viền xám và chấm màu (Viền trong) */
+    padding: 2px;
+    background-color: #fff;
+
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.swatch-element:hover {
+    border-color: #333; /* Đổi màu viền ngoài khi hover */
+    transform: scale(1.1);
+}
+
+.color-dot {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    /* Màu nền sẽ được set inline từ HTML */
+    border: 1px solid rgba(0,0,0,0.05); /* Viền mờ nhẹ cho chấm màu nhạt như trắng */
+}
+
+/* Wishlist Hover */
+.btn-add-wl i { transition: 0.3s; }
+.btn-add-wl:hover i {
+    font-weight: 900;
+    color: #D32F2F !important;
+    transform: scale(1.1);
+}

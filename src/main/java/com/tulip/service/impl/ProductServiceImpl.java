@@ -102,47 +102,40 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductDetailDTO getProductDetail(Long productId) {
-        // 1. Tìm sản phẩm
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-        // 2. Lấy danh sách tất cả các size để hiển thị
         List<String> allSizeCodes = sizeRepository.findAll().stream()
                 .sorted(Comparator.comparingInt(Size::getSortOrder))
                 .map(Size::getCode)
                 .collect(Collectors.toList());
 
-        // 3. Map dữ liệu Variant (Màu sắc) và Stock (Kho hàng)
         List<ProductVariantDTO> variantDTOs = product.getVariants().stream().map(variant -> {
 
-            // --- PHẦN QUAN TRỌNG: Map Size -> {StockId, Quantity} ---
             Map<String, ProductVariantDTO.StockInfo> stockMap = new HashMap<>();
 
             variant.getStocks().forEach(stock ->
                     stockMap.put(
                             stock.getSize().getCode(),
-                            // Lưu cả ID để nút Mua hàng dùng
                             new ProductVariantDTO.StockInfo(stock.getId(), stock.getQuantity())
                     )
             );
 
-            // Lấy danh sách ảnh
             List<String> images = variant.getImages().stream()
                     .map(ProductVariantImage::getImageUrl)
                     .collect(Collectors.toList());
 
-            // Trả về DTO
             return ProductVariantDTO.builder()
                     .id(variant.getId())
                     .colorName(variant.getColorName())
                     .colorCode(variant.getColorCode())
                     .price(product.getBasePrice())
                     .images(images)
-                    .stockBySize(stockMap) // Map này giờ đã chứa StockId
+                    .stockBySize(stockMap)
                     .build();
         }).collect(Collectors.toList());
 
-        // 4. Trả về kết quả cuối cùng
+
         return ProductDetailDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -153,6 +146,7 @@ public class ProductServiceImpl implements ProductService {
                 .description(product.getDescription())
                 .basePrice(product.getBasePrice())
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : "")
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : 0)
                 .allSizes(allSizeCodes)
                 .variants(variantDTOs)
                 .build();
@@ -347,5 +341,35 @@ public class ProductServiceImpl implements ProductService {
     public void deleteVariant(Long variantId) {
         variantRepository.deleteById(variantId);
     }
+
+
+    public List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId){
+        List<Product> products = productRepository.findTop5ByCategoryIdAndIdNot(categoryId, currentProductId);
+        return products.stream()
+                .map(this::convertToCardDTO)
+                .collect(Collectors.toList());
+
+    }
+
+    public List<ProductCardDTO> getViewedProducts(List<Long> productIds){
+        if (productIds == null || productIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Product> products = productRepository.findAllById(productIds);
+
+        // Sắp xếp lại theo thứ tự mới nhất lên đầu
+        Map<Long, Product> productMap = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductCardDTO> result = new ArrayList<>();
+        for (Long id : productIds){
+            if (productMap.containsKey(id)) {
+                result.add(convertToCardDTO(productMap.get(id)));
+            }
+        }
+        return result;
+
+    }
+
 
 }

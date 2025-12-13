@@ -14,6 +14,7 @@ public class ProductDetailDTO {
     private String description;
     private BigDecimal basePrice;
     private String categoryName;
+    private Long  categoryId;
 
     // Danh sách tất cả các size có thể có (S, M, L, XL)
     private List<String> allSizes;

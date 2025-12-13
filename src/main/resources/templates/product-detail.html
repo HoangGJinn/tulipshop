@@ -288,16 +288,121 @@
     </div>
 </div>
 
-<div class="modal fade" id="reviewImageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content bg-transparent border-0">
-            <div class="modal-body p-0 text-center position-relative">
-                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-                <img src="" id="reviewImageZoom" class="img-fluid rounded shadow-lg" style="max-height: 80vh;">
+
+<div class="container my-5" th:if="${not #lists.isEmpty(relatedProducts)}">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h4 class="text-uppercase fw-bold m-0 font-serif ls-1">Sản phẩm tương tự</h4>
+        <a href="/products" class="text-muted text-decoration-none small hover-red">Xem thêm <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+    <div class="row product-list">
+        <div class="col-6 col-md-3 pro-loop mb-4" th:each="prod : ${relatedProducts}">
+
+            <div class="product-block product-resize h-100 position-relative">
+
+                <div class="product-sale-flag" th:if="${prod.discountPercent != null && prod.discountPercent > 0}">
+                    <span th:text="'-' + ${prod.discountPercent} + '%'">-10%</span>
+                </div>
+
+                <div class="product-wl position-absolute top-0 end-0 p-2" style="z-index: 5;">
+                    <span class="btn-add-wl" onclick="toggleWishlist(this)" style="cursor: pointer;">
+                        <i class="far fa-heart text-dark fs-5"></i>
+                    </span>
+                </div>
+
+                <a th:href="@{/product/{id}(id=${prod.id})}" class="image-resize ratiobox d-block position-relative" style="padding-top: 133%;">
+                    <img class="img-loop lazyload position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
+                         th:src="${prod.thumbnail}"
+                         th:id="'img-related-' + ${prod.id}">
+
+                    <img th:if="${!prod.colorImages.isEmpty()}"
+                         th:src="${prod.colorImages[0]}"
+                         class="img-loop img-hover position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
+                         style="opacity: 0; transition: opacity 0.3s;">
+                </a>
+
+                <div class="product-detail pt-3">
+                    <div class="box-pro-detail text-start"> <div class="pro-name mb-1">
+                        <a th:href="@{/product/{id}(id=${prod.id})}"
+                           class="text-decoration-none"
+                           th:text="${prod.name}"
+                           th:title="${prod.name}">
+                            Tên sản phẩm
+                        </a>
+                    </div>
+
+                        <div class="box-pro-prices mb-2">
+                            <p class="pro-price highlight m-0">
+                                <span class="fw-bold price-font" th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                                <span class="pro-price-del text-muted small ms-2" th:if="${prod.originalPrice != null}">
+                                    <del class="compare-price" th:text="${#numbers.formatDecimal(prod.originalPrice, 0, 'COMMA', 0, 'POINT') + '₫'}"></del>
+                                </span>
+                            </p>
+                        </div>
+
+                        <div class="swatch-loop d-flex justify-content-start gap-2" th:if="${!prod.colorCodes.isEmpty()}">
+                            <div th:each="code, iter : ${prod.colorCodes}"
+                                 class="swatch-element"
+                                 th:data-img="${prod.colorImages[iter.index]}"
+                                 th:data-target="'img-related-' + ${prod.id}"
+                                 onmouseover="previewColor(this)">
+                                <span class="color-dot" th:style="'background-color:' + ${code}"></span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
 </div>
+
+<div class="container my-5" th:if="${not #lists.isEmpty(viewedProducts)}">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h4 class="text-uppercase fw-bold m-0 font-serif ls-1">Sản phẩm bạn đã xem</h4>
+    </div>
+
+    <div class="row product-list">
+        <div class="col-6 col-md-2 pro-loop mb-4" th:each="prod : ${viewedProducts}">
+
+            <div class="product-block product-resize h-100 position-relative">
+
+                <div class="product-sale-flag" style="transform: scale(0.8); transform-origin: top left;" th:if="${prod.discountPercent != null && prod.discountPercent > 0}">
+                    <span th:text="'-' + ${prod.discountPercent} + '%'">-10%</span>
+                </div>
+
+                <a th:href="@{/product/{id}(id=${prod.id})}" class="image-resize ratiobox d-block position-relative" style="padding-top: 133%;">
+                    <img class="img-loop lazyload position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
+                         th:src="${prod.thumbnail}"
+                         th:id="'img-viewed-' + ${prod.id}">
+                </a>
+
+                <div class="product-detail pt-2">
+                    <div class="box-pro-detail text-start">
+                        <div class="pro-name mb-1">
+                            <a th:href="@{/product/{id}(id=${prod.id})}"
+                               class="text-decoration-none"
+                               style="font-size: 14px;"
+                               th:text="${prod.name}"
+                               th:title="${prod.name}">
+                                Tên SP
+                            </a>
+                        </div>
+                        <div class="box-pro-prices">
+                            <p class="pro-price highlight m-0">
+                                <span class="fw-bold price-font" style="font-size: 14px;" th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
