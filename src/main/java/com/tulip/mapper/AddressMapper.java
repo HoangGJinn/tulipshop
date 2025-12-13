@@ -8,21 +8,22 @@ import org.springframework.stereotype.Component;
 public class AddressMapper {
 
     public UserAddressDTO toDTO(UserAddress address) {
-
         if (address == null) {
             return null;
         }
 
+        // Logic an toàn: Nếu null thì trả về chuỗi rỗng ""
         return UserAddressDTO.builder()
                 .id(address.getId())
-                .recipientName(address.getRecipientName())
-                .recipientPhone(address.getRecipientPhone())
-                .addressLine(address.getAddressLine())
-                .village(address.getVillage())
-                .district(address.getDistrict())
-                .province(address.getProvince())
-                .isDefault(address.getIsDefault())
-                .fullAddress(address.getFullAddress())
+                .recipientName(address.getRecipientName() != null ? address.getRecipientName() : "")
+                .recipientPhone(address.getRecipientPhone() != null ? address.getRecipientPhone() : "")
+                .addressLine(address.getAddressLine() != null ? address.getAddressLine() : "")
+                .village(address.getVillage() != null ? address.getVillage() : "")
+                .district(address.getDistrict() != null ? address.getDistrict() : "")
+                .province(address.getProvince() != null ? address.getProvince() : "")
+                .isDefault(address.getIsDefault() != null ? address.getIsDefault() : false)
+                // Gọi getFullAddress() an toàn
+                .fullAddress(address.getFullAddress() != null ? address.getFullAddress() : "")
                 .build();
     }
 
@@ -47,13 +48,12 @@ public class AddressMapper {
             return;
         }
 
-        address.setRecipientName(dto.getRecipientName());
-        address.setRecipientPhone(dto.getRecipientPhone());
-        address.setAddressLine(dto.getAddressLine());
-        address.setVillage(dto.getVillage());
-        address.setDistrict(dto.getDistrict());
-        address.setProvince(dto.getProvince());
-        address.setIsDefault(dto.getIsDefault() != null ? dto.getIsDefault() : false);
+        if (dto.getRecipientName() != null) address.setRecipientName(dto.getRecipientName());
+        if (dto.getRecipientPhone() != null) address.setRecipientPhone(dto.getRecipientPhone());
+        if (dto.getAddressLine() != null) address.setAddressLine(dto.getAddressLine());
+        if (dto.getVillage() != null) address.setVillage(dto.getVillage());
+        if (dto.getDistrict() != null) address.setDistrict(dto.getDistrict());
+        if (dto.getProvince() != null) address.setProvince(dto.getProvince());
+        if (dto.getIsDefault() != null) address.setIsDefault(dto.getIsDefault());
     }
 }
-
