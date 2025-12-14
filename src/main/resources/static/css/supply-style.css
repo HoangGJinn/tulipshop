@@ -1,0 +1,885 @@
+/* ============================================
+   SHOPIFY SUPPLY STYLE - HORIZONTAL SCROLL EXPERIENCE
+   ============================================ */
+
+/* CSS Variables */
+:root {
+    --bg-dark: #000000;
+    --bg-darker: #0a0a0a;
+    --text-light: #ffffff;
+    --text-gray: #cccccc;
+    --grid-color: rgba(255, 255, 255, 0.03);
+    --spacing-xs: 10px;
+    --spacing-sm: 20px;
+    --spacing-md: 40px;
+    --spacing-lg: 80px;
+    --spacing-xl: 120px;
+    --font-condensed: 'Oswald', 'Impact', 'Arial Black', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'Space Mono', 'Courier New', monospace;
+}
+
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: auto;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   HEADER NAVIGATION
+   ============================================ */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.3s ease;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) var(--spacing-md);
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.logo a {
+    font-family: var(--font-condensed);
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    text-decoration: none;
+    transition: opacity 0.3s;
+}
+
+.logo a:hover {
+    opacity: 0.7;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: var(--spacing-md);
+}
+
+.nav-links a {
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: opacity 0.3s;
+}
+
+.nav-links a:hover {
+    opacity: 0.7;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.cart-link {
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    position: relative;
+}
+
+.cart-count {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 6px;
+    background: var(--text-light);
+    color: var(--bg-dark);
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* ============================================
+   MAIN CONTENT - HORIZONTAL WRAPPER
+   ============================================ */
+.main-content {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* Horizontal Container - 3x screen width (hero + 2 product slides) */
+.horizontal-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 300vw; /* 3 times screen width: 100vw hero + 200vw products */
+    height: 100vh;
+    position: relative;
+    will-change: transform;
+}
+
+/* ============================================
+   SECTION 1: HERO - PERFORMANCE PACK COVER
+   ============================================ */
+.hero-section {
+    min-width: 100vw; /* First 100vw */
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--bg-dark);
+}
+
+.hero-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+    gap: 0;
+}
+
+/* Background Grid Pattern */
+.grid-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Layer 1: Back Images (z-index: 1-5) - Behind Text, Initially Stacked at Center */
+.layer-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.layer-back .hero-image {
+    position: absolute;
+    overflow: hidden;
+    will-change: transform;
+    /* Initial State: All images centered and stacked */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%;
+    height: 40%;
+    z-index: 1;
+}
+
+/* Back Image Z-Index Layering (stacked effect) */
+.image-back-1 {
+    z-index: 1;
+}
+
+.image-back-2 {
+    z-index: 2;
+}
+
+.image-back-3 {
+    z-index: 3;
+}
+
+.layer-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Layer 2: Text (z-index: 10) - Centered, Overlapping */
+.layer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+    mix-blend-mode: exclusion; /* White text becomes dark over white images */
+    will-change: transform, opacity;
+}
+
+.hero-title {
+    font-family: var(--font-condensed);
+    font-size: clamp(60px, 15vw, 200px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -2px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    margin: 0;
+    white-space: nowrap;
+    will-change: transform, opacity;
+    display: block;
+}
+
+.hero-title-1 {
+    margin-bottom: -20px;
+}
+
+.hero-title-2 {
+    font-size: clamp(50px, 12vw, 180px);
+}
+
+/* Layer 3: Front Images (z-index: 4-5) - In Front of Text, Initially Stacked at Center */
+.layer-front {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+}
+
+.layer-front .hero-image {
+    position: absolute;
+    overflow: hidden;
+    will-change: transform;
+    /* Initial State: All images centered and stacked */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%;
+    height: 40%;
+    z-index: 4;
+}
+
+/* Front Image Z-Index Layering (stacked effect) */
+.image-front-1 {
+    z-index: 4;
+}
+
+.image-front-2 {
+    z-index: 5;
+}
+
+.image-front-3 {
+    z-index: 6;
+}
+
+.layer-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ============================================
+   SECTION 2: PRODUCT SLIDES - SPLIT LAYOUT
+   ============================================ */
+.product-slide {
+    min-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--bg-dark);
+    overflow: hidden;
+}
+
+/* ============================================
+   LEFT COLUMN: SHOWCASE
+   ============================================ */
+.showcase-col {
+    position: relative;
+    background: #f7f7f7;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    padding: var(--spacing-md);
+}
+
+/* Grid Pattern Background */
+.bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: url('data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0V0zm1 1h38v38H1V1z\' fill=\'%23333\' fill-opacity=\'0.1\' fill-rule=\'evenodd\'/%3E%3C/svg%3E');
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Crosshair Lines */
+.crosshair-line {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.crosshair-horizontal {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--bg-dark);
+    transform: translateY(-50%);
+}
+
+.crosshair-diagonal {
+    top: 66.66%;
+    left: 33.33%;
+    width: 100%;
+    height: 1px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.3);
+    transform: rotate(-45deg);
+    transform-origin: left center;
+}
+
+.crosshair-diagonal::before {
+    content: '+';
+    position: absolute;
+    top: -13px;
+    left: -13px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--text-light);
+    font-weight: 300;
+}
+
+/* Background Text "SHOPIFY" */
+.bg-text {
+    position: absolute;
+    top: 33.33%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-condensed);
+    font-size: clamp(60px, 8vw, 120px);
+    font-weight: 900;
+    font-style: italic;
+    color: var(--text-light);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    z-index: 2;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.2);
+    text-stroke: 1px rgba(0, 0, 0, 0.2);
+    opacity: 0.8;
+}
+
+/* Product Cutout Image */
+.product-cutout-wrapper {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    transition: transform 0.5s ease;
+}
+
+.product-cutout-wrapper:hover {
+    transform: scale(1.05);
+}
+
+.product-cutout {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    filter: contrast(1.1) brightness(1.1);
+    mix-blend-mode: multiply;
+    border-radius: 8px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* 3D Canvas Container */
+.canvas-container {
+    width: 100%;
+    height: 800px;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: transparent;
+}
+
+.canvas-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Product Info Top Right */
+.product-info-top {
+    position: absolute;
+    top: var(--spacing-lg);
+    right: var(--spacing-md);
+    z-index: 4;
+    text-align: right;
+}
+
+.product-title {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 400;
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+    color: var(--bg-dark);
+}
+
+.product-price-top {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(16px, 1.8vw, 20px);
+    margin-bottom: var(--spacing-md);
+    color: #666;
+}
+
+.quick-view-btn-showcase {
+    background: #EFECE6;
+    color: var(--bg-dark);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 12px 24px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.quick-view-btn-showcase:hover {
+    background: var(--text-light);
+}
+
+/* Shop All Spinner */
+.shop-all-spinner {
+    position: absolute;
+    bottom: var(--spacing-md);
+    left: var(--spacing-md);
+    width: 96px;
+    height: 96px;
+    z-index: 4;
+}
+
+.spinner-svg {
+    width: 100%;
+    height: 100%;
+    animation: spin-slow 20s linear infinite;
+}
+
+.spinner-text {
+    fill: #666;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+}
+
+@keyframes spin-slow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RIGHT COLUMN: LIFESTYLE
+   ============================================ */
+/* Cập nhật container để căn giữa hình vuông */
+.lifestyle-col {
+    position: relative;
+    background: #1a1a1a;
+    overflow: hidden;
+    height: 100%;
+    /* Thêm Flexbox để căn giữa tấm hình vuông */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 0;
+}
+
+/* Cập nhật hình ảnh thành hình vuông nhỏ */
+.model-bg {
+    position: relative; /* Đổi từ absolute sang relative */
+    width: 350px;       /* Kích thước cố định (bạn có thể chỉnh to nhỏ tùy ý) */
+    height: 350px;      /* Giữ height bằng width để thành hình vuông */
+    object-fit: cover;
+    border-radius: 20px; /* Bo góc cho mềm mại */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Tạo bóng đổ để hình nổi lên */
+    z-index: 1;
+    /* Xóa các thuộc tính cũ gây tràn màn hình */
+    inset: auto;
+}
+
+.gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 50%, transparent 100%);
+    z-index: 1;
+}
+
+/* Marquee Text */
+.marquee-container {
+    position: absolute;
+    top: var(--spacing-md);
+    left: -10%;
+    right: -10%;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.marquee-text {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: ticker 20s linear infinite;
+}
+
+.marquee-text span {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(80px, 10vw, 160px);
+    font-weight: 900;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    padding-right: 2em;
+}
+
+@keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Number Badge */
+.number-badge {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    z-index: 3;
+}
+
+.number-border {
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 24px;
+    font-style: italic;
+    color: var(--text-light);
+}
+
+.number-text {
+    font-weight: 700;
+    font-size: 36px;
+    font-style: italic;
+    color: var(--text-light);
+    opacity: 0.8;
+}
+
+/* Lifestyle Hotspot */
+.hotspot-lifestyle {
+    position: absolute;
+    top: 66.66%;
+    left: 33.33%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 3;
+}
+
+.hotspot-dot-lifestyle {
+    width: 16px;
+    height: 16px;
+    background: var(--text-light);
+    border-radius: 50%;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 10;
+    transition: transform 0.3s;
+}
+
+.hotspot-lifestyle:hover .hotspot-dot-lifestyle {
+    transform: scale(1.25);
+}
+
+.hotspot-pulse {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+    75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Glass Card */
+.glass-card {
+    position: absolute;
+    bottom: var(--spacing-md);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 3;
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.glass-card-thumbnail {
+    width: 64px;
+    height: 64px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glass-card-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.glass-card-info {
+    flex-grow: 1;
+}
+
+.glass-card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+    transition: color 0.3s;
+}
+
+.glass-card:hover .glass-card-title {
+    color: var(--text-light);
+}
+
+.glass-card-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.glass-card-icon {
+    color: var(--text-light);
+    opacity: 0.5;
+    transition: all 0.3s;
+    font-size: 20px;
+}
+
+.glass-card:hover .glass-card-icon {
+    opacity: 1;
+    transform: translate(4px, -4px);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.main-footer {
+    position: relative;
+    padding: var(--spacing-xl) var(--spacing-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-dark);
+    z-index: 100;
+}
+
+.footer-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.footer-content p {
+    font-size: 14px;
+    color: var(--text-gray);
+    margin-bottom: var(--spacing-sm);
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--text-light);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1024px) {
+    .horizontal-wrapper {
+        width: 300vw; /* 3 slides: hero + 2 products */
+    }
+
+    .product-slide {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .showcase-col {
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .image-back-1,
+    .image-back-2,
+    .image-back-3,
+    .image-front-1,
+    .image-front-2,
+    .image-front-3 {
+        width: 35%;
+        height: 30%;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-nav {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .nav-links {
+        gap: var(--spacing-sm);
+    }
+
+    .nav-links a,
+    .cart-link {
+        font-size: 12px;
+    }
+
+    .hero-title {
+        font-size: clamp(40px, 20vw, 120px);
+    }
+
+    .product-slide {
+        grid-template-columns: 1fr;
+    }
+
+    .marquee-text span {
+        font-size: clamp(60px, 8vw, 120px);
+    }
+
+    .glass-card {
+        width: 95%;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: clamp(30px, 18vw, 80px);
+    }
+
+    .product-card {
+        width: 250px;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.parallax-item {
+    will-change: transform;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button {
+    transition: all 0.3s ease;
+}
+
+/* Hide scrollbar but keep functionality */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

@@ -1,82 +1,428 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/header :: head('Tulip Shop - Trang chủ')}"></head>
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tulip Shop - Performance Collection</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/supply-style.css}">
+    
+    <!-- Google Fonts - Condensed Sans-serif for Impact-style typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- Lenis Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    
+    <!-- Three.js (ES Modules) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
 <body>
-    <!-- Header -->
-    <div th:replace="~{fragments/header :: header}"></div>
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <nav class="header-nav">
+            <div class="logo">
+                <a href="/">TULIP SHOP</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/products">Shop</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="header-actions">
+                <a href="/cart" class="cart-link">Cart <span class="cart-count">0</span></a>
+            </div>
+        </nav>
+    </header>
 
-    <!-- Main Content -->
+    <!-- Main Horizontal Container -->
     <main class="main-content">
-        <!-- Banner/Slider Section -->
-        <th:block th:replace="~{fragments/banner-category :: hero-slider}"></th:block>
+        <div id="main-container" class="horizontal-wrapper">
+            <!-- Section 1: Hero - Performance Pack Cover -->
+            <section class="hero-section" id="hero">
+                <div class="hero-container">
+                    <!-- Background Grid Pattern -->
+                    <div class="grid-pattern"></div>
+                    
+                    <!-- Layer 1: Back Images (z-index: 5) - Behind Text -->
+                    <div class="layer-back">
+                        <figure class="hero-image image-back-1">
+                            <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=1000&fit=crop" alt="Fashion Model 1" loading="lazy">
+                        </figure>
+                        <figure class="hero-image image-back-2">
+                            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1200&fit=crop" alt="Fashion Model 2" loading="lazy">
+                        </figure>
+                        <figure class="hero-image image-back-3">
+                            <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&h=800&fit=crop" alt="Fashion Model 3" loading="lazy">
+                        </figure>
+                    </div>
 
-        <!-- Category Section -->
-        <th:block th:replace="~{fragments/banner-category :: category-section}" 
-                  th:with="categoryTitle='Danh mục sản phẩm', categoryStyle='grid', categories=${homeCategories != null ? homeCategories : []}"></th:block>
+                    <!-- Layer 2: Text (z-index: 10) - Centered, Overlapping -->
+                    <div class="layer-text">
+                        <h1 class="hero-title hero-title-1">PERFORMANCE</h1>
+                        <h1 class="hero-title hero-title-2">PACK</h1>
+                    </div>
 
-        <!-- Featured Products Section -->
-        <section class="featured-section">
-            <div class="container">
-                <h2 class="section-title">Sản phẩm nổi bật</h2>
-                <div class="products-grid">
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 1</h3>
-                            <p class="product-price">500.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
+                    <!-- Layer 3: Front Images (z-index: 15) - In Front of Text -->
+                    <div class="layer-front">
+                        <figure class="hero-image image-front-1">
+                            <img src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=700&h=900&fit=crop" alt="Fashion Model 4" loading="lazy">
+                        </figure>
+                        <figure class="hero-image image-front-2">
+                            <img src="https://images.unsplash.com/photo-1594633313593-bab3825d0caf?w=700&h=1000&fit=crop" alt="Fashion Model 5" loading="lazy">
+                        </figure>
+                        <figure class="hero-image image-front-3">
+                            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=800&fit=crop" alt="Fashion Model 6" loading="lazy">
+                        </figure>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Product Slides - Split Layout Design -->
+            <!-- Product Slide 1: The MVP Crew -->
+            <section class="product-slide" data-product="1">
+                <!-- Left Column: Showcase -->
+                <div class="showcase-col">
+                    <div class="bg-grid"></div>
+                    <div class="crosshair-line crosshair-horizontal"></div>
+                    <div class="crosshair-line crosshair-diagonal"></div>
+                    <h2 class="bg-text">SHOPIFY</h2>
+                    <div class="product-cutout-wrapper">
+                        <div id="canvas-container-1" 
+                             class="canvas-container" 
+                             data-model-src="/assets/models/ao1.glb"
+                             data-model-scale="3.0"
+                             data-model-y="-0.5"></div>
+                    </div>
+                    <div class="product-info-top">
+                        <h1 class="product-title">The MVP Crew</h1>
+                        <p class="product-price-top">$59.00</p>
+                        <button class="quick-view-btn-showcase">QUICK VIEW</button>
+                    </div>
+                    <div class="shop-all-spinner">
+                        <svg class="spinner-svg" viewBox="0 0 100 100">
+                            <defs>
+                                <path id="circle-path" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"></path>
+                            </defs>
+                            <text class="spinner-text" fill="currentColor" font-family="mono" font-size="10">
+                                <textPath href="#circle-path">SHOP ALL • SHOP ALL • SHOP ALL •</textPath>
+                            </text>
+                        </svg>
+                    </div>
+                </div>
+                <!-- Right Column: Lifestyle -->
+                <div class="lifestyle-col">
+                    <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1200&fit=crop" alt="Model wearing The MVP Crew" class="model-bg" loading="lazy">
+                    <div class="gradient-overlay"></div>
+                    <div class="marquee-container">
+                        <div class="marquee-text">
+                            <span>FRENCH TERRY COTTON 3D EMBROIDERY</span>
+                            <span>FRENCH TERRY COTTON 3D EMBROIDERY</span>
                         </div>
                     </div>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 2</h3>
-                            <p class="product-price">600.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
-                        </div>
+                    <div class="number-badge">
+                        <div class="number-border">//</div>
+                        <span class="number-text">3</span>
                     </div>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 3</h3>
-                            <p class="product-price">700.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
-                        </div>
+                    <div class="hotspot-lifestyle">
+                        <div class="hotspot-dot-lifestyle"></div>
+                        <div class="hotspot-pulse"></div>
                     </div>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
+                    <div class="glass-card">
+                        <div class="glass-card-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop" alt="The MVP Crew thumbnail" loading="lazy">
                         </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 4</h3>
-                            <p class="product-price">800.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
+                        <div class="glass-card-info">
+                            <h3 class="glass-card-title">The MVP Crew</h3>
+                            <p class="glass-card-price">USD $59.00</p>
+                        </div>
+                        <div class="glass-card-icon">
+                            <span>↗</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <!-- Product Slide 2: Sprint Quarter Zip -->
+            <section class="product-slide" data-product="2">
+                <div class="showcase-col">
+                    <div class="bg-grid"></div>
+                    <div class="crosshair-line crosshair-horizontal"></div>
+                    <div class="crosshair-line crosshair-diagonal"></div>
+                    <h2 class="bg-text">SHOPIFY</h2>
+                    <div class="product-cutout-wrapper">
+                        <div id="canvas-container-2" 
+                             class="canvas-container" 
+                             data-model-src="/assets/models/ao1.glb"
+                             data-model-scale="2.5"
+                             data-model-y="-1.5"></div>
+                    </div>
+                    <div class="product-info-top">
+                        <h1 class="product-title">Sprint Quarter Zip</h1>
+                        <p class="product-price-top">$69.00</p>
+                        <button class="quick-view-btn-showcase">QUICK VIEW</button>
+                    </div>
+                    <div class="shop-all-spinner">
+                        <svg class="spinner-svg" viewBox="0 0 100 100">
+                            <defs>
+                                <path id="circle-path-2" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"></path>
+                            </defs>
+                            <text class="spinner-text" fill="currentColor" font-family="mono" font-size="10">
+                                <textPath href="#circle-path-2">SHOP ALL • SHOP ALL • SHOP ALL •</textPath>
+                            </text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="lifestyle-col">
+                    <img src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=700&h=900&fit=crop" alt="Model wearing Sprint Quarter Zip" class="model-bg" loading="lazy">
+                    <div class="gradient-overlay"></div>
+                    <div class="marquee-container">
+                        <div class="marquee-text">
+                            <span>EMBOSSED METAL ZIPPER 3D RUBBER PATCH</span>
+                            <span>EMBOSSED METAL ZIPPER 3D RUBBER PATCH</span>
+                        </div>
+                    </div>
+                    <div class="number-badge">
+                        <div class="number-border">//</div>
+                        <span class="number-text">3</span>
+                    </div>
+                    <div class="hotspot-lifestyle">
+                        <div class="hotspot-dot-lifestyle"></div>
+                        <div class="hotspot-pulse"></div>
+                    </div>
+                    <div class="glass-card">
+                        <div class="glass-card-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=100&h=100&fit=crop" alt="Sprint Quarter Zip thumbnail" loading="lazy">
+                        </div>
+                        <div class="glass-card-info">
+                            <h3 class="glass-card-title">Sprint Quarter Zip</h3>
+                            <p class="glass-card-price">USD $69.00</p>
+                        </div>
+                        <div class="glass-card-icon">
+                            <span>↗</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
-    <!-- Footer -->
-    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Footer Section -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Built with passion for the commerce community</p>
+            <div class="footer-links">
+                <a href="#faqs">FAQs</a>
+                <a href="#shipping">Shipping & Returns</a>
+                <a href="#terms">Terms of Service</a>
+                <a href="#privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
 
-    <!-- Header Scripts -->
-    <th:block th:replace="~{fragments/header :: header-scripts}"></th:block>
+    <!-- JavaScript -->
+    <script th:src="@{/js/supply-script.js}"></script>
+    
+    <!-- Three.js 3D Viewer (ES Module) -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        function init3DViewers() {
+            const canvasContainers = document.querySelectorAll('.canvas-container');
+            
+            if (canvasContainers.length === 0) return;
+
+            // Array to store all viewer instances for cleanup
+            const viewerInstances = [];
+
+            canvasContainers.forEach((container, index) => {
+                // Extract configuration from data attributes
+                const modelSrc = container.dataset.modelSrc;
+                const modelScale = parseFloat(container.dataset.modelScale) || 2.0; // Default scale
+                const modelY = parseFloat(container.dataset.modelY) || 0; // Default Y offset
+
+                if (!modelSrc) {
+                    console.warn(`No model path specified for container ${index + 1}`);
+                    return;
+                }
+
+                // Create isolated Three.js scene for this container
+                const scene = new THREE.Scene();
+                scene.background = null; // Transparent background
+
+                // Camera setup
+                const camera = new THREE.PerspectiveCamera(
+                    50, // FOV
+                    container.clientWidth / container.clientHeight,
+                    0.1,
+                    1000
+                );
+                camera.position.set(0, 0, 5);
+
+                // Renderer setup
+                const renderer = new THREE.WebGLRenderer({
+                    alpha: true, // Transparent background
+                    antialias: true
+                });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+                scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(5, 5, 5);
+                scene.add(directionalLight);
+
+                // Controls
+                const controls = new OrbitControls(camera, renderer.domElement);
+                controls.enableRotate = true;
+                controls.enableZoom = false;
+                controls.enablePan = false;
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 1.0;
+                controls.minDistance = 3;
+                controls.maxDistance = 10;
+
+                // Load model with custom configuration
+                const loader = new GLTFLoader();
+                loader.load(
+                    modelSrc,
+                    (gltf) => {
+                        const model = gltf.scene;
+                        scene.add(model);
+
+                        // Center and scale model using custom configuration
+                        const box = new THREE.Box3().setFromObject(model);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+                        
+                        // Use custom scale from data attribute
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const calculatedScale = modelScale / maxDim;
+                        model.scale.multiplyScalar(calculatedScale);
+                        
+                        // Position model with custom Y offset
+                        model.position.x = -center.x * calculatedScale;
+                        model.position.y = -center.y * calculatedScale + modelY; // Apply custom Y offset
+                        model.position.z = -center.z * calculatedScale;
+
+                        // Animation loop
+                        let animationId;
+                        function animate() {
+                            animationId = requestAnimationFrame(animate);
+                            controls.update();
+                            renderer.render(scene, camera);
+                        }
+                        animate();
+
+                        // Store animation ID for cleanup
+                        container._animationId = animationId;
+                    },
+                    (progress) => {
+                        // Loading progress
+                        if (progress.lengthComputable) {
+                            console.log(`Container ${index + 1} - Loading model:`, (progress.loaded / progress.total * 100).toFixed(0) + '%');
+                        }
+                    },
+                    (error) => {
+                        console.error(`Error loading 3D model for container ${index + 1}:`, error);
+                        // Fallback: show error message
+                        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-family: monospace; text-align: center; padding: 20px;">3D Model Loading Error<br><small>Please check the model path</small></div>';
+                    }
+                );
+
+                // Handle resize for this specific container
+                function handleResize() {
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    
+                    if (width > 0 && height > 0) {
+                        camera.aspect = width / height;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(width, height);
+                    }
+                }
+
+                // Use ResizeObserver for better performance
+                const resizeObserver = new ResizeObserver(handleResize);
+                resizeObserver.observe(container);
+
+                // Store references for cleanup and management
+                const viewerInstance = {
+                    container: container,
+                    scene: scene,
+                    renderer: renderer,
+                    camera: camera,
+                    controls: controls,
+                    resizeObserver: resizeObserver,
+                    dispose: function() {
+                        // Cancel animation
+                        if (this.container._animationId) {
+                            cancelAnimationFrame(this.container._animationId);
+                        }
+                        // Dispose of Three.js resources
+                        this.scene.traverse((object) => {
+                            if (object.geometry) object.geometry.dispose();
+                            if (object.material) {
+                                if (Array.isArray(object.material)) {
+                                    object.material.forEach(material => material.dispose());
+                                } else {
+                                    object.material.dispose();
+                                }
+                            }
+                        });
+                        this.renderer.dispose();
+                        this.controls.dispose();
+                        this.resizeObserver.disconnect();
+                        // Clear container
+                        if (this.container.contains(this.renderer.domElement)) {
+                            this.container.removeChild(this.renderer.domElement);
+                        }
+                    }
+                };
+
+                container._threeScene = scene;
+                container._threeRenderer = renderer;
+                container._threeCamera = camera;
+                container._threeControls = controls;
+                container._viewerInstance = viewerInstance;
+
+                viewerInstances.push(viewerInstance);
+            });
+
+            // Store all instances globally for potential cleanup
+            window._threeViewerInstances = viewerInstances;
+
+            console.log(`Initialized ${viewerInstances.length} 3D viewer(s)`);
+        }
+
+        // Initialize 3D viewers when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init3DViewers);
+        } else {
+            // Small delay to ensure other scripts have initialized
+            setTimeout(init3DViewers, 100);
+        }
+    </script>
 </body>
 </html>
