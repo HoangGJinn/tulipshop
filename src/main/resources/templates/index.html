@@ -105,6 +105,61 @@
         @media (min-width: 1024px) { .tw-container { max-width: 1024px; } }
         @media (min-width: 1280px) { .tw-container { max-width: 1280px; } }
         @media (min-width: 1536px) { .tw-container { max-width: 1536px; } }
+
+        /* 1. Phạm vi áp dụng: Chỉ tác động vào phần Eva de Eva (.vertical-content), Footer (.site-footer) và Search (.search-overlay) */
+        .vertical-content img,
+        .site-footer img,
+        .search-overlay img {
+            display: block;       /* Sửa lỗi ảnh bị dính dòng text */
+            vertical-align: middle;
+            max-width: 100%;      /* Sửa lỗi ảnh bị tràn khung */
+            height: auto;         /* Giữ tỉ lệ ảnh không bị méo */
+        }
+
+        /* 2. Reset Button & Input: Khôi phục style cơ bản */
+        .vertical-content button,
+        .vertical-content input,
+        .site-footer button,
+        .site-footer input,
+        .search-overlay button,
+        .search-overlay input {
+            font-family: inherit; /* Kế thừa font chữ của web */
+            font-size: 100%;
+            line-height: 1.15;
+            margin: 0;
+            overflow: visible;
+            text-transform: none;
+            box-sizing: border-box; /* Quan trọng: Tính toán padding chuẩn */
+        }
+
+        /* 3. Style mặc định cho Button (tránh việc nó trông như text thường) */
+        .vertical-content button,
+        .site-footer button,
+        .search-overlay button {
+            -webkit-appearance: button; /* Hành vi nút bấm chuẩn */
+            cursor: pointer;
+            background-color: transparent; /* Để các class Tailwind bg-* hoạt động */
+            border-style: solid;  /* Để các class Tailwind border-* hoạt động */
+            border-width: 0;      /* Reset border mặc định xấu xí */
+        }
+
+        /* 4. Style mặc định cho Input (thêm viền để dễ nhìn) */
+        .vertical-content input,
+        .site-footer input,
+        .search-overlay input {
+            border-style: solid;
+            border-width: 1px;
+        }
+
+        /* 5. Fix lỗi icon FontAwesome/Material bị lệch dòng */
+        .vertical-content i, .vertical-content span.material-icons-outlined,
+        .site-footer i, .site-footer span.material-icons-outlined,
+        .search-overlay i {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+
     </style>
 
 </head>
@@ -530,7 +585,7 @@
                     </div>
                 </div>
                 <div class="tw-text-center tw-mt-10">
-                    <button class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+                    <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
                         Xem tất cả EDE SALE UPTO 70%
                     </button>
                 </div>
@@ -538,7 +593,7 @@
 
             <section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
                 <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-center tw-items-center tw-gap-6 tw-mb-8 tw-border-b tw-border-gray-200 tw-pb-2">
-                    <button class="tw-text-black tw-font-bold tw-border-b-2 tw-border-black tw-pb-2">Hàng mới về</button>
+                    <button class="tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4">Hàng mới về</button>
                     <button class="tw-text-gray-500 hover:tw-text-black tw-pb-2">Sale Upto 70%</button>
                     <button class="tw-text-gray-500 hover:tw-text-black tw-pb-2">Sale Upto 70% Xem Thêm</button>
                 </div>
@@ -591,7 +646,7 @@
                     </div>
                 </div>
                 <div class="tw-text-center tw-mt-10">
-                    <button class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+                    <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
                         Xem tất cả Hàng mới về
                     </button>
                 </div>
@@ -613,7 +668,7 @@
                             Trong dòng chảy của thời gian, vẻ đẹp truyền thống chưa bao giờ phai nhạt. Nó vẫn hiện hữu, trong tà Áo Dài buông lơi mềm mại... Mỗi thiết kế trong YÊN như một nhịp cầu, đưa ta trở về với cội nguồn văn hóa.
                         </p>
                         <div>
-                            <button class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+                            <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
                                 Xem sản phẩm New Collection
                             </button>
                         </div>
@@ -623,7 +678,7 @@
 
             <section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
                 <div class="tw-flex tw-justify-center tw-gap-8 tw-mb-8 tw-text-sm tw-uppercase tw-tracking-widest">
-                    <button class="tw-font-bold tw-border-b-2 tw-border-black tw-pb-1">Đồ đi làm</button>
+                    <button class="tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4">Đồ đi làm</button>
                     <button class="tw-text-gray-500 hover:tw-text-black tw-transition">Đồ đi chơi</button>
                     <button class="tw-text-gray-500 hover:tw-text-black tw-transition">Đồ đi tiệc</button>
                 </div>
@@ -675,7 +730,7 @@
                     </div>
                 </div>
                 <div class="tw-text-center tw-mt-10">
-                    <button class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+                    <button style="border-width: 1px;"  class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
                         Xem tất cả Đồ đi làm
                     </button>
                 </div>

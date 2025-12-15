@@ -26,3 +26,5 @@ src/main/resources/static/upload/**
 src/main/resources/application.properties
 application-local.properties
 application-dev.properties
+
+node_modules/

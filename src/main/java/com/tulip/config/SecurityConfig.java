@@ -80,7 +80,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf
                 .disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/assets/**", "/favicon.ico").permitAll()
                 .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
                 .requestMatchers("/products/**", "/product/**", "/trending", "/sale", "/about", "/contact").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
