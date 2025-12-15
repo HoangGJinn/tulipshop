@@ -142,34 +142,6 @@ form button:hover {
     background-color: #c55d5d;
 }
 
-/* Remember Me Checkbox Styles */
-.remember-me-group {
-    margin-bottom: 15px;
-}
-
-.remember-me-label {
-    display: flex !important;
-    align-items: center;
-    cursor: pointer;
-    margin-bottom: 0 !important;
-    font-weight: normal !important;
-}
-
-.remember-me-checkbox {
-    width: auto !important;
-    margin-right: 8px;
-    cursor: pointer;
-    margin-bottom: 0;
-    padding: 0;
-    flex-shrink: 0;
-}
-
-.remember-me-label span {
-    color: #2C2C2C;
-    font-size: 14px;
-    user-select: none;
-}
-
 /* Import font Roboto cho giống Google nhất (nếu chưa có) */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap');
 

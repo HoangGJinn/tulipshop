@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import jakarta.validation.Valid;
@@ -31,6 +33,12 @@ public class AuthController {
                        @RequestParam(value = "logout", required = false) String logout,
                        @RequestParam(value = "success", required = false) String success,
                        Model model) {
+        // Kiểm tra nếu đã đăng nhập thì redirect về trang chủ
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            return "redirect:/";
+        }
+        
         if (error != null) {
             model.addAttribute("error", "Email hoặc mật khẩu không đúng!");
         }
@@ -51,6 +59,12 @@ public class AuthController {
 
     @GetMapping("/register")
     public String showRegister(Model model) {
+        // Kiểm tra nếu đã đăng nhập thì redirect về trang chủ
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            return "redirect:/";
+        }
+        
         model.addAttribute("form", new RegisterForm());
         return "register";
     }

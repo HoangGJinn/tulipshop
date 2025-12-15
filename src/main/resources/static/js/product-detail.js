@@ -230,7 +230,7 @@ function addToCart() {
     formData.append('stockId', stockId);
     formData.append('quantity', quantity);
 
-    fetch('/v1/api/cart/add', {
+    fetch(window.API_BASE_URL + '/cart/add', {
         method: 'POST',
         body: formData
     })

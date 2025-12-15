@@ -1,23 +1,14 @@
 package com.tulip.controller.admin;
 
 import com.tulip.dto.ProductCompositeDTO;
-import com.tulip.dto.ProductCreateDTO;
-import com.tulip.entity.product.Product;
-import com.tulip.entity.product.ProductVariant;
-import com.tulip.entity.product.ProductVariantImage;
 import com.tulip.repository.CategoryRepository;
-import com.tulip.repository.ProductRepository;
 import com.tulip.repository.SizeRepository;
-import com.tulip.repository.VariantRepository;
 import com.tulip.service.ProductService;
-import com.tulip.service.impl.CloudinaryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,17 +20,7 @@ public class AdminProductController {
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private VariantRepository variantRepository;
-
-    @Autowired
-    private SizeRepository sizeRepository;
-
-    @Autowired
-    private CloudinaryService cloudinaryService;
+    private final SizeRepository sizeRepository;
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {

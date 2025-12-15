@@ -99,8 +99,8 @@
 
         function performSearch() {
             const query = input.value;
-            // Chú ý: Dấu / ở đầu đường dẫn là bắt buộc để gọi về gốc server
-            fetch(`/api/store/search?q=${encodeURIComponent(query)}`)
+            // Sử dụng API base URL từ configuration
+            fetch(`${window.API_BASE_URL}/store/search?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     renderResults(data);

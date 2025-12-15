@@ -138,7 +138,7 @@
         formData.append('itemId', itemId);
         formData.append('quantity', newQuantity);
 
-        fetch('/v1/api/cart/update', {
+        fetch(window.API_BASE_URL + '/cart/update', {
             method: 'POST',
             body: formData
         })
@@ -160,7 +160,7 @@
         if (!confirm('Bạn chắc chắn muốn xóa sản phẩm này?')) return;
 
         // Gọi API: DELETE /v1/api/cart/remove/{itemId}
-        fetch(`/v1/api/cart/remove/${itemId}`, {
+        fetch(`${window.API_BASE_URL}/cart/remove/${itemId}`, {
             method: 'DELETE'
         })
             .then(response => {

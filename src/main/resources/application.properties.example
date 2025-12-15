@@ -33,9 +33,10 @@ cloudinary.cloud-name=your_cloudinary_cloud_name
 cloudinary.api-key=your_cloudinary_api_key
 cloudinary.api-secret=your_cloudinary_api_secret
 
-# Remember-Me Configuration
-# Generate a secure random key for production use
-security.remember-me.key=tulipshop2025-group3ahihi1234567
+# JWT Configuration
+jwt.secret=your-very-long-secret-key-minimum-256-bits-for-hs256-algorithm-security
+jwt.access-token.expiration=3600  # 1 giờ (3600 giây)
+jwt.refresh-token.expiration=604800  # 7 ngày (604800 giây)
 
 # Google OAuth2 Configuration
 # Get your credentials from: https://console.cloud.google.com/apis/credentials
