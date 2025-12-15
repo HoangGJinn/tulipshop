@@ -113,7 +113,7 @@
             display: block;       /* Sửa lỗi ảnh bị dính dòng text */
             vertical-align: middle;
             max-width: 100%;      /* Sửa lỗi ảnh bị tràn khung */
-            height: auto;         /* Giữ tỉ lệ ảnh không bị méo */
+
         }
 
         /* 2. Reset Button & Input: Khôi phục style cơ bản */
@@ -158,6 +158,14 @@
             display: inline-block;
             vertical-align: middle;
             line-height: 1;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tw-animate-fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
         }
 
     </style>
@@ -454,9 +462,9 @@
             <div class="tw-relative tw-w-full tw-h-[400px] md:tw-h-[500px] tw-bg-gradient-to-r tw-from-[#A60F22] tw-to-[#D81B34] tw-flex tw-flex-col tw-justify-center tw-items-center tw-text-white tw-text-center tw-overflow-hidden tw-group">
                 <div class="tw-absolute tw-inset-0 tw-opacity-20 tw-bg-[url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] tw-bg-cover tw-bg-center tw-mix-blend-overlay"></div>
                 <div class="tw-relative tw-z-10">
-                    <div class="tw-text-2xl md:tw-text-4xl tw-tracking-[0.2em] tw-font-light tw-mb-2">EDE</div>
+                    <div class="tw-text-2xl md:tw-text-4xl tw-tracking-[0.2em] tw-font-light tw-mb-2">TULIP</div>
                     <div class="tw-text-5xl md:tw-text-8xl tw-font-bold tw-font-display tw-leading-none">
-                        SALE UP TO <span class="tw-text-[1.2em] tw-italic tw-ml-4">70%</span>
+                        SALE UP TO <span class="tw-text-[1.2em] tw-italic tw-ml-4">36%</span>
                     </div>
                 </div>
             </div>
@@ -476,32 +484,35 @@
                     </div>
                 </div>
                 <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&fit=crop" class="tw-w-full tw-h-[400px] tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
+                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
+                        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&fit=crop" class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
                         <div class="tw-absolute tw-bottom-4 tw-left-4 tw-font-bold tw-text-lg tw-text-white tw-drop-shadow-md">Đầm</div>
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
                             <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
                         </div>
                     </div>
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1604176354204-9268737828e4?w=600&fit=crop" class="tw-w-full tw-h-[400px] tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
+                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
+                        <img src="https://images.unsplash.com/photo-1604176354204-9268737828e4?w=600&fit=crop"
+                             class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
                         <div class="tw-absolute tw-bottom-4 tw-left-4 tw-font-bold tw-text-lg tw-text-white tw-drop-shadow-md">Áo sơ mi</div>
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
                             <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
                         </div>
                     </div>
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1564485377539-4af72d1f6a2f?w=600&fit=crop" class="tw-w-full tw-h-[400px] tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
+                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
+                        <img src="https://images.unsplash.com/photo-1564485377539-4af72d1f6a2f?w=600&fit=crop"
+                             class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
                         <div class="tw-absolute tw-bottom-4 tw-left-4 tw-font-bold tw-text-lg tw-text-white tw-drop-shadow-md">Áo kiểu</div>
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
                             <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
                         </div>
                     </div>
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&fit=crop" class="tw-w-full tw-h-[400px] tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
+                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
+                        <img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&fit=crop"
+                             class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
                         <div class="tw-absolute tw-bottom-4 tw-left-4 tw-font-bold tw-text-lg tw-text-white tw-drop-shadow-md">Quần</div>
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
@@ -523,67 +534,47 @@
                     </div>
                     <div class="tw-flex-grow"></div>
                     <div class="tw-flex tw-gap-2">
-                        <button class="tw-p-1 tw-rounded-full hover:tw-bg-gray-100"><span class="material-icons-outlined">west</span></button>
-                        <button class="tw-p-1 tw-rounded-full hover:tw-bg-gray-100"><span class="material-icons-outlined">east</span></button>
+                        <button id="btn-sale-prev" class="tw-p-2 tw-rounded-full tw-border tw-border-gray-200 hover:tw-bg-gray-100 hover:tw-border-black tw-transition">
+                            <span class="material-icons-outlined tw-text-sm">west</span>
+                        </button>
+                        <button id="btn-sale-next" class="tw-p-2 tw-rounded-full tw-border tw-border-gray-200 hover:tw-bg-gray-100 hover:tw-border-black tw-transition">
+                            <span class="material-icons-outlined tw-text-sm">east</span>
+                        </button>
                     </div>
                 </div>
-                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-6">
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                            <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">-30%</span>
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Quần dài, Ống suông</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-primary tw-font-bold tw-text-sm">839,000đ</span>
-                            <span class="tw-text-gray-400 tw-text-xs tw-line-through">1,199,000đ</span>
-                        </div>
+
+                <div id="sale-slider" class="tw-flex tw-overflow-x-auto tw-pb-4 tw-scroll-smooth tw-snap-x" style="scrollbar-width: none; -ms-overflow-style: none;">
+
+                    <div th:each="p : ${saleProducts}"
+                         class="tw-w-[160px] md:tw-w-[240px] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-border tw-border-transparent hover:tw-border-gray-200 hover:tw-shadow-lg tw-transition-all tw-duration-300 tw-rounded-lg tw-bg-white">
+
+                        <a th:href="@{'/product/' + ${p.id}}" class="tw-block tw-p-2">
+                            <div class="tw-relative tw-overflow-hidden tw-mb-3 tw-rounded-md">
+                                <img th:src="${p.thumbnail}" th:alt="${p.name}"
+                                     class="tw-w-full tw-h-[200px] md:tw-h-[320px] tw-object-cover tw-object-top group-hover:tw-scale-105 tw-transition-transform tw-duration-500">
+
+                                <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1 tw-rounded">
+                                    -<span th:text="${#numbers.formatDecimal((1.0 * (p.basePrice - p.discountPrice) / p.basePrice) * 100, 0, 0)}"></span>%
+                                </span>
+                            </div>
+
+                            <h3 class="tw-text-xs tw-text-gray-700 tw-font-medium tw-mb-1 tw-truncate tw-uppercase" th:text="${p.name}">
+                                Tên sản phẩm
+                            </h3>
+                            <div class="tw-flex tw-flex-col md:tw-flex-row md:tw-items-baseline tw-gap-1 md:tw-gap-2">
+                                <span class="tw-text-primary tw-font-bold tw-text-sm"
+                                      th:text="${#numbers.formatDecimal(p.discountPrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span class="tw-text-gray-400 tw-text-[10px] tw-line-through"
+                                      th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                        </a>
                     </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1529139574466-a302d2053990?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                            <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">-30%</span>
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Chân váy Midi, Dáng xòe</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-primary tw-font-bold tw-text-sm">839,000đ</span>
-                            <span class="tw-text-gray-400 tw-text-xs tw-line-through">1,199,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                            <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">-20%</span>
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Chân váy Midi, Dáng ôm</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-primary tw-font-bold tw-text-sm">1,049,000đ</span>
-                            <span class="tw-text-gray-400 tw-text-xs tw-line-through">1,499,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                            <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">-30%</span>
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Sơ mi tay dài</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-primary tw-font-bold tw-text-sm">839,000đ</span>
-                            <span class="tw-text-gray-400 tw-text-xs tw-line-through">1,199,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1548624149-f321f471dc5f?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                            <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">-50%</span>
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Áo vest trong bộ Vest</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-primary tw-font-bold tw-text-sm">1,119,000đ</span>
-                            <span class="tw-text-gray-400 tw-text-xs tw-line-through">1,599,000đ</span>
-                        </div>
+
+                    <div th:if="${saleProducts == null || saleProducts.isEmpty()}" class="tw-w-full tw-flex tw-justify-center tw-items-center tw-h-[200px] tw-bg-gray-50 tw-text-gray-400 tw-rounded-lg">
+                        <p>Hiện chưa có sản phẩm nào giảm giá sâu.</p>
                     </div>
                 </div>
+
                 <div class="tw-text-center tw-mt-10">
                     <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
                         Xem tất cả EDE SALE UPTO 70%
@@ -592,62 +583,28 @@
             </section>
 
             <section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
-                <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-center tw-items-center tw-gap-6 tw-mb-8 tw-border-b tw-border-gray-200 tw-pb-2">
-                    <button class="tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4">Hàng mới về</button>
-                    <button class="tw-text-gray-500 hover:tw-text-black tw-pb-2">Sale Upto 70%</button>
-                    <button class="tw-text-gray-500 hover:tw-text-black tw-pb-2">Sale Upto 70% Xem Thêm</button>
+                <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-center tw-items-center tw-gap-8 tw-mb-8 tw-border-b tw-border-gray-200 tw-pb-2">
+
+                    <button onclick="loadTab('new', this)" class="tab-btn tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4 tw-transition-colors">
+                        Hàng mới về
+                    </button>
+
+                    <button onclick="loadTab('sale', this)" class="tab-btn tw-text-gray-500 hover:tw-text-black tw-pb-4 -tw-mb-4 tw-border-b-2 tw-border-transparent hover:tw-border-gray-300 tw-transition-colors">
+                        Sale Upto 18%
+                    </button>
+
+                    <button onclick="loadTab('trending', this)" class="tab-btn tw-text-gray-500 hover:tw-text-black tw-pb-4 -tw-mb-4 tw-border-b-2 tw-border-transparent hover:tw-border-gray-300 tw-transition-colors">
+                        Đang thịnh hành
+                    </button>
                 </div>
-                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-6">
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                            <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-yellow-600 tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">NEW</span>
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Khoác Măng tô, 23AKDE014K</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">3,499,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1548624149-f321f471dc5f?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Áo vest trong bộ Vest-Váy</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">2,199,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Váy trong bộ Vest-Váy</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">1,299,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Đầm tay dài, Dáng ôm</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">2,499,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Đầm trễ vai, Dáng thắt eo</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">2,499,000đ</span>
-                        </div>
-                    </div>
+
+                <div id="tab-product-grid" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-6 tw-min-h-[400px]">
+                    <div class="tw-col-span-full tw-text-center tw-py-10 tw-text-gray-400">Đang tải dữ liệu...</div>
                 </div>
+
                 <div class="tw-text-center tw-mt-10">
                     <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
-                        Xem tất cả Hàng mới về
+                        Xem tất cả
                     </button>
                 </div>
             </section>
@@ -678,60 +635,24 @@
 
             <section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
                 <div class="tw-flex tw-justify-center tw-gap-8 tw-mb-8 tw-text-sm tw-uppercase tw-tracking-widest">
-                    <button class="tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4">Đồ đi làm</button>
-                    <button class="tw-text-gray-500 hover:tw-text-black tw-transition">Đồ đi chơi</button>
-                    <button class="tw-text-gray-500 hover:tw-text-black tw-transition">Đồ đi tiệc</button>
+                    <button onclick="loadOccasion('di-lam', this)" class="occasion-btn tw-font-bold tw-border-b-2 tw-border-black tw-pb-1 tw-transition-colors">
+                        Đồ đi làm
+                    </button>
+                    <button onclick="loadOccasion('di-choi', this)" class="occasion-btn tw-text-gray-500 hover:tw-text-black tw-transition-colors tw-border-b-2 tw-border-transparent hover:tw-border-gray-300">
+                        Đồ đi chơi
+                    </button>
+                    <button onclick="loadOccasion('di-tiec', this)" class="occasion-btn tw-text-gray-500 hover:tw-text-black tw-transition-colors tw-border-b-2 tw-border-transparent hover:tw-border-gray-300">
+                        Đồ đi tiệc
+                    </button>
                 </div>
-                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-6">
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1620799140408-ed5341cd2431?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Áo len sát nách</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">799,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1548624149-f321f471dc5f?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Áo vest trong bộ Vest-Váy</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">2,499,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1620799139834-6b8f844fbe61?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Cardigan len</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">1,199,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1548624149-f321f471dc5f?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Áo vest trong bộ Vest-Váy</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">2,499,000đ</span>
-                        </div>
-                    </div>
-                    <div class="tw-group">
-                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
-                            <img src="https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=500&fit=crop" class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top">
-                        </div>
-                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate">Váy trong bộ Vest-Váy</h3>
-                        <div class="tw-flex tw-items-baseline tw-gap-2">
-                            <span class="tw-text-black tw-font-bold tw-text-sm">1,499,000đ</span>
-                        </div>
-                    </div>
+
+                <div id="occasion-grid" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-6 tw-min-h-[300px]">
+                    <div class="tw-col-span-full tw-text-center tw-py-10 tw-text-gray-400">Đang tải...</div>
                 </div>
+
                 <div class="tw-text-center tw-mt-10">
-                    <button style="border-width: 1px;"  class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
-                        Xem tất cả Đồ đi làm
+                    <button class="!tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+                        Xem tất cả
                     </button>
                 </div>
             </section>
@@ -739,38 +660,89 @@
             <section class="tw-bg-surface-light tw-py-16">
                 <div class="tw-container tw-mx-auto tw-px-4">
                     <h2 class="tw-text-2xl tw-font-bold tw-font-display tw-mb-8">Set đồ nổi bật</h2>
+
                     <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6">
-                        <div class="tw-relative tw-group">
-                            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&fit=crop" class="tw-w-full tw-h-[500px] tw-object-cover">
-                            <div class="tw-absolute tw-top-1/2 tw-left-1/2 tw-transform tw--translate-x-1/2 tw--translate-y-1/2">
-                                <div class="tw-w-3 tw-h-3 tw-bg-white tw-rounded-full tw-animate-ping tw-absolute"></div>
-                                <div class="tw-w-3 tw-h-3 tw-bg-white tw-rounded-full tw-relative tw-cursor-pointer"></div>
-                                <div class="tw-absolute tw-bottom-6 tw-left-1/2 tw--translate-x-1/2 tw-w-48 tw-bg-white tw-p-2 tw-shadow-xl tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-pointer-events-none tw-z-10 tw-hidden md:tw-block">
-                                    <div class="tw-flex tw-gap-2">
-                                        <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=100" class="tw-w-10 tw-h-12 tw-object-cover">
-                                        <div>
-                                            <div class="tw-text-[10px] tw-font-bold tw-text-gray-800">Sơ mi tay dài</div>
-                                            <div class="tw-text-[10px] tw-text-red-600 tw-font-bold">1,199,000đ</div>
-                                        </div>
-                                    </div>
-                                </div>
+
+                        <div class="tw-relative tw-w-full tw-h-[600px] tw-group tw-overflow-hidden tw-rounded-lg">
+                            <img src="https://cdn.hstatic.net/products/200000000133/25aqae029x_-_25aqqe029x.2_0bb4d97982c34badbd400cccce92ff1d_master.jpg?w=800&fit=crop"
+                                 class="tw-w-full tw-h-full tw-object-cover" alt="Set 1">
+
+                            <div class="hotspot-point tw-absolute tw-top-[30%] tw-left-[45%] tw-z-10 tw-cursor-pointer"
+                                 onclick="toggleHotspot('set1-p1')">
+                                <span class="tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-white tw-opacity-75 tw-animate-ping"></span>
+                                <span class="tw-relative tw-inline-flex tw-rounded-full tw-h-4 tw-w-4 tw-bg-white tw-shadow-md tw-border-2 tw-border-gray-200"></span>
                             </div>
-                            <div class="tw-absolute tw-bottom-6 tw-left-6">
-                                <button class="tw-bg-white tw-text-black tw-text-xs tw-font-bold tw-px-6 tw-py-2 tw-uppercase tw-shadow-md hover:tw-bg-black hover:tw-text-white tw-transition">Xem chi tiết</button>
+                            <div id="set1-p1" class="hotspot-card tw-hidden tw-absolute tw-top-[30%] tw-left-[50%] tw-ml-2 tw-bg-white/95 tw-backdrop-blur-sm tw-p-3 tw-rounded-lg tw-shadow-xl tw-w-[200px] tw-z-20 tw-animate-fade-in-up">
+                                <a href="#" class="tw-flex tw-gap-3 tw-items-center">
+                                    <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=100" class="tw-w-12 tw-h-16 tw-object-cover tw-rounded">
+                                    <div><h4 class="tw-text-xs tw-font-bold">Sơ mi tay dài</h4><p class="tw-text-xs tw-text-primary tw-font-bold">1,199,000đ</p></div>
+                                </a>
+                                <button onclick="event.stopPropagation(); closeHotspot('set1-p1')" class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-black tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-text-[10px]">✕</button>
+                            </div>
+
+                            <div class="hotspot-point tw-absolute tw-top-[70%] tw-left-[40%] tw-z-10 tw-cursor-pointer"
+                                 onclick="toggleHotspot('set1-p2')">
+                                <span class="tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-white tw-opacity-75 tw-animate-ping"></span>
+                                <span class="tw-relative tw-inline-flex tw-rounded-full tw-h-4 tw-w-4 tw-bg-white tw-shadow-md"></span>
+                            </div>
+                            <div id="set1-p2" class="hotspot-card tw-hidden tw-absolute tw-top-[60%] tw-left-[45%] tw-ml-2 tw-bg-white/95 tw-backdrop-blur-sm tw-p-3 tw-rounded-lg tw-shadow-xl tw-w-[200px] tw-z-20 tw-animate-fade-in-up">
+                                <a href="#" class="tw-flex tw-gap-3 tw-items-center">
+                                    <img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=100" class="tw-w-12 tw-h-16 tw-object-cover tw-rounded">
+                                    <div><h4 class="tw-text-xs tw-font-bold">Quần ống suông</h4><p class="tw-text-xs tw-text-primary tw-font-bold">899,000đ</p></div>
+                                </a>
+                                <button onclick="event.stopPropagation(); closeHotspot('set1-p2')" class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-black tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-text-[10px]">✕</button>
                             </div>
                         </div>
-                        <div class="tw-relative tw-group">
-                            <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&fit=crop" class="tw-w-full tw-h-[500px] tw-object-cover">
-                            <div class="tw-absolute tw-bottom-6 tw-left-6">
-                                <button class="tw-bg-white tw-text-black tw-text-xs tw-font-bold tw-px-6 tw-py-2 tw-uppercase tw-shadow-md hover:tw-bg-black hover:tw-text-white tw-transition">Xem chi tiết</button>
+
+                        <div class="tw-relative tw-w-full tw-h-[600px] tw-group tw-overflow-hidden tw-rounded-lg">
+                            <img src="https://cdn.hstatic.net/products/200000000133/25asme036x_-_25avje008n_-_25akqe012f.5_c1a41fab1e73468daae7195199ff4d37_master.jpg?w=800&fit=crop"
+                                 class="tw-w-full tw-h-full tw-object-cover" alt="Set 2">
+
+                            <div class="hotspot-point tw-absolute tw-top-[25%] tw-left-[55%] tw-z-10 tw-cursor-pointer"
+                                 onclick="toggleHotspot('set2-p1')">
+                                <span class="tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-white tw-opacity-75 tw-animate-ping"></span>
+                                <span class="tw-relative tw-inline-flex tw-rounded-full tw-h-4 tw-w-4 tw-bg-white tw-shadow-md"></span>
+                            </div>
+                            <div id="set2-p1" class="hotspot-card tw-hidden tw-absolute tw-top-[25%] tw-right-[50%] tw-mr-4 tw-bg-white/95 tw-backdrop-blur-sm tw-p-3 tw-rounded-lg tw-shadow-xl tw-w-[200px] tw-z-20 tw-animate-fade-in-up">
+                                <a href="#" class="tw-flex tw-gap-3 tw-items-center">
+                                    <img src="https://images.unsplash.com/photo-1548624149-f321f471dc5f?w=100" class="tw-w-12 tw-h-16 tw-object-cover tw-rounded">
+                                    <div><h4 class="tw-text-xs tw-font-bold">Áo khoác dạ</h4><p class="tw-text-xs tw-text-primary tw-font-bold">2,499,000đ</p></div>
+                                </a>
+                                <button onclick="event.stopPropagation(); closeHotspot('set2-p1')" class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-black tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-text-[10px]">✕</button>
+                            </div>
+
+                            <div class="hotspot-point tw-absolute tw-top-[50%] tw-left-[30%] tw-z-10 tw-cursor-pointer"
+                                 onclick="toggleHotspot('set2-p2')">
+                                <span class="tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-white tw-opacity-75 tw-animate-ping"></span>
+                                <span class="tw-relative tw-inline-flex tw-rounded-full tw-h-4 tw-w-4 tw-bg-white tw-shadow-md"></span>
+                            </div>
+                            <div id="set2-p2" class="hotspot-card tw-hidden tw-absolute tw-top-[40%] tw-left-[35%] tw-bg-white/95 tw-backdrop-blur-sm tw-p-3 tw-rounded-lg tw-shadow-xl tw-w-[200px] tw-z-20 tw-animate-fade-in-up">
+                                <a href="#" class="tw-flex tw-gap-3 tw-items-center">
+                                    <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=100" class="tw-w-12 tw-h-16 tw-object-cover tw-rounded">
+                                    <div><h4 class="tw-text-xs tw-font-bold">Túi xách da</h4><p class="tw-text-xs tw-text-primary tw-font-bold">1,500,000đ</p></div>
+                                </a>
+                                <button onclick="event.stopPropagation(); closeHotspot('set2-p2')" class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-black tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-text-[10px]">✕</button>
                             </div>
                         </div>
-                        <div class="tw-relative tw-group">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&fit=crop" class="tw-w-full tw-h-[500px] tw-object-cover">
-                            <div class="tw-absolute tw-bottom-6 tw-left-6">
-                                <button class="tw-bg-white tw-text-black tw-text-xs tw-font-bold tw-px-6 tw-py-2 tw-uppercase tw-shadow-md hover:tw-bg-black hover:tw-text-white tw-transition">Xem chi tiết</button>
+
+                        <div class="tw-relative tw-w-full tw-h-[600px] tw-group tw-overflow-hidden tw-rounded-lg">
+                            <img src="https://cdn.hstatic.net/products/200000000133/25avae033k_-_25avje033k.4_ce3e2fa25d8a4ef6ab674ca8793fdce0_master.jpg?w=800&fit=crop"
+                                 class="tw-w-full tw-h-full tw-object-cover" alt="Set 3">
+
+                            <div class="hotspot-point tw-absolute tw-top-[40%] tw-left-[50%] tw-z-10 tw-cursor-pointer"
+                                 onclick="toggleHotspot('set3-p1')">
+                                <span class="tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-white tw-opacity-75 tw-animate-ping"></span>
+                                <span class="tw-relative tw-inline-flex tw-rounded-full tw-h-4 tw-w-4 tw-bg-white tw-shadow-md"></span>
+                            </div>
+                            <div id="set3-p1" class="hotspot-card tw-hidden tw-absolute tw-top-[40%] tw-right-[55%] tw-mr-2 tw-bg-white/95 tw-backdrop-blur-sm tw-p-3 tw-rounded-lg tw-shadow-xl tw-w-[200px] tw-z-20 tw-animate-fade-in-up">
+                                <a href="#" class="tw-flex tw-gap-3 tw-items-center">
+                                    <img src="https://cdn.hstatic.net/products/200000000133/25avae033k_-_25avje033k.3_8bb08dbcf6e34c8dbffeae454acb6ec3_master.jpg?w=100" class="tw-w-12 tw-h-16 tw-object-cover tw-rounded">
+                                    <div><h4 class="tw-text-xs tw-font-bold">Đầm dự tiệc</h4><p class="tw-text-xs tw-text-primary tw-font-bold">3,200,000đ</p></div>
+                                </a>
+                                <button onclick="event.stopPropagation(); closeHotspot('set3-p1')" class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-black tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-text-[10px]">✕</button>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </section>
@@ -855,7 +827,7 @@
                         <span class="material-icons-outlined tw-text-4xl tw-text-gray-400">support_agent</span>
                         <div>
                             <h4 class="tw-font-bold tw-text-sm">Tổng Đài Miễn Phí</h4>
-                            <p class="tw-text-[10px] tw-text-gray-500">Gọi <b>1800.1732</b> để tư vấn</p>
+                            <p class="tw-text-[10px] tw-text-gray-500">Gọi <b>1800.3636</b> để tư vấn</p>
                         </div>
                     </div>
                     <div class="tw-flex tw-gap-4 tw-items-center">
@@ -871,7 +843,7 @@
             <section class="tw-container tw-mx-auto tw-px-4 tw-py-16">
                 <h2 class="tw-text-center tw-font-bold tw-mb-8">Follow Us On Media</h2>
                 <div class="tw-flex tw-flex-col tw-items-center tw-mb-10">
-                    <div class="tw-text-3xl tw-font-display tw-font-bold tw-tracking-widest tw-mb-6">EVA DE EVA</div>
+                    <div class="tw-text-3xl tw-font-display tw-font-bold tw-tracking-widest tw-mb-6">TULIP DE TOUR</div>
                     <div class="tw-relative tw-w-full tw-max-w-xl">
                         <input class="tw-w-full tw-border tw-border-gray-300 tw-py-3 tw-px-4 tw-rounded-none focus:tw-ring-0 focus:tw-border-black" placeholder="Tìm kiếm sản phẩm..." type="text"/>
                         <button class="tw-absolute tw-right-4 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-text-gray-400 hover:tw-text-black">
@@ -885,31 +857,31 @@
                 </div>
                 <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-0">
                     <div class="tw-relative tw-aspect-square tw-group tw-cursor-pointer">
-                        <img class="tw-w-full tw-h-full tw-object-cover" src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&fit=crop">
+                        <img class="tw-w-full tw-h-full tw-object-cover" src="https://res.cloudinary.com/diawi4gde/image/upload/v1765814444/588959880_18412753378138488_2435953181868879088_n_djgunt.jpg?w=500&fit=crop">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/40 tw-flex tw-flex-col tw-items-center tw-justify-center tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity">
                             <i class="fab fa-facebook tw-text-white tw-text-3xl tw-mb-2"></i>
-                            <span class="tw-text-white tw-text-sm tw-font-bold">Eva De Eva</span>
-                        </div>
-                    </div>
-                    <div class="tw-relative tw-aspect-square tw-group tw-cursor-pointer">
-                        <img class="tw-w-full tw-h-full tw-object-cover" src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=500&fit=crop">
-                        <div class="tw-absolute tw-inset-0 tw-bg-black/40 tw-flex tw-flex-col tw-items-center tw-justify-center tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity">
-                            <i class="fab fa-youtube tw-text-white tw-text-3xl tw-mb-2"></i>
-                            <span class="tw-text-white tw-text-sm tw-font-bold">EvadeEvaOfficial</span>
+                            <span class="tw-text-white tw-text-sm tw-font-bold">TulipOfficial</span>
                         </div>
                     </div>
                     <div class="tw-relative tw-aspect-square tw-group tw-cursor-pointer">
                         <img class="tw-w-full tw-h-full tw-object-cover" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&fit=crop">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/40 tw-flex tw-flex-col tw-items-center tw-justify-center tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity">
+                            <i class="fab fa-youtube tw-text-white tw-text-3xl tw-mb-2"></i>
+                            <span class="tw-text-white tw-text-sm tw-font-bold">Cre by VinhSaGex</span>
+                        </div>
+                    </div>
+                    <div class="tw-relative tw-aspect-square tw-group tw-cursor-pointer">
+                        <img class="tw-w-full tw-h-full tw-object-cover" src="https://res.cloudinary.com/diawi4gde/image/upload/v1765814444/584865369_18411250240138488_4063880610566949751_n_ivau01.jpg?w=500&fit=crop">
+                        <div class="tw-absolute tw-inset-0 tw-bg-black/40 tw-flex tw-flex-col tw-items-center tw-justify-center tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity">
                             <i class="fab fa-tiktok tw-text-white tw-text-3xl tw-mb-2"></i>
-                            <span class="tw-text-white tw-text-sm tw-font-bold">EvadeEvaOfficial</span>
+                            <span class="tw-text-white tw-text-sm tw-font-bold">TulipOfficial</span>
                         </div>
                     </div>
                     <div class="tw-relative tw-aspect-square tw-group tw-cursor-pointer">
                         <img class="tw-w-full tw-h-full tw-object-cover" src="https://images.unsplash.com/photo-1529139574466-a302d2053990?w=500&fit=crop">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/40 tw-flex tw-flex-col tw-items-center tw-justify-center tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity">
                             <i class="fab fa-instagram tw-text-white tw-text-3xl tw-mb-2"></i>
-                            <span class="tw-text-white tw-text-sm tw-font-bold">evadeevaofficial</span>
+                            <span class="tw-text-white tw-text-sm tw-font-bold">VinhVVN dep trai</span>
                         </div>
                     </div>
                 </div>
@@ -1111,6 +1083,208 @@
             // Small delay to ensure other scripts have initialized
             setTimeout(init3DViewers, 100);
         }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slider = document.getElementById('sale-slider');
+            const prevBtn = document.getElementById('btn-sale-prev');
+            const nextBtn = document.getElementById('btn-sale-next');
+
+            if (slider && prevBtn && nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    // Cuộn sang phải 1 khoảng bằng chiều rộng thẻ + gap
+                    const cardWidth = slider.querySelector('div').offsetWidth;
+                    slider.scrollBy({ left: cardWidth + 24, behavior: 'smooth' });
+                });
+
+                prevBtn.addEventListener('click', () => {
+                    const cardWidth = slider.querySelector('div').offsetWidth;
+                    slider.scrollBy({ left: -(cardWidth + 24), behavior: 'smooth' });
+                });
+            }
+        });
+
+        // Hàm load dữ liệu theo tab
+        function loadTab(type, btnElement) {
+            const grid = document.getElementById('tab-product-grid');
+
+            // 1. Cập nhật giao diện nút (Active State)
+            // Reset tất cả nút về màu xám
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn tw-text-gray-500 hover:tw-text-black tw-pb-4 -tw-mb-4 tw-border-b-2 tw-border-transparent hover:tw-border-gray-300 tw-transition-colors';
+            });
+            // Set nút đang bấm thành màu đỏ (Active)
+            if(btnElement) {
+                btnElement.className = 'tab-btn tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4 tw-transition-colors';
+            }
+
+            // 2. Hiển thị loading
+            grid.innerHTML = '<div class="tw-col-span-full tw-flex tw-justify-center tw-items-center tw-h-40"><div class="tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-primary"></div></div>';
+
+            // 3. Chọn API tương ứng
+            let apiUrl = '/api/store/new-arrivals';
+            if (type === 'sale') apiUrl = '/api/store/sale-18';
+            if (type === 'trending') apiUrl = '/api/store/trending';
+
+            // 4. Gọi API
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(products => {
+                    grid.innerHTML = ''; // Xóa loading
+
+                    if (!products || products.length === 0) {
+                        grid.innerHTML = '<div class="tw-col-span-full tw-text-center tw-text-gray-400">Không có sản phẩm nào.</div>';
+                        return;
+                    }
+
+                    // 5. Render HTML
+                    products.forEach(p => {
+                        const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price);
+                        let oldPriceHtml = '';
+                        let badgeHtml = '';
+
+                        if (p.originalPrice && p.originalPrice > p.price) {
+                            const oldPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.originalPrice);
+                            oldPriceHtml = `<span class="tw-text-gray-400 tw-text-xs tw-line-through">${oldPrice}</span>`;
+                            // Tính % giảm
+                            const percent = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+                            if (percent > 0) {
+                                badgeHtml = `<span class="tw-absolute tw-top-2 tw-left-2 tw-bg-yellow-600 tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">-${percent}%</span>`;
+                            }
+                        } else if (type === 'new') {
+                            // Badge NEW cho tab Hàng mới
+                            badgeHtml = `<span class="tw-absolute tw-top-2 tw-left-2 tw-bg-blue-600 tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1">NEW</span>`;
+                        }
+
+                        const itemHtml = `
+                                    <div class="tw-group">
+                                        <a href="${p.url}" class="tw-block">
+                                            <div class="tw-relative tw-overflow-hidden tw-mb-3">
+                                                <img src="${p.thumbnail}" alt="${p.name}"
+                                                     class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top tw-transition-transform tw-duration-700 group-hover:tw-scale-105">
+                                                ${badgeHtml}
+                                            </div>
+                                            <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate tw-uppercase">${p.name}</h3>
+                                            <div class="tw-flex tw-items-baseline tw-gap-2">
+                                                <span class="tw-text-black tw-font-bold tw-text-sm">${price}</span>
+                                                ${oldPriceHtml}
+                                            </div>
+                                        </a>
+                                    </div>
+                                `;
+                        grid.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    grid.innerHTML = '<div class="tw-col-span-full tw-text-center tw-text-red-500">Lỗi tải dữ liệu.</div>';
+                });
+        }
+
+        // Tự động load tab đầu tiên (Hàng mới về) khi trang tải xong
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tìm nút đầu tiên để active style
+            const firstBtn = document.querySelector('.tab-btn');
+            loadTab('new', firstBtn);
+        });
+
+        function toggleHotspot(cardId) {
+            // 1. Đóng tất cả các thẻ đang mở trước
+            document.querySelectorAll('.hotspot-card').forEach(card => {
+                if (card.id !== cardId) {
+                    card.classList.add('tw-hidden');
+                }
+            });
+
+            // 2. Bật/Tắt thẻ được chọn
+            const card = document.getElementById(cardId);
+            if (card) {
+                // Nếu đang ẩn thì hiện, đang hiện thì ẩn
+                if (card.classList.contains('tw-hidden')) {
+                    card.classList.remove('tw-hidden');
+                } else {
+                    card.classList.add('tw-hidden');
+                }
+            }
+        }
+
+        function closeHotspot(cardId) {
+            const card = document.getElementById(cardId);
+            if (card) {
+                card.classList.add('tw-hidden');
+            }
+        }
+
+        // Click ra ngoài thì đóng hết popup
+        document.addEventListener('click', function(event) {
+            const isClickInsideHotspot = event.target.closest('.hotspot-point');
+            const isClickInsideCard = event.target.closest('.hotspot-card');
+
+            if (!isClickInsideHotspot && !isClickInsideCard) {
+                document.querySelectorAll('.hotspot-card').forEach(card => {
+                    card.classList.add('tw-hidden');
+                });
+            }
+        });
+
+        function loadOccasion(tag, btnElement) {
+            const grid = document.getElementById('occasion-grid');
+
+            // 1. Update Active State cho nút
+            document.querySelectorAll('.occasion-btn').forEach(btn => {
+                btn.className = 'occasion-btn tw-text-gray-500 hover:tw-text-black tw-transition-colors tw-border-b-2 tw-border-transparent hover:tw-border-gray-300';
+            });
+            if(btnElement) {
+                btnElement.className = 'occasion-btn tw-font-bold tw-text-black tw-border-b-2 tw-border-black tw-pb-1 tw-transition-colors';
+            }
+
+            // 2. Hiển thị Loading
+            grid.innerHTML = '<div class="tw-col-span-full tw-flex tw-justify-center tw-py-10"><div class="tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-gray-900"></div></div>';
+
+            // 3. Gọi API
+            fetch(`/api/store/occasion?tag=${tag}`)
+                .then(res => res.json())
+                .then(products => {
+                    grid.innerHTML = '';
+
+                    if (!products || products.length === 0) {
+                        grid.innerHTML = '<div class="tw-col-span-full tw-text-center tw-text-gray-400">Chưa có sản phẩm cho mục này.</div>';
+                        return;
+                    }
+
+                    // 4. Render HTML
+                    products.forEach(p => {
+                        const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price);
+
+                        const html = `
+                                    <div class="tw-group">
+                                        <div class="tw-relative tw-overflow-hidden tw-mb-3">
+                                            <a href="${p.url}">
+                                                <img src="${p.thumbnail}" alt="${p.name}"
+                                                     class="tw-w-full tw-aspect-[3/4] tw-object-cover tw-object-top tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
+                                            </a>
+                                        </div>
+                                        <h3 class="tw-text-xs tw-text-gray-500 tw-mb-1 tw-truncate tw-uppercase">${p.name}</h3>
+                                        <div class="tw-flex tw-items-baseline tw-gap-2">
+                                            <span class="tw-text-black tw-font-bold tw-text-sm">${price}</span>
+                                        </div>
+                                    </div>
+                                `;
+                        grid.insertAdjacentHTML('beforeend', html);
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    grid.innerHTML = '<div class="tw-col-span-full tw-text-center tw-text-red-500">Lỗi kết nối server.</div>';
+                });
+        }
+
+        // Tự động load tab đầu tiên khi vào trang
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstBtn = document.querySelector('.occasion-btn');
+            loadOccasion('di-lam', firstBtn);
+        });
+
     </script>
 </body>
 </html>

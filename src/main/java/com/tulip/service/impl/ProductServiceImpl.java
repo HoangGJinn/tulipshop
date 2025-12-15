@@ -371,5 +371,10 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
+    @Override
+    public List<Product> findProductsWithDeepDiscount() {
+        return productRepository.findProductsWithDeepDiscount();
+    }
+
 
 }
