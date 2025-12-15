@@ -140,7 +140,7 @@ body {
 .horizontal-wrapper {
     display: flex;
     flex-wrap: nowrap;
-    width: 300vw; /* 3 times screen width: 100vw hero + 200vw products */
+    width: 400vw; /* 3 times screen width: 100vw hero + 200vw products */
     height: 100vh;
     position: relative;
     will-change: transform;
@@ -500,12 +500,6 @@ body {
     width: 96px;
     height: 96px;
     z-index: 4;
-}
-
-.spinner-svg {
-    width: 100%;
-    height: 100%;
-    animation: spin-slow 20s linear infinite;
 }
 
 .spinner-text {
@@ -884,4 +878,262 @@ a, button {
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+
+/* ============================================
+   SECTION 3: FOOTER SLIDE STYLE
+   ============================================ */
+.footer-slide {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    background: #121212;
+    color: #fff;
+    border-left: 1px solid rgba(255,255,255,0.1);
+}
+
+/* --- Left Column: Visuals --- */
+.footer-visuals {
+    flex: 1; /* Chiếm phần lớn diện tích */
+    display: flex;
+    overflow: hidden;
+}
+
+.visual-left, .visual-right {
+    position: relative;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.visual-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.7s ease;
+}
+
+.visual-left .visual-img { opacity: 0.6; }
+.visual-img.grayscale { filter: grayscale(100%); }
+
+.visual-right:hover .visual-img {
+    filter: grayscale(0%);
+    transform: scale(1.05);
+}
+
+/* Spinner Animation */
+.spinner-container {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    width: 6rem;
+    height: 6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    animation: spin-slow 10s linear infinite;
+    fill: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.arrow-icon { font-size: 1.5rem; }
+
+/* Floating Product Card */
+.product-card-floating {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    right: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.75rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.product-card-floating:hover { background: rgba(255, 255, 255, 0.2); }
+
+.card-thumb {
+    width: 4rem;
+    height: 4rem;
+    background: #fff;
+    border-radius: 2px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.card-info h3 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.card-info p {
+    font-size: 0.75rem;
+    color: #ccc;
+}
+
+.card-arrow {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s;
+    margin-left: auto;
+}
+
+.product-card-floating:hover .card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* --- Middle Column: Strip --- */
+.footer-strip {
+    width: 64px;
+    background: #6EE7B7; /* Primary Green */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    color: #000;
+    flex-shrink: 0;
+}
+
+.strip-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#fff 1px, transparent 1px);
+    background-size: 4px 4px;
+    opacity: 0.2;
+}
+
+.strip-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: var(--font-condensed);
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 2rem 0;
+}
+
+/* --- Right Column: Info --- */
+.footer-info {
+    width: 25%;
+    min-width: 300px;
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(255,255,255,0.1);
+}
+
+.info-content {
+    padding: 2rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #999;
+    margin-bottom: 2rem;
+}
+
+.info-text .highlight { color: #fff; font-weight: 700; }
+.link-highlight {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: #6EE7B7;
+    text-underline-offset: 4px;
+    transition: color 0.3s;
+}
+.link-highlight:hover { color: #6EE7B7; }
+
+.info-social-cta h4 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.social-link-cta {
+    color: #6EE7B7;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: opacity 0.3s;
+}
+.social-link-cta:hover { opacity: 0.8; }
+
+/* Social Grid */
+.social-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.social-item {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    transition: all 0.3s;
+}
+.social-item:last-child { border-right: none; }
+.social-item:hover { background: rgba(255,255,255,0.05); color: #6EE7B7; }
+
+.social-item svg { width: 24px; height: 24px; fill: currentColor; }
+
+/* Footer Links Grid */
+.footer-links-grid {
+    padding: 2rem;
+    background: #151515;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 2rem;
+}
+
+.footer-links-grid a {
+    color: #888;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.3s;
+}
+.footer-links-grid a:hover { color: #6EE7B7; }
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .horizontal-wrapper { width: 400vw; } /* Vẫn giữ chiều rộng nhưng chỉnh layout bên trong */
+    .footer-slide { flex-direction: column; width: 100vw; overflow-y: auto; }
+    .footer-visuals { height: 50vh; width: 100%; }
+    .footer-strip { width: 100%; height: 60px; flex-direction: row; }
+    .strip-text { writing-mode: horizontal-tb; transform: none; padding: 0; }
+    .footer-info { width: 100%; border-left: none; }
 }

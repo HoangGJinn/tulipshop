@@ -2,88 +2,100 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<footer th:fragment="footer" class="site-footer">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 col-sm-6">
-                <h3 class="footer-title">Về Tulip Shop</h3>
-                <p>Chúng tôi mang đến những sản phẩm thời trang chất lượng cao với giá cả hợp lý.</p>
+<footer th:fragment="footer" class="site-footer tw-bg-black tw-text-white tw-py-16 tw-text-sm">
+    <div class="tw-container tw-mx-auto tw-px-4">
+        <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-8 tw-mb-12">
+            <div>
+                <h3 class="footer-title tw-font-bold tw-mb-6 tw-uppercase tw-tracking-widest tw-text-lg">Về Tulip Shop</h3>
+                <p class="tw-text-gray-400 tw-leading-relaxed">Chúng tôi mang đến những sản phẩm thời trang chất lượng cao với giá cả hợp lý, tôn vinh vẻ đẹp hiện đại của phụ nữ Việt.</p>
             </div>
-            <div class="col-md-4 col-sm-6">
-                <h3 class="footer-title">Liên kết nhanh</h3>
-                <ul class="footer-links">
-                    <li><a th:href="@{/about}">Về chúng tôi</a></li>
-                    <li><a th:href="@{/contact}">Liên hệ</a></li>
-                    <li><a th:href="@{/policy}">Chính sách</a></li>
-                    <li><a th:href="@{/terms}">Điều khoản</a></li>
+
+            <div>
+                <h3 class="footer-title tw-font-bold tw-mb-6 tw-uppercase tw-tracking-widest tw-text-lg">Liên kết nhanh</h3>
+                <ul class="footer-links tw-space-y-3 tw-text-gray-400">
+                    <li><a th:href="@{/about}" class="hover:tw-text-white tw-transition-colors">Về chúng tôi</a></li>
+                    <li><a th:href="@{/contact}" class="hover:tw-text-white tw-transition-colors">Liên hệ</a></li>
+                    <li><a th:href="@{/policy}" class="hover:tw-text-white tw-transition-colors">Chính sách</a></li>
+                    <li><a th:href="@{/terms}" class="hover:tw-text-white tw-transition-colors">Điều khoản</a></li>
                 </ul>
             </div>
-            <div class="col-md-4 col-sm-6">
-                <h3 class="footer-title">Kết nối với chúng tôi</h3>
-                <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+
+            <div>
+                <h3 class="footer-title tw-font-bold tw-mb-6 tw-uppercase tw-tracking-widest tw-text-lg">Kết nối với chúng tôi</h3>
+                <div class="social-links tw-flex tw-gap-4">
+                    <a href="#" class="social-link tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-border tw-border-gray-600 tw-rounded-full hover:tw-bg-white hover:tw-text-black tw-transition-colors">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-link tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-border tw-border-gray-600 tw-rounded-full hover:tw-bg-white hover:tw-text-black tw-transition-colors">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-border tw-border-gray-600 tw-rounded-full hover:tw-bg-white hover:tw-text-black tw-transition-colors">
+                        <i class="fab fa-youtube"></i>
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="footer-bottom">
+
+        <div class="footer-bottom tw-border-t tw-border-gray-800 tw-pt-8 tw-text-center tw-text-gray-500 tw-text-xs">
             <p>&copy; 2025 Tulip Shop. All rights reserved. By Group 3</p>
         </div>
     </div>
 
-    <div id="searchOverlay" class="search-overlay">
-        <div class="container">
-            <div class="text-end pt-3">
-                <button class="btn-close-search" onclick="toggleSearchPanel()">
-                    <i class="fas fa-times"></i> ĐÓNG
+    <div id="searchOverlay" class="search-overlay tw-fixed tw-inset-0 tw-bg-white tw-z-[9999] tw-translate-y-[-100%] tw-transition-transform tw-duration-300 tw-ease-in-out">
+        <div class="tw-container tw-mx-auto tw-px-4 tw-h-full tw-flex tw-flex-col">
+            <div class="tw-text-right tw-pt-6">
+                <button class="btn-close-search tw-text-black tw-font-bold tw-uppercase tw-tracking-widest hover:tw-text-primary tw-flex tw-items-center tw-gap-2 tw-ml-auto" onclick="toggleSearchPanel()">
+                    <i class="fas fa-times tw-text-xl"></i> Đóng
                 </button>
             </div>
 
-            <div class="search-box-wrapper text-center mt-3">
-                <form action="/products" method="get" class="position-relative">
-                    <input type="text" id="searchInput" name="search" class="form-control search-input"
+            <div class="search-box-wrapper tw-mt-12 tw-max-w-3xl tw-mx-auto tw-w-full">
+                <form action="/products" method="get" class="tw-relative">
+                    <input type="text" id="searchInput" name="search"
+                           class="search-input tw-w-full tw-border-b-2 tw-border-gray-200 tw-text-3xl tw-font-bold tw-py-4 tw-px-2 focus:tw-outline-none focus:tw-border-black tw-bg-transparent tw-text-center placeholder:tw-text-gray-300"
                            placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
-                    <button type="submit" class="btn-search-submit"><i class="fas fa-search"></i></button>
+                    <button type="submit" class="btn-search-submit tw-absolute tw-right-0 tw-top-1/2 tw--translate-y-1/2 tw-text-2xl tw-text-gray-400 hover:tw-text-black">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </form>
             </div>
 
-            <div id="searchResults" class="search-results mt-4">
-                <div class="default-suggestions text-center">
-                    <p class="text-muted small text-uppercase mb-3">Gợi ý cho bạn</p>
-                    <div class="d-flex justify-content-center gap-3 flex-wrap">
-                        <a href="/products?category=dam" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Đầm dạo phố</a>
-                        <a href="/products?category=ao-kieu" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Áo kiểu</a>
+            <div id="searchResults" class="search-results tw-mt-10 tw-flex-grow tw-overflow-y-auto">
+                <div class="default-suggestions tw-text-center">
+                    <p class="tw-text-gray-400 tw-text-xs tw-uppercase tw-mb-4 tw-tracking-widest">Gợi ý cho bạn</p>
+                    <div class="tw-flex tw-justify-center tw-gap-3 tw-flex-wrap">
+                        <a href="/products?category=dam" class="tw-px-4 tw-py-2 tw-border tw-border-gray-200 tw-rounded-full tw-text-sm tw-text-gray-600 hover:tw-border-black hover:tw-text-black tw-transition">Đầm dạo phố</a>
+                        <a href="/products?category=ao-kieu" class="tw-px-4 tw-py-2 tw-border tw-border-gray-200 tw-rounded-full tw-text-sm tw-text-gray-600 hover:tw-border-black hover:tw-text-black tw-transition">Áo kiểu</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Toggle Search Panel Logic
         function toggleSearchPanel() {
             const panel = document.getElementById('searchOverlay');
             const input = document.getElementById('searchInput');
 
+            // Kiểm tra class dựa trên style Tailwind transform
             if (panel.classList.contains('open')) {
                 panel.classList.remove('open');
+                panel.style.transform = 'translateY(-100%)';
                 document.body.style.overflow = 'auto';
             } else {
                 panel.classList.add('open');
+                panel.style.transform = 'translateY(0)';
                 document.body.style.overflow = 'hidden';
                 setTimeout(() => input.focus(), 300);
             }
         }
 
+        // Live Search Logic
         let typingTimer;
         const doneTypingInterval = 400;
         const input = document.getElementById('searchInput');
         const resultDiv = document.getElementById('searchResults');
-        // Lưu nội dung gợi ý mặc định
         const defaultContent = resultDiv ? resultDiv.innerHTML : '';
 
         if(input){
@@ -99,7 +111,6 @@
 
         function performSearch() {
             const query = input.value;
-            // Chú ý: Dấu / ở đầu đường dẫn là bắt buộc để gọi về gốc server
             fetch(`/api/store/search?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
@@ -110,31 +121,32 @@
 
         function renderResults(products) {
             if (products.length === 0) {
-                resultDiv.innerHTML = '<div class="text-center text-muted mt-5">Không tìm thấy sản phẩm nào phù hợp.</div>';
+                resultDiv.innerHTML = '<div class="tw-text-center tw-text-gray-500 tw-mt-5">Không tìm thấy sản phẩm nào phù hợp.</div>';
                 return;
             }
 
-            let html = '<div class="row justify-content-center"><div class="col-md-8 list-group list-group-flush">';
+            // Tạo HTML kết quả bằng Tailwind classes thay vì Bootstrap
+            let html = '<div class="tw-max-w-2xl tw-mx-auto tw-flex tw-flex-col tw-gap-2">';
 
             products.forEach(p => {
-                let priceHtml = `<span class="search-item-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price)}</span>`;
+                let priceHtml = `<span class="tw-text-black tw-font-bold">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price)}</span>`;
                 if (p.originalPrice) {
-                    priceHtml += `<span class="search-item-old-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.originalPrice)}</span>`;
+                    priceHtml += `<span class="tw-text-gray-400 tw-text-xs tw-line-through tw-ml-2">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.originalPrice)}</span>`;
                 }
 
                 html += `
-                <a href="${p.url}" class="list-group-item list-group-item-action search-item d-flex align-items-center gap-3">
-                    <img src="${p.thumbnail}" alt="${p.name}">
+                <a href="${p.url}" class="tw-flex tw-items-center tw-gap-4 tw-p-3 tw-rounded-lg hover:tw-bg-gray-50 tw-transition-colors">
+                    <img src="${p.thumbnail}" alt="${p.name}" class="tw-w-16 tw-h-20 tw-object-cover tw-rounded">
                     <div>
-                        <div class="search-item-title text-uppercase">${p.name}</div>
+                        <div class="tw-text-sm tw-font-bold tw-uppercase tw-mb-1">${p.name}</div>
                         ${priceHtml}
                     </div>
                 </a>
             `;
             });
 
-            html += `<div class="text-center mt-3"><a href="/products?search=${input.value}" class="btn btn-sm btn-link text-dark">Xem tất cả kết quả</a></div>`;
-            html += '</div></div>';
+            html += `<div class="tw-text-center tw-mt-6"><a href="/products?search=${input.value}" class="tw-text-sm tw-underline hover:tw-text-primary">Xem tất cả kết quả</a></div>`;
+            html += '</div>';
 
             resultDiv.innerHTML = html;
         }
