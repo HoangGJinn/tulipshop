@@ -249,9 +249,9 @@
                              data-model-y="-0.5"></div>
                     </div>
                     <div class="product-info-top">
-                        <h1 class="product-title">The MVP Crew</h1>
-                        <p class="product-price-top">$59.00</p>
-                        <button class="quick-view-btn-showcase">QUICK VIEW</button>
+                        <h1 class="product-title">Váy xếp ly không tay</h1>
+                        <p class="product-price-top">VND 2.000.000đ</p>
+                        <button class="quick-view-btn-showcase">XEM NGAY</button>
                     </div>
                     <div class="shop-all-spinner">
                         <svg class="spinner-svg" viewBox="0 0 100 100">
@@ -266,7 +266,7 @@
                 </div>
                 <!-- Right Column: Lifestyle -->
                 <div class="lifestyle-col">
-                    <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1200&fit=crop" alt="Model wearing The MVP Crew" class="model-bg" loading="lazy">
+                    <img src="https://res.cloudinary.com/diawi4gde/image/upload/v1765866465/tulip-fashion/n8bx5adwsesqr7i6647r.jpg?w=700&h=900&fit=crop" alt="Model wearing The MVP Crew" class="model-bg" loading="lazy">
                     <div class="gradient-overlay"></div>
                     <div class="marquee-container">
                         <div class="marquee-text">
@@ -282,18 +282,23 @@
                         <div class="hotspot-dot-lifestyle"></div>
                         <div class="hotspot-pulse"></div>
                     </div>
-                    <div class="glass-card">
-                        <div class="glass-card-thumbnail">
-                            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop" alt="The MVP Crew thumbnail" loading="lazy">
+                    <a href="/product/10" class="glass-card"
+                       style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;">
+
+                        <div class="glass-card-thumbnail" style="flex-shrink: 0;">
+                            <img src="https://res.cloudinary.com/diawi4gde/image/upload/v1765866827/84437958b_b_06_500_ndzwii.jpg?w=100&h=100&fit=crop"
+                                 alt="The MVP Crew thumbnail" loading="lazy"
+                                 style="display: block;"> </div>
+
+                        <div class="glass-card-info" style="flex-grow: 1;">
+                            <h3 class="glass-card-title">Váy xếp ly không tay</h3>
+                            <p class="glass-card-price">VND 2.000.000đ</p>
                         </div>
-                        <div class="glass-card-info">
-                            <h3 class="glass-card-title">The MVP Crew</h3>
-                            <p class="glass-card-price">USD $59.00</p>
-                        </div>
+
                         <div class="glass-card-icon">
                             <span>↗</span>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </section>
 
@@ -400,12 +405,12 @@
                 <div class="footer-info">
                     <div class="info-content">
                         <p class="info-text">
-                            Join the <span class="highlight">Supply</span> commerce community. Our store runs on <a href="#" class="link-highlight">Hydrogen</a>, Shopify's React-based headless commerce stack, deployed on <a href="#" class="link-highlight">Oxygen</a>.
+                            Join the <span class="highlight">Supply</span> commerce community. Our store runs on <a href="#" class="link-highlight">Hydrogen</a>, Tulip's React-based headless commerce stack, deployed on <a href="#" class="link-highlight">Oxygen</a>.
                         </p>
                         <div class="info-social-cta">
                             <h4>Give Supply a shout out on social</h4>
                             <a href="#" class="social-link-cta">
-                                Tag us @Shopify when you share
+                                Tag us @Tulip when you share
                                 <span class="material-icons">arrow_forward</span>
                             </a>
                         </div>
@@ -441,14 +446,10 @@
             <div class="tw-bg-black tw-text-white tw-text-[10px] tw-py-1">
                 <div class="tw-container tw-mx-auto tw-px-4 tw-flex tw-justify-between tw-items-center">
                     <div class="tw-flex tw-gap-4">
-                        <span>Hotline mua hàng: <b>18001731</b></span>
-                        <span>Hotline CSKH: <b>18001732</b></span>
+                        <span>Hotline mua hàng: <b>18003636</b></span>
+                        <span>Hotline CSKH: <b>18001818</b></span>
                         <span>|</span>
                         <a class="tw-hover:underline" href="#">Hệ thống showroom</a>
-                    </div>
-                    <div class="tw-flex tw-items-center tw-gap-2">
-                        <span class="material-icons-outlined tw-text-sm">shopping_bag</span>
-                        <span>0</span>
                     </div>
                 </div>
             </div>
@@ -479,20 +480,28 @@
                 <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
                     <h2 class="tw-text-2xl tw-font-bold tw-font-display">Danh mục nổi bật</h2>
                     <div class="tw-flex tw-gap-2">
-                        <button class="tw-p-1 tw-rounded-full hover:tw-bg-gray-100"><span class="material-icons-outlined">west</span></button>
-                        <button class="tw-p-1 tw-rounded-full hover:tw-bg-gray-100"><span class="material-icons-outlined">east</span></button>
+                        <button id="btn-cat-prev" class="tw-p-1 tw-rounded-full hover:tw-bg-gray-100 tw-border tw-border-transparent hover:tw-border-gray-200 tw-transition">
+                            <span class="material-icons-outlined">west</span>
+                        </button>
+                        <button id="btn-cat-next" class="tw-p-1 tw-rounded-full hover:tw-bg-gray-100 tw-border tw-border-transparent hover:tw-border-gray-200 tw-transition">
+                            <span class="material-icons-outlined">east</span>
+                        </button>
                     </div>
                 </div>
-                <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
-                        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&fit=crop" class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
+
+                <div id="category-slider" class="tw-flex tw-overflow-x-auto tw-pb-4 tw-scroll-smooth tw-snap-x" style="scrollbar-width: none; -ms-overflow-style: none;">
+
+                    <a href="/products?category=dam" class="tw-w-[45%] md:tw-w-[calc(25%-1rem)] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-cursor-pointer tw-relative tw-h-[400px] tw-overflow-hidden tw-rounded-lg">
+                        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&fit=crop"
+                             class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
                         <div class="tw-absolute tw-bottom-4 tw-left-4 tw-font-bold tw-text-lg tw-text-white tw-drop-shadow-md">Đầm</div>
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
                             <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
                         </div>
-                    </div>
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
+                    </a>
+
+                    <a href="/products?category=so-mi" class="tw-w-[45%] md:tw-w-[calc(25%-1rem)] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-cursor-pointer tw-relative tw-h-[400px] tw-overflow-hidden tw-rounded-lg">
                         <img src="https://images.unsplash.com/photo-1604176354204-9268737828e4?w=600&fit=crop"
                              class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
@@ -500,8 +509,9 @@
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
                             <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
                         </div>
-                    </div>
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
+                    </a>
+
+                    <a href="/products?category=ao-kieu" class="tw-w-[45%] md:tw-w-[calc(25%-1rem)] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-cursor-pointer tw-relative tw-h-[400px] tw-overflow-hidden tw-rounded-lg">
                         <img src="https://images.unsplash.com/photo-1564485377539-4af72d1f6a2f?w=600&fit=crop"
                              class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
@@ -509,8 +519,9 @@
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
                             <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
                         </div>
-                    </div>
-                    <div class="tw-relative tw-group tw-cursor-pointer tw-overflow-hidden tw-h-[400px]">
+                    </a>
+
+                    <a href="/products?category=quan" class="tw-w-[45%] md:tw-w-[calc(25%-1rem)] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-cursor-pointer tw-relative tw-h-[400px] tw-overflow-hidden tw-rounded-lg">
                         <img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&fit=crop"
                              class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
                         <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
@@ -518,21 +529,45 @@
                         <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
                             <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
                         </div>
-                    </div>
+                    </a>
+
+                    <a href="/products?category=vay-ngan" class="tw-w-[45%] md:tw-w-[calc(25%-1rem)] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-cursor-pointer tw-relative tw-h-[400px] tw-overflow-hidden tw-rounded-lg">
+                        <img src="https://images.unsplash.com/photo-1529139574466-a302d2053990?w=600&fit=crop"
+                             class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 group-hover:tw-scale-105">
+                        <div class="tw-absolute tw-inset-0 tw-bg-black/10 group-hover:tw-bg-black/0 tw-transition-colors"></div>
+                        <div class="tw-absolute tw-bottom-4 tw-left-4 tw-font-bold tw-text-lg tw-text-white tw-drop-shadow-md">Váy ngắn</div>
+                        <div class="tw-absolute tw-bottom-4 tw-right-4 tw-bg-white tw-text-black tw-rounded-full tw-p-2 tw-shadow-lg tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-transform tw-translate-y-2 group-hover:tw-translate-y-0">
+                            <span class="material-icons-outlined tw-text-sm">arrow_forward</span>
+                        </div>
+                    </a>
                 </div>
             </section>
 
             <section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
                 <div class="tw-flex tw-flex-col md:tw-flex-row tw-items-center tw-gap-4 tw-mb-8">
                     <h2 class="tw-text-2xl tw-font-bold tw-flex tw-items-center tw-gap-2">
-                        <span class="tw-w-2 tw-h-2 tw-rounded-full tw-bg-red-600"></span> EDE Sale Upto 70%
+                        <span class="tw-relative tw-flex tw-h-3 tw-w-3">
+                          <span class="tw-animate-ping tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-red-400 tw-opacity-75"></span>
+                          <span class="tw-relative tw-inline-flex tw-rounded-full tw-h-3 tw-w-3 tw-bg-red-600"></span>
+                        </span>
+
+                        Tulip Sale Upto 36%
                     </h2>
+
                     <div class="tw-flex tw-gap-2">
-                        <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded">06 <span class="tw-text-[8px] tw-font-normal">Giờ</span></div>
-                        <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded">02 <span class="tw-text-[8px] tw-font-normal">Phút</span></div>
-                        <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded">14 <span class="tw-text-[8px] tw-font-normal">Giây</span></div>
+                        <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-min-w-[45px] tw-text-center">
+                            <span id="countdown-h">24</span> <span class="tw-text-[8px] tw-font-normal">Giờ</span>
+                        </div>
+                        <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-min-w-[45px] tw-text-center">
+                            <span id="countdown-m">00</span> <span class="tw-text-[8px] tw-font-normal">Phút</span>
+                        </div>
+                        <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-min-w-[45px] tw-text-center">
+                            <span id="countdown-s">00</span> <span class="tw-text-[8px] tw-font-normal">Giây</span>
+                        </div>
                     </div>
+
                     <div class="tw-flex-grow"></div>
+
                     <div class="tw-flex tw-gap-2">
                         <button id="btn-sale-prev" class="tw-p-2 tw-rounded-full tw-border tw-border-gray-200 hover:tw-bg-gray-100 hover:tw-border-black tw-transition">
                             <span class="material-icons-outlined tw-text-sm">west</span>
@@ -577,7 +612,7 @@
 
                 <div class="tw-text-center tw-mt-10">
                     <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
-                        Xem tất cả EDE SALE UPTO 70%
+                        Xem tất cả TULIP SALE UPTO 70%
                     </button>
                 </div>
             </section>
@@ -893,7 +928,7 @@
 
 
 
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <footer th:replace="~{fragments/home/footer :: footer}"></footer>
 
     <!-- JavaScript -->
     <script th:src="@{/js/supply-script.js}"></script>
@@ -1104,6 +1139,28 @@
             }
         });
 
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Xử lý cho Slider Danh mục nổi bật ---
+            const catSlider = document.getElementById('category-slider');
+            const catPrevBtn = document.getElementById('btn-cat-prev');
+            const catNextBtn = document.getElementById('btn-cat-next');
+
+            if (catSlider && catPrevBtn && catNextBtn) {
+                catNextBtn.addEventListener('click', () => {
+                    // Lấy chiều rộng thẻ đầu tiên + margin (để cuộn chính xác 1 thẻ)
+                    const firstCard = catSlider.querySelector('div');
+                    const scrollAmount = firstCard ? firstCard.offsetWidth + 16 : 300; // 16 là margin-right
+                    catSlider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                });
+
+                catPrevBtn.addEventListener('click', () => {
+                    const firstCard = catSlider.querySelector('div');
+                    const scrollAmount = firstCard ? firstCard.offsetWidth + 16 : 300;
+                    catSlider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                });
+            }
+        });
+
         // Hàm load dữ liệu theo tab
         function loadTab(type, btnElement) {
             const grid = document.getElementById('tab-product-grid');
@@ -1283,6 +1340,58 @@
         document.addEventListener('DOMContentLoaded', () => {
             const firstBtn = document.querySelector('.occasion-btn');
             loadOccasion('di-lam', firstBtn);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cấu hình thời gian đếm ngược (tính bằng giây)
+            // 24 giờ = 24 * 60 * 60 = 86400 giây
+            const CYCLE_SECONDS = 24 * 60 * 60;
+
+            // Key để lưu trữ thời gian bắt đầu vào LocalStorage (để khi F5 không bị reset về 24h từ đầu)
+            // Nếu bạn muốn mỗi lần F5 đều reset về 24h thì xóa phần localStorage đi.
+            const STORAGE_KEY = 'ede_sale_countdown_start';
+
+            function getRemainingTime() {
+                let startTime = localStorage.getItem(STORAGE_KEY);
+                const now = Math.floor(Date.now() / 1000); // Thời gian hiện tại (giây)
+
+                if (!startTime) {
+                    // Nếu chưa có (người dùng mới vào), set thời gian bắt đầu là NOW
+                    startTime = now;
+                    localStorage.setItem(STORAGE_KEY, startTime);
+                }
+
+                // Tính thời gian đã trôi qua
+                const elapsed = now - parseInt(startTime);
+
+                // Tính thời gian còn lại trong chu kỳ
+                let remaining = CYCLE_SECONDS - (elapsed % CYCLE_SECONDS);
+
+                return remaining;
+            }
+
+            const elH = document.getElementById('countdown-h');
+            const elM = document.getElementById('countdown-m');
+            const elS = document.getElementById('countdown-s');
+
+            function updateTimer() {
+                let time = getRemainingTime();
+
+                // Chuyển đổi giây thành H:M:S
+                let h = Math.floor(time / 3600);
+                let m = Math.floor((time % 3600) / 60);
+                let s = Math.floor(time % 60);
+
+                // Thêm số 0 đằng trước nếu nhỏ hơn 10
+                if (elH) elH.innerText = h < 10 ? '0' + h : h;
+                if (elM) elM.innerText = m < 10 ? '0' + m : m;
+                if (elS) elS.innerText = s < 10 ? '0' + s : s;
+            }
+
+            // Chạy ngay lập tức
+            updateTimer();
+            // Cập nhật mỗi giây
+            setInterval(updateTimer, 1000);
         });
 
     </script>

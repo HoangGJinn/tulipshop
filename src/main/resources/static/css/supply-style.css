@@ -678,10 +678,13 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     z-index: 3;
+    text-decoration: none; /* Bỏ gạch chân */
+    color: inherit;        /* Giữ màu chữ gốc */
 }
 
 .glass-card:hover {
     background: rgba(255, 255, 255, 0.2);
+    color: inherit;
 }
 
 .glass-card-thumbnail {
