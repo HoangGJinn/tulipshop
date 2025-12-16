@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 @Component
@@ -35,6 +36,7 @@ public class DataInitializer {
                     .authProvider("LOCAL")
                     .role(Role.ADMIN)
                     .status(true)
+                    .emailVerifiedAt(LocalDateTime.now())
                     .build();
             UserProfile p = UserProfile.builder()
                     .fullName("Administrator")
