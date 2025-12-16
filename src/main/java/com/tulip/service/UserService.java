@@ -12,4 +12,10 @@ public interface UserService {
 
     // Cập nhật profile từ DTO
     void updateProfile(String email, UserProfileDTO dto, MultipartFile avatarFile);
+    
+    // Xác thực email bằng OTP
+    boolean verifyEmail(String email, String otp);
+    
+    // Gửi lại OTP
+    void resendOtp(String email);
 }

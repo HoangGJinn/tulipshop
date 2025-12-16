@@ -76,6 +76,8 @@ public class JwtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
             }
             addCookieToResponse(response, "accessToken", accessToken, accessTokenExpiration.intValue());
             addCookieToResponse(response, "refreshToken", refreshToken, refreshTokenExpiration.intValue());
+            
+            // OAuth2 users đã được Google xác thực email rồi, không cần kiểm tra verify
         } else {
             log.warn("JwtOAuth2SuccessHandler: Principal is not CustomOAuth2User, type: {}", 
                     principal != null ? principal.getClass().getName() : "null");

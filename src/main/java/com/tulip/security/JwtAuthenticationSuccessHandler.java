@@ -51,6 +51,16 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         if (principal instanceof CustomUserDetails) {
             CustomUserDetails userDetails = (CustomUserDetails) principal;
             Long userId = userDetails.getUserId();
+            String email = userDetails.getEmail();
+            
+            // Kiểm tra email đã được xác thực chưa (chỉ kiểm tra cho LOCAL accounts)
+            // OAuth2 accounts (Google) đã được tự động verify trong CustomOAuth2UserService
+            if (userDetails.getEmailVerifiedAt() == null) {
+                log.warn("Login blocked - Email not verified for user: {}", email);
+                // Redirect đến trang verify email với thông báo
+                response.sendRedirect("/verify-email?email=" + email + "&unverified=true");
+                return;
+            }
             
             // Generate JWT tokens
             String accessToken = jwtUtil.generateAccessToken(userDetails, userId);

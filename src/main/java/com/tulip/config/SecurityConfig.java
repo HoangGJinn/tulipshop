@@ -64,6 +64,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
                 .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
+                .requestMatchers("/verify-email", "/resend-otp").permitAll()
                 .requestMatchers("/products/**", "/product/**", "/trending", "/sale", "/about", "/contact").permitAll()
                 .requestMatchers("/v1/api/store/**").permitAll()
                 .requestMatchers("/v1/api/auth/**").permitAll()

@@ -9,6 +9,7 @@ import com.tulip.entity.UserProfile;
 import com.tulip.mapper.UserProfileMapper;
 import com.tulip.repository.UserRepository;
 import com.tulip.repository.UserProfileRepository;
+import com.tulip.service.EmailService;
 import com.tulip.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j
@@ -29,6 +31,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final Cloudinary cloudinary;
     private final UserProfileMapper userProfileMapper; // Inject mapper
+    private final OtpService otpService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -42,6 +46,7 @@ public class UserServiceImpl implements UserService {
                 .authProvider("LOCAL")
                 .role(Role.CUSTOMER)
                 .status(true)
+                .emailVerifiedAt(null) // Chưa xác thực email
                 .build();
 
         UserProfile profile = UserProfile.builder()
@@ -50,7 +55,14 @@ public class UserServiceImpl implements UserService {
                 .build();
         user.setProfile(profile);
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        
+        // Gửi OTP để xác thực email
+        String otp = otpService.generateOtp(email);
+        emailService.sendOTPToEmail(email, otp);
+        log.info("OTP sent to email: {}", email);
+        
+        return user;
     }
 
     @Override
@@ -101,5 +113,41 @@ public class UserServiceImpl implements UserService {
         }
 
         userProfileRepository.save(profile);
+    }
+    
+    @Override
+    @Transactional
+    public boolean verifyEmail(String email, String otp) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Email không tồn tại"));
+        
+        // Kiểm tra OTP
+        if (!otpService.validateOtp(email, otp)) {
+            return false;
+        }
+        
+        // Nếu OTP đúng, cập nhật emailVerifiedAt
+        if (user.getEmailVerifiedAt() == null) {
+            user.setEmailVerifiedAt(LocalDateTime.now());
+            userRepository.save(user);
+            log.info("Email verified successfully for: {}", email);
+        }
+        
+        return true;
+    }
+    
+    @Override
+    public void resendOtp(String email) {
+        if (!userRepository.existsByEmail(email)) {
+            throw new IllegalStateException("Email không tồn tại");
+        }
+        
+        // Xóa OTP cũ nếu có
+        otpService.clearOtp(email);
+        
+        // Tạo và gửi OTP mới
+        String otp = otpService.generateOtp(email);
+        emailService.sendOTPToEmail(email, otp);
+        log.info("OTP resent to email: {}", email);
     }
 }
