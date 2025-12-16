@@ -27,6 +27,12 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- API Base URL Configuration -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.API_BASE_URL = /*[[${apiBaseUrl}]]*/ 'http://localhost:8787/v1/api';
+        /*]]>*/
+    </script>
 </head>
 <body>
 

@@ -15,10 +15,11 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
 
+    @SuppressWarnings("unchecked")
     public String uploadImage(MultipartFile file) {
         try {
             // Upload file lên Cloudinary
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+            Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "folder", "tulip-fashion" // Tên thư mục trên Cloudinary
             ));
 

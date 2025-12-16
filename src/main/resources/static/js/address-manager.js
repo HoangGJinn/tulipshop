@@ -55,7 +55,7 @@ function saveAddress() {
         isDefault: document.getElementById('isDefault').checked
     };
 
-    var url = '/v1/api/addresses';
+    var url = window.API_BASE_URL + '/addresses';
     var method = 'POST';
 
     if (id) {
@@ -100,7 +100,7 @@ function deleteAddress(id) {
     var header = $("meta[name='_csrf_header']").attr("content");
 
     $.ajax({
-        url: '/v1/api/addresses/' + id,
+        url: window.API_BASE_URL + '/addresses/' + id,
         type: 'DELETE',
         beforeSend: function(xhr) {
             if(header && token) xhr.setRequestHeader(header, token);
@@ -120,7 +120,7 @@ function setDefault(id) {
     var header = $("meta[name='_csrf_header']").attr("content");
 
     $.ajax({
-        url: '/v1/api/addresses/' + id + '/set-default',
+        url: window.API_BASE_URL + '/addresses/' + id + '/set-default',
         type: 'POST',
         beforeSend: function(xhr) {
             if(header && token) xhr.setRequestHeader(header, token);

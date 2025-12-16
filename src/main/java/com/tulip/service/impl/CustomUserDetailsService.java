@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
 
-        // Sử dụng CustomUserDetails để lưu userId và fullName vào session
+        // Sử dụng CustomUserDetails để lưu userId và fullName
         return new CustomUserDetails(user);
     }
 }

@@ -85,7 +85,7 @@
         // Load addresses on page load
         function loadAddresses() {
             $.ajax({
-                url: '/v1/api/addresses',
+                url: window.API_BASE_URL + '/addresses',
                 type: 'GET',
                 success: function(addresses) {
                     displayAddresses(addresses);
@@ -170,7 +170,7 @@
         // Load address data for editing
         function loadAddressForEdit(addressId) {
             $.ajax({
-                url: '/v1/api/addresses',
+                url: window.API_BASE_URL + '/addresses',
                 type: 'GET',
                 success: function(addresses) {
                     const address = addresses.find(a => a.id === addressId);
@@ -372,8 +372,8 @@
             }
 
             const url = addressId 
-                ? `/v1/api/addresses/${addressId}`
-                : '/v1/api/addresses';
+                ? `${window.API_BASE_URL}/addresses/${addressId}`
+                : window.API_BASE_URL + '/addresses';
             const method = addressId ? 'PUT' : 'POST';
 
             $.ajax({
@@ -413,7 +413,7 @@
             }
 
             $.ajax({
-                url: `/v1/api/addresses/${addressId}`,
+                url: `${window.API_BASE_URL}/addresses/${addressId}`,
                 type: 'DELETE',
                 success: function() {
                     loadAddresses();
@@ -430,7 +430,7 @@
         $(document).on('click', '.set-default-btn', function() {
             const addressId = $(this).data('address-id');
             $.ajax({
-                url: `/v1/api/addresses/${addressId}/set-default`,
+                url: `${window.API_BASE_URL}/addresses/${addressId}/set-default`,
                 type: 'POST',
                 success: function() {
                     loadAddresses();

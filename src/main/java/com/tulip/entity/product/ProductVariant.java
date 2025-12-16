@@ -29,9 +29,11 @@ public class ProductVariant {
 
     // Một màu có nhiều ảnh
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<ProductVariantImage> images = new ArrayList<>();
 
     // Một màu có nhiều kho hàng (theo size)
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<ProductStock> stocks = new ArrayList<>();
 }

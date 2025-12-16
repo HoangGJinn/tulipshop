@@ -1,7 +1,6 @@
 package com.tulip.entity.product;
 
 import com.tulip.entity.User;
-import com.tulip.entity.product.Product;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -41,6 +40,7 @@ public class Rating {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "rating", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<RatingImage> images = new ArrayList<>();
 
     @PrePersist

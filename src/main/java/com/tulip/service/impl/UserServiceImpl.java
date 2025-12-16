@@ -82,7 +82,8 @@ public class UserServiceImpl implements UserService {
         // Upload avatar nếu có
         if (avatarFile != null && !avatarFile.isEmpty()) {
             try {
-                Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                @SuppressWarnings("unchecked")
+                Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(
                         avatarFile.getBytes(),
                         ObjectUtils.asMap(
                                 "folder", "tulipshop/avatars",
