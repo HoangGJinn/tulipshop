@@ -35,8 +35,10 @@ cloudinary.api-secret=your_cloudinary_api_secret
 
 # JWT Configuration
 jwt.secret=your-very-long-secret-key-minimum-256-bits-for-hs256-algorithm-security
-jwt.access-token.expiration=3600  # 1 giờ (3600 giây)
-jwt.refresh-token.expiration=604800  # 7 ngày (604800 giây)
+# 1 giờ (3600 giây)
+jwt.access-token.expiration=3600
+# 7 ngày (604800 giây)
+jwt.refresh-token.expiration=604800
 
 # Google OAuth2 Configuration
 # Get your credentials from: https://console.cloud.google.com/apis/credentials

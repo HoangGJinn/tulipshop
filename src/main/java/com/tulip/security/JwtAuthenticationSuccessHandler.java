@@ -46,13 +46,9 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
                                        HttpServletResponse response,
                                        Authentication authentication) throws IOException, ServletException {
         
-        log.info("JwtAuthenticationSuccessHandler: onAuthenticationSuccess called");
         Object principal = authentication.getPrincipal();
-        log.info("JwtAuthenticationSuccessHandler: Principal type: {}", 
-                principal != null ? principal.getClass().getName() : "null");
         
         if (principal instanceof CustomUserDetails) {
-            log.info("JwtAuthenticationSuccessHandler: Principal is CustomUserDetails, processing...");
             CustomUserDetails userDetails = (CustomUserDetails) principal;
             Long userId = userDetails.getUserId();
             
@@ -71,15 +67,12 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
             }
             addCookieToResponse(response, "accessToken", accessToken, accessTokenExpiration.intValue());
             addCookieToResponse(response, "refreshToken", refreshToken, refreshTokenExpiration.intValue());
-            
-            log.info("JWT tokens created and set as cookies for user: {}", userDetails.getEmail());
         } else {
             log.warn("JwtAuthenticationSuccessHandler: Principal is not CustomUserDetails, type: {}", 
                     principal != null ? principal.getClass().getName() : "null");
         }
         
         // Redirect về trang chủ
-        log.info("JwtAuthenticationSuccessHandler: Redirecting to default success URL");
         super.onAuthenticationSuccess(request, response, authentication);
     }
     
@@ -97,7 +90,6 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
                 .build();
         
         response.addHeader("Set-Cookie", cookie.toString());
-        log.info("Cookie '{}' set with SameSite=Lax, maxAge={}, value length={}", name, maxAge, value != null ? value.length() : 0);
     }
 }
 

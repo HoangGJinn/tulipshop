@@ -51,14 +51,9 @@ public class JwtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
                                        HttpServletResponse response,
                                        Authentication authentication) throws IOException, ServletException {
         
-        log.info("JwtOAuth2SuccessHandler: onAuthenticationSuccess called");
         Object principal = authentication.getPrincipal();
-        log.info("JwtOAuth2SuccessHandler: Principal type: {}, class: {}", 
-                principal != null ? principal.getClass().getName() : "null",
-                principal != null ? principal.getClass() : "null");
         
         if (principal instanceof CustomOAuth2User) {
-            log.info("JwtOAuth2SuccessHandler: Principal is CustomOAuth2User, processing...");
             CustomOAuth2User oauth2User = (CustomOAuth2User) principal;
             Long userId = oauth2User.getUserId();
             String email = oauth2User.getEmail();
@@ -81,15 +76,12 @@ public class JwtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
             }
             addCookieToResponse(response, "accessToken", accessToken, accessTokenExpiration.intValue());
             addCookieToResponse(response, "refreshToken", refreshToken, refreshTokenExpiration.intValue());
-            
-            log.info("JWT tokens created and set as cookies for OAuth2 user: {}", email);
         } else {
             log.warn("JwtOAuth2SuccessHandler: Principal is not CustomOAuth2User, type: {}", 
                     principal != null ? principal.getClass().getName() : "null");
         }
         
         // Redirect về trang chủ
-        log.info("JwtOAuth2SuccessHandler: Redirecting to default success URL");
         super.onAuthenticationSuccess(request, response, authentication);
     }
     
@@ -107,7 +99,6 @@ public class JwtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
                 .build();
         
         response.addHeader("Set-Cookie", cookie.toString());
-        log.info("Cookie '{}' set with SameSite=Lax, maxAge={}, value length={}", name, maxAge, value != null ? value.length() : 0);
     }
 }
 

@@ -58,7 +58,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            // JWT-only: Không dùng session (STATELESS)
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -68,7 +67,7 @@ public class SecurityConfig {
                 .requestMatchers("/products/**", "/product/**", "/trending", "/sale", "/about", "/contact").permitAll()
                 .requestMatchers("/v1/api/store/**").permitAll()
                 .requestMatchers("/v1/api/auth/**").permitAll()
-                .requestMatchers("/error/**").permitAll() // Cho phép truy cập các trang error
+                .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -85,8 +84,7 @@ public class SecurityConfig {
                     Authentication auth = org.springframework.security.core.context.SecurityContextHolder
                             .getContext().getAuthentication();
                     
-                    // Nếu đã có authentication trong SecurityContext, không redirect về login
-                    // Để Spring MVC xử lý (có thể là 404 nếu URL không tồn tại)
+                    // Nếu đã có authentication
                     if (auth != null && auth.isAuthenticated()) {
                         // Đã authenticated, để Spring MVC xử lý 404
                         // Không redirect, để request tiếp tục và Spring MVC sẽ xử lý
@@ -99,12 +97,10 @@ public class SecurityConfig {
                     // (có thể là 404 nếu URL không tồn tại, hoặc có thể là token hết hạn)
                     if (hasToken) {
                         // Có token, để Spring MVC xử lý (không redirect về login)
-                        // Không redirect, để request tiếp tục và Spring MVC sẽ xử lý 404
                         return;
                     }
                     
                     // Chưa authenticated và không có token, redirect về login
-                    // Chỉ redirect khi thực sự chưa đăng nhập
                     response.sendRedirect("/login");
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
@@ -124,7 +120,7 @@ public class SecurityConfig {
                 .loginPage("/login")
                 .usernameParameter("email")
                 .passwordParameter("password")
-                .successHandler(jwtAuthenticationSuccessHandler) // Tạo JWT tokens (đã set defaultSuccessUrl trong constructor)
+                .successHandler(jwtAuthenticationSuccessHandler) // Tạo JWT tokens
                 .failureHandler((request, response, exception) -> {
                     if (exception instanceof DisabledException) {
                         response.sendRedirect("/login?disabled");
@@ -139,7 +135,7 @@ public class SecurityConfig {
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(oauth2UserService)
                 )
-                .successHandler(jwtOAuth2SuccessHandler) // Tạo JWT cho OAuth2 (đã set defaultSuccessUrl trong constructor)
+                .successHandler(jwtOAuth2SuccessHandler) // Tạo JWT cho OAuth2
                 .failureHandler((request, response, exception) -> {
                     String errorMessage = null;
                     

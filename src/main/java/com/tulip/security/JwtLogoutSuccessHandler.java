@@ -56,7 +56,6 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
                 .build();
         
         response.addHeader("Set-Cookie", cookie.toString());
-        log.debug("Cookie '{}' deleted", name);
     }
 }
 

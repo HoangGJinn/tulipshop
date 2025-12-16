@@ -39,8 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) 
             throws ServletException, IOException {
         
-        log.info("JwtAuthenticationFilter: Filter called for path: {}", request.getRequestURI());
-        
         String jwt = null;
         String username = null;
         
@@ -48,28 +46,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            log.debug("JWT found in Authorization header for path: {}", request.getRequestURI());
         } 
         // 2. Nếu không có header, đọc từ cookie (cho web)
         else {
             Cookie[] cookies = request.getCookies();
-            log.info("JwtAuthenticationFilter: Reading cookies for path: {}, cookies count: {}", 
-                    request.getRequestURI(), cookies != null ? cookies.length : 0);
-            
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-                    log.info("JwtAuthenticationFilter: Cookie found: name={}, value length={}", 
-                            cookie.getName(), cookie.getValue() != null ? cookie.getValue().length() : 0);
                     if ("accessToken".equals(cookie.getName())) {
                         jwt = cookie.getValue();
-                        log.info("JwtAuthenticationFilter: AccessToken cookie found, length: {}", jwt != null ? jwt.length() : 0);
                         break;
                     }
                 }
-            }
-            
-            if (jwt == null) {
-                log.warn("JwtAuthenticationFilter: No accessToken found in cookies for path: {}", request.getRequestURI());
             }
         }
         
@@ -87,7 +74,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // 4. Skip hoàn toàn các endpoint không cần authentication
         if (isAuthEndpoint || isApiEndpoint || isStaticResource) {
-            log.debug("JwtAuthenticationFilter: Skipping endpoint (no auth needed): {}", path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -100,10 +86,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Chỉ xử lý ACCESS token
                 String tokenType = jwtUtil.extractTokenType(jwt);
                 if (!"ACCESS".equals(tokenType)) {
-                    log.warn("Invalid token type: {}", tokenType);
                     // Nếu là public web endpoint và token không hợp lệ, vẫn cho phép truy cập
                     if (isPublicWebEndpoint) {
-                        log.debug("JwtAuthenticationFilter: Public endpoint with invalid token, allowing access: {}", path);
                         filterChain.doFilter(request, response);
                         return;
                     }
@@ -114,7 +98,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.error("JWT parsing error: {}", e.getMessage());
                 // Nếu là public web endpoint và JWT parse lỗi, vẫn cho phép truy cập
                 if (isPublicWebEndpoint) {
-                    log.debug("JwtAuthenticationFilter: Public endpoint with JWT parse error, allowing access: {}", path);
                     filterChain.doFilter(request, response);
                     return;
                 }
@@ -125,8 +108,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Lưu ý: Ngay cả trên public endpoints, nếu có JWT hợp lệ thì vẫn set authentication
         // để Thymeleaf có thể hiển thị thông tin user (ví dụ: tên user, logout button)
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            log.info("Setting authentication for user: {} on path: {} (public endpoint: {})", 
-                    username, request.getRequestURI(), isPublicWebEndpoint);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             
             // Role có thể được lấy từ JWT: jwtUtil.extractRole(jwt)
@@ -142,10 +123,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.debug("Authentication set successfully for user: {}", username);
             } else {
                 // Access token hết hạn - thử refresh tự động
-                log.info("Access token expired, attempting to refresh...");
                 jwt = tryRefreshToken(request, response, username);
                 
                 if (jwt != null) {
@@ -159,10 +138,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
-                        log.info("Access token refreshed successfully for user: {}", username);
                     }
-                } else {
-                    log.warn("Failed to refresh access token for user: {}", username);
                 }
             }
         }
@@ -189,13 +165,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             
             if (refreshToken == null) {
-                log.debug("No refresh token found in cookies");
                 return null;
             }
             
             // Validate refresh token
             if (!jwtUtil.validateRefreshToken(refreshToken)) {
-                log.debug("Refresh token is invalid or expired");
                 return null;
             }
             
@@ -204,7 +178,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 .orElse(null);
             
             if (tokenEntity == null || !tokenEntity.isValid()) {
-                log.debug("Refresh token not found in database or revoked");
                 return null;
             }
             
@@ -225,7 +198,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .build();
             
             response.addHeader("Set-Cookie", newAccessTokenCookie.toString());
-            log.debug("New accessToken cookie set after refresh");
             
             return newAccessToken;
         } catch (Exception e) {
