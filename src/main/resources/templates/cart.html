@@ -125,7 +125,7 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script>
-    // Hàm cập nhật số lượng (sử dụng jQuery AJAX)
+    // Hàm cập nhật số lượng
     function updateQuantity(itemId, newQuantity) {
         if (newQuantity < 1) {
             alert("Số lượng phải lớn hơn 0");
@@ -133,40 +133,44 @@
             return;
         }
 
-        // Gọi API: POST /v1/api/cart/update (đã định nghĩa trong CartController)
-        $.ajax({
-            url: '/v1/api/cart/update',
-            type: 'POST',
-            data: {
-                itemId: itemId,
-                quantity: newQuantity
-            },
-            success: function(response) {
+        // Gọi API: POST /api/cart/update (đã định nghĩa trong CartController)
+        const formData = new FormData();
+        formData.append('itemId', itemId);
+        formData.append('quantity', newQuantity);
+
+        fetch(window.API_BASE_URL + '/cart/update', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
                     location.reload(); // Tải lại trang để cập nhật giá tiền
-            },
-            error: function(xhr, status, error) {
-                alert('Lỗi: ' + (xhr.responseText || error));
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(error => {
+                alert('Lỗi: ' + error.message);
                 location.reload();
-            }
             });
     }
 
-    // Hàm xóa sản phẩm (sử dụng jQuery AJAX)
+    // Hàm xóa sản phẩm
     function removeItem(itemId) {
         if (!confirm('Bạn chắc chắn muốn xóa sản phẩm này?')) return;
 
         // Gọi API: DELETE /v1/api/cart/remove/{itemId}
-        $.ajax({
-            url: '/v1/api/cart/remove/' + itemId,
-            type: 'DELETE',
-            success: function(response) {
+        fetch(`${window.API_BASE_URL}/cart/remove/${itemId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
                     location.reload(); // Tải lại trang sau khi xóa
-            },
-            error: function(xhr, status, error) {
+                } else {
                     alert('Có lỗi xảy ra khi xóa sản phẩm.');
-                console.error('Error:', error);
                 }
-        });
+            })
+            .catch(error => console.error('Error:', error));
     }
 </script>
 

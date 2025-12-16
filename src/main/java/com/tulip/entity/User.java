@@ -37,11 +37,14 @@ public class User {
     @Builder.Default
     private Boolean status = true;
 
-    @CreationTimestamp // Tự động lấy thời gian hiện tại gán vào khi bản ghi được Tạo mới lần đầu.
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp // Tự động cập nhật thời gian hiện tại mỗi khi bản ghi bị Chỉnh sửa
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

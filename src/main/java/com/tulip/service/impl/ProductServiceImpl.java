@@ -105,21 +105,21 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-
         List<String> allSizeCodes = sizeRepository.findAll().stream()
                 .sorted(Comparator.comparingInt(Size::getSortOrder))
                 .map(Size::getCode)
                 .collect(Collectors.toList());
 
         List<ProductVariantDTO> variantDTOs = product.getVariants().stream().map(variant -> {
-            // Key là Size Code (S, M...), Value là số lượng
-            Map<String, Integer> stockMap = new HashMap<>();
-            // Key là Size Code (S, M...), Value là stockId
-            Map<String, Long> stockIdsMap = new HashMap<>();
-            variant.getStocks().forEach(stock -> {
-                stockMap.put(stock.getSize().getCode(), stock.getQuantity());
-                stockIdsMap.put(stock.getSize().getCode(), stock.getId());
-            });
+
+            Map<String, ProductVariantDTO.StockInfo> stockMap = new HashMap<>();
+
+            variant.getStocks().forEach(stock ->
+                    stockMap.put(
+                            stock.getSize().getCode(),
+                            new ProductVariantDTO.StockInfo(stock.getId(), stock.getQuantity())
+                    )
+            );
 
             List<String> images = variant.getImages().stream()
                     .map(ProductVariantImage::getImageUrl)
@@ -129,22 +129,24 @@ public class ProductServiceImpl implements ProductService {
                     .id(variant.getId())
                     .colorName(variant.getColorName())
                     .colorCode(variant.getColorCode())
-                    .price(product.getBasePrice()) // Có thể lấy variant.getPrice() nếu giá khác nhau
+                    .price(product.getBasePrice())
                     .images(images)
                     .stockBySize(stockMap)
-                    .stockIdsBySize(stockIdsMap)
                     .build();
         }).collect(Collectors.toList());
+
 
         return ProductDetailDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
+                // Logic tạo SKU hiển thị
                 .sku(product.getVariants().isEmpty() || product.getVariants().get(0).getStocks().isEmpty()
                         ? "SKU-" + product.getId()
                         : product.getVariants().get(0).getStocks().get(0).getSku().split("-")[0] + "-" + product.getId())
                 .description(product.getDescription())
                 .basePrice(product.getBasePrice())
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : "")
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : 0)
                 .allSizes(allSizeCodes)
                 .variants(variantDTOs)
                 .build();
@@ -339,5 +341,35 @@ public class ProductServiceImpl implements ProductService {
     public void deleteVariant(Long variantId) {
         variantRepository.deleteById(variantId);
     }
+
+
+    public List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId){
+        List<Product> products = productRepository.findTop5ByCategoryIdAndIdNot(categoryId, currentProductId);
+        return products.stream()
+                .map(this::convertToCardDTO)
+                .collect(Collectors.toList());
+
+    }
+
+    public List<ProductCardDTO> getViewedProducts(List<Long> productIds){
+        if (productIds == null || productIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Product> products = productRepository.findAllById(productIds);
+
+        // Sắp xếp lại theo thứ tự mới nhất lên đầu
+        Map<Long, Product> productMap = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductCardDTO> result = new ArrayList<>();
+        for (Long id : productIds){
+            if (productMap.containsKey(id)) {
+                result.add(convertToCardDTO(productMap.get(id)));
+            }
+        }
+        return result;
+
+    }
+
 
 }

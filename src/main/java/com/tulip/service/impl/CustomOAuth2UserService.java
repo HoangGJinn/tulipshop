@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -60,6 +61,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                         .authProvider("GOOGLE")
                         .role(Role.CUSTOMER)
                         .status(true)
+                        .emailVerifiedAt(LocalDateTime.now())
                         .build();
 
                 UserProfile profile = UserProfile.builder()
@@ -70,11 +72,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 newUser.setProfile(profile);
 
                 existingUser = userRepository.save(newUser);
-                log.info("Created new OAuth2 user: {}", email);
+                log.info("Created new OAuth2 user with verified email: {}", email);
             } else {
                 // User đã tồn tại - cập nhật nếu cần
                 if (existingUser.getAuthProvider() == null) {
                     existingUser.setAuthProvider("GOOGLE");
+                }
+
+                // Nếu chưa có emailVerifiedAt (User đăng ký LOCAL trước đó rồi đăng nhập Google, fb..)
+                if (existingUser.getEmailVerifiedAt() == null) {
+                    existingUser.setEmailVerifiedAt(LocalDateTime.now());
+                    log.info("Email verified automatically for existing OAuth2 user: {}", email);
                 }
 
                 // Cập nhật profile nếu cần

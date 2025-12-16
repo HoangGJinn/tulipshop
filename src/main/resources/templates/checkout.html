@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Thanh toán | Tulip Shop')}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-7">
+            <h4 class="mb-4">Thông tin giao hàng</h4>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <form th:action="@{/checkout/place-order}" method="post" th:object="${orderRequest}">
+
+                <div class="card mb-4">
+                    <div class="card-header bg-white fw-bold">1. Chọn địa chỉ nhận hàng</div>
+                    <div class="card-body">
+                        <div th:if="${addresses == null or addresses.isEmpty()}" class="text-center py-3">
+                            <p class="text-danger">Bạn chưa có địa chỉ nào.</p>
+                            <a href="/account" class="btn btn-sm btn-outline-primary">+ Thêm địa chỉ mới</a>
+                        </div>
+
+                        <div th:each="addr : ${addresses}" class="form-check mb-3 border-bottom pb-2">
+                            <input class="form-check-input" type="radio"
+                                   th:field="*{addressId}"
+                                   th:value="${addr.id}"
+                                   th:id="'addr-' + ${addr.id}" required>
+
+                            <label class="form-check-label" th:for="'addr-' + ${addr.id}">
+                                <strong th:text="${addr.recipientName}"></strong> -
+                                <span th:text="${addr.recipientPhone}"></span><br>
+
+                                <span class="text-muted small">
+                                    <span th:text="${addr.addressLine}"></span>,
+                                    <span th:if="${addr.village != null}" th:text="${addr.village + ', '}"></span>
+                                    <span th:if="${addr.district != null}" th:text="${addr.district + ', '}"></span>
+                                    <span th:text="${addr.province}"></span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Ghi chú đơn hàng (Tùy chọn)</label>
+                    <textarea class="form-control" th:field="*{note}" rows="2" placeholder="Ví dụ: Giao giờ hành chính..."></textarea>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-white fw-bold">2. Phương thức thanh toán</div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="COD" id="pay-cod" checked required>
+                            <label class="form-check-label" for="pay-cod">
+                                <i class="fas fa-money-bill-wave text-success me-2"></i> Thanh toán khi nhận hàng (COD)
+                            </label>
+                        </div>
+                        <div class="form-check disabled">
+                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="VNPAY" id="pay-vnpay" disabled>
+                            <label class="form-check-label text-muted" for="pay-vnpay">
+                                <i class="fas fa-qrcode me-2"></i> VNPAY (Đang bảo trì)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold text-uppercase">
+                    Đặt hàng ngay
+                </button>
+            </form>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card bg-light border-0">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4">Đơn hàng của bạn</h5>
+
+                    <div class="order-items mb-3" style="max-height: 300px; overflow-y: auto;">
+                        <div th:each="item : ${cartItems}" class="d-flex align-items-center mb-3">
+                            <div class="me-3 position-relative">
+                                <img th:src="${item.productImage}" width="60" class="rounded border">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
+                                      th:text="${item.quantity}">1</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 small fw-bold" th:text="${item.productName}">Tên SP</h6>
+                                <small class="text-muted" th:text="${'Size: ' + item.sizeCode + ' | Màu: ' + item.colorName}"></small>
+                            </div>
+                            <div class="text-end">
+                                <small class="fw-bold text-dark"
+                                       th:text="${#numbers.formatDecimal(item.subTotal, 0, 'COMMA', 0, 'POINT') + ' đ'}"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tạm tính:</span>
+                        <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phí vận chuyển:</span>
+                        <span th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold h5">Tổng cộng:</span>
+                        <span class="fw-bold h4 text-danger"
+                              th:text="${#numbers.formatDecimal(finalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 @Getter
@@ -17,6 +18,7 @@ public class CustomUserDetails extends User {
     private String email;
     private String avatar;
     private LocalDate birthday;
+    private LocalDateTime emailVerifiedAt; // Thêm field để kiểm tra email đã verify chưa
 
     // 2. Chỗ tham số truyền vào: Phải ghi rõ đường dẫn "com.tulip.entity.User"
     // Để Java phân biệt được với class "User" (của Spring) đang được kế thừa
@@ -37,5 +39,6 @@ public class CustomUserDetails extends User {
         this.fullName = user.getProfile() != null ? user.getProfile().getFullName() : null;
         this.avatar = user.getProfile() != null ? user.getProfile().getAvatar() : null;
         this.birthday = user.getProfile() != null ? user.getProfile().getBirthday() : null;
+        this.emailVerifiedAt = user.getEmailVerifiedAt(); // Lưu emailVerifiedAt
     }
 }

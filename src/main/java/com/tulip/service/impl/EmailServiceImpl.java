@@ -1,0 +1,171 @@
+package com.tulip.service.impl;
+
+import com.tulip.service.EmailService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+@Service
+@Slf4j // automatically creates a logger instance
+public class EmailServiceImpl implements EmailService {
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    public EmailServiceImpl(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+    // This annotation makes the method run in a separate thread (Multi-threading)
+    // So the caller doesn't have to wait for it to finish
+    @Async
+    @Override
+    public void sendOTPToEmail(String toEmail, String otp) {
+        try {
+            log.info("🔄 Preparing to send OTP email to: {}", toEmail);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("Xác nhận tài khoản của bạn");
+
+            String htmlContent = getHtmlContent(otp);
+            helper.setText(htmlContent, true);
+
+            log.info("📧 Sending OTP email to: {}", toEmail);
+            mailSender.send(message);
+            log.info("✅ OTP email sent successfully to: {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("❌ Failed to send OTP email to: {}. Error: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
+    private String getHtmlContent(String otp) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset="UTF-8">
+            <style>
+                body {
+                    background-color: #f4f4f4; /* Nền tổng xám rất nhạt để làm nổi bật khung mail */
+                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                }
+                .email-wrapper {
+                    max-width: 600px; /* Thu hẹp lại một chút cho gọn gàng */
+                    margin: 40px auto;
+                    padding: 20px;
+                }
+                .email-container {
+                    background-color: #ffffff; /* Nền trắng tinh khôi */
+                    border: 1px solid #e0e0e0; /* Viền mỏng nhẹ */
+                    padding: 40px;
+                    text-align: center; /* Căn giữa toàn bộ cho cân đối */
+                }
+                .brand-name {
+                    font-size: 24px;
+                    font-weight: bold;
+                    letter-spacing: 3px;
+                    color: #000000;
+                    margin-bottom: 40px;
+                    text-transform: uppercase;
+                    border-bottom: 2px solid #000000;
+                    display: inline-block;
+                    padding-bottom: 10px;
+                }
+                .header h1 {
+                    margin: 0 0 20px 0;
+                    font-size: 20px;
+                    font-weight: normal;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    color: #333333;
+                }
+                .intro {
+                    font-size: 14px;
+                    color: #555555;
+                    line-height: 1.8;
+                    margin-bottom: 30px;
+                    padding: 0 20px;
+                }
+                .otp-container {
+                    margin: 35px 0;
+                }
+                .otp-code {
+                    display: inline-block;
+                    font-size: 32px;
+                    font-weight: 600;
+                    color: #000000; /* Mã màu đen */
+                    background: #ffffff;
+                    padding: 15px 40px;
+                    border: 1px solid #000000; /* Viền đen mảnh sang trọng */
+                    letter-spacing: 8px; /* Tăng khoảng cách số cho thoáng */
+                }
+                .instructions {
+                    font-size: 13px;
+                    color: #777777;
+                    line-height: 1.6;
+                    margin-top: 30px;
+                    font-style: italic;
+                }
+                .footer {
+                    margin-top: 50px;
+                    padding-top: 20px;
+                    border-top: 1px solid #eeeeee;
+                    font-size: 12px;
+                    color: #999999;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                .btn-home {
+                    text-decoration: none;
+                    color: #000000;
+                    font-weight: bold;
+                    font-size: 12px;
+                    margin-top: 10px;
+                    display: inline-block;
+                }
+            </style>
+            </head>
+            <body>
+            <div class="email-wrapper">
+                <div class="email-container">
+                    <div class="brand-name">TULIPSHOP</div>
+                    
+                    <div class="header">
+                        <h1>Xác thực tài khoản</h1>
+                    </div>
+                    
+                    <div class="intro">
+                        Xin chào quý khách,<br/>
+                        Để hoàn tất quá trình đăng nhập hoặc đăng ký tại Tulipshop, vui lòng sử dụng mã xác thực dưới đây.
+                    </div>
+                    
+                    <div class="otp-container">
+                        <div class="otp-code">%s</div>
+                    </div>
+                    
+                    <div class="instructions">
+                        Mã này có hiệu lực trong vòng <strong>5 phút</strong>.<br/>
+                        Vì lý do bảo mật, tuyệt đối không chia sẻ mã này với bất kỳ ai.
+                    </div>
+                    
+                    <div class="footer">
+                        &copy; 2025 Tulipshop Fashion.<br/>
+                        <a href="#" class="btn-home">Về trang chủ</a>
+                    </div>
+                </div>
+            </div>
+            </body>
+            </html>
+    """.formatted(otp);
+    }
+}

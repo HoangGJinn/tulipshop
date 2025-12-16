@@ -1,7 +1,6 @@
 package com.tulip.service;
 
 import com.tulip.dto.CartItemDTO;
-import com.tulip.entity.User;
 
 import java.util.List;
 

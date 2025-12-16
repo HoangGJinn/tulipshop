@@ -10,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.tulip.service.impl.CustomUserDetails;
 
 import jakarta.validation.Valid;
 
@@ -60,5 +61,17 @@ public class UserProfileController {
         }
 
         return "redirect:/account";
+    }
+    private final com.tulip.service.AddressService addressService;
+
+    // Hiển thị trang quản lý địa chỉ
+    @GetMapping("/addresses")
+    public String showAddresses(Authentication authentication, Model model) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
+
+        // Lấy danh sách địa chỉ và gửi sang View
+        model.addAttribute("addresses", addressService.getUserAddresses(userId));
+        return "user-addresses"; // Trả về file user-addresses.html
     }
 }
