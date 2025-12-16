@@ -1,0 +1,28 @@
+<div th:fragment="trend-tabs">
+    <section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
+        <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-center tw-items-center tw-gap-8 tw-mb-8 tw-border-b tw-border-gray-200 tw-pb-2">
+
+            <button onclick="loadTab('new', this)" class="tab-btn tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4 tw-transition-colors">
+                Hàng mới về
+            </button>
+
+            <button onclick="loadTab('sale', this)" class="tab-btn tw-text-gray-500 hover:tw-text-black tw-pb-4 -tw-mb-4 tw-border-b-2 tw-border-transparent hover:tw-border-gray-300 tw-transition-colors">
+                Sale Upto 18%
+            </button>
+
+            <button onclick="loadTab('trending', this)" class="tab-btn tw-text-gray-500 hover:tw-text-black tw-pb-4 -tw-mb-4 tw-border-b-2 tw-border-transparent hover:tw-border-gray-300 tw-transition-colors">
+                Đang thịnh hành
+            </button>
+        </div>
+
+        <div id="tab-product-grid" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-6 tw-min-h-[400px]">
+            <div class="tw-col-span-full tw-text-center tw-py-10 tw-text-gray-400">Đang tải dữ liệu...</div>
+        </div>
+
+        <div class="tw-text-center tw-mt-10">
+            <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+                Xem tất cả
+            </button>
+        </div>
+    </section>
+</div>

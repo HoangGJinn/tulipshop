@@ -1,0 +1,75 @@
+<div th:fragment="flash-sale">
+<section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
+    <div class="tw-flex tw-flex-col md:tw-flex-row tw-items-center tw-gap-4 tw-mb-8">
+        <h2 class="tw-text-2xl tw-font-bold tw-flex tw-items-center tw-gap-2">
+                        <span class="tw-relative tw-flex tw-h-3 tw-w-3">
+                          <span class="tw-animate-ping tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-red-400 tw-opacity-75"></span>
+                          <span class="tw-relative tw-inline-flex tw-rounded-full tw-h-3 tw-w-3 tw-bg-red-600"></span>
+                        </span>
+
+            Tulip Sale Upto 36%
+        </h2>
+
+        <div class="tw-flex tw-gap-2">
+            <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-min-w-[45px] tw-text-center">
+                <span id="countdown-h">24</span> <span class="tw-text-[8px] tw-font-normal">Giờ</span>
+            </div>
+            <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-min-w-[45px] tw-text-center">
+                <span id="countdown-m">00</span> <span class="tw-text-[8px] tw-font-normal">Phút</span>
+            </div>
+            <div class="tw-bg-primary tw-text-white tw-font-bold tw-px-2 tw-py-1 tw-text-xs tw-rounded tw-min-w-[45px] tw-text-center">
+                <span id="countdown-s">00</span> <span class="tw-text-[8px] tw-font-normal">Giây</span>
+            </div>
+        </div>
+
+        <div class="tw-flex-grow"></div>
+
+        <div class="tw-flex tw-gap-2">
+            <button id="btn-sale-prev" class="tw-p-2 tw-rounded-full tw-border tw-border-gray-200 hover:tw-bg-gray-100 hover:tw-border-black tw-transition">
+                <span class="material-icons-outlined tw-text-sm">west</span>
+            </button>
+            <button id="btn-sale-next" class="tw-p-2 tw-rounded-full tw-border tw-border-gray-200 hover:tw-bg-gray-100 hover:tw-border-black tw-transition">
+                <span class="material-icons-outlined tw-text-sm">east</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="sale-slider" class="tw-flex tw-overflow-x-auto tw-pb-4 tw-scroll-smooth tw-snap-x" style="scrollbar-width: none; -ms-overflow-style: none;">
+
+        <div th:each="p : ${saleProducts}"
+             class="tw-w-[160px] md:tw-w-[240px] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-border tw-border-transparent hover:tw-border-gray-200 hover:tw-shadow-lg tw-transition-all tw-duration-300 tw-rounded-lg tw-bg-white">
+
+            <a th:href="@{'/product/' + ${p.id}}" class="tw-block tw-p-2">
+                <div class="tw-relative tw-overflow-hidden tw-mb-3 tw-rounded-md">
+                    <img th:src="${p.thumbnail}" th:alt="${p.name}"
+                         class="tw-w-full tw-h-[200px] md:tw-h-[320px] tw-object-cover tw-object-top group-hover:tw-scale-105 tw-transition-transform tw-duration-500">
+
+                    <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1 tw-rounded">
+                                    -<span th:text="${#numbers.formatDecimal((1.0 * (p.basePrice - p.discountPrice) / p.basePrice) * 100, 0, 0)}"></span>%
+                                </span>
+                </div>
+
+                <h3 class="tw-text-xs tw-text-gray-700 tw-font-medium tw-mb-1 tw-truncate tw-uppercase" th:text="${p.name}">
+                    Tên sản phẩm
+                </h3>
+                <div class="tw-flex tw-flex-col md:tw-flex-row md:tw-items-baseline tw-gap-1 md:tw-gap-2">
+                                <span class="tw-text-primary tw-font-bold tw-text-sm"
+                                      th:text="${#numbers.formatDecimal(p.discountPrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    <span class="tw-text-gray-400 tw-text-[10px] tw-line-through"
+                          th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                </div>
+            </a>
+        </div>
+
+        <div th:if="${saleProducts == null || saleProducts.isEmpty()}" class="tw-w-full tw-flex tw-justify-center tw-items-center tw-h-[200px] tw-bg-gray-50 tw-text-gray-400 tw-rounded-lg">
+            <p>Hiện chưa có sản phẩm nào giảm giá sâu.</p>
+        </div>
+    </div>
+
+    <div class="tw-text-center tw-mt-10">
+        <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+            Xem tất cả TULIP SALE UPTO 36%
+        </button>
+    </div>
+</section>
+</div>

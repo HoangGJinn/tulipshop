@@ -2,99 +2,68 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<footer th:fragment="footer" class="site-footer tw-bg-black tw-text-white tw-text-sm tw-font-sans">
-    <div class="tw-container tw-mx-auto tw-px-4 tw-py-16">
-        <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-4 tw-gap-8">
-
-            <div class="tw-flex tw-flex-col tw-gap-4">
-                <h3 class="tw-font-bold tw-uppercase tw-tracking-[0.1em] tw-text-base tw-mb-2">Về Tulip Shop</h3>
-                <p class="tw-text-gray-400 tw-leading-relaxed tw-text-sm">
-                    Chúng tôi mang đến những sản phẩm thời trang chất lượng cao, tôn vinh vẻ đẹp hiện đại và phong cách sống của bạn.
-                </p>
+<footer th:fragment="footer" class="site-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-sm-6">
+                <h3 class="footer-title">Về Tulip Shop</h3>
+                <p>Chúng tôi mang đến những sản phẩm thời trang chất lượng cao với giá cả hợp lý.</p>
             </div>
-
-            <div>
-                <h3 class="tw-font-bold tw-uppercase tw-tracking-[0.1em] tw-text-base tw-mb-6">Liên kết nhanh</h3>
-                <ul class="tw-flex tw-flex-col tw-gap-3 tw-text-gray-400">
-                    <li><a th:href="@{/about}" class="tw-transition-colors hover:tw-text-white hover:tw-translate-x-1 tw-inline-block">Về chúng tôi</a></li>
-                    <li><a th:href="@{/contact}" class="tw-transition-colors hover:tw-text-white hover:tw-translate-x-1 tw-inline-block">Liên hệ</a></li>
-                    <li><a th:href="@{/policy}" class="tw-transition-colors hover:tw-text-white hover:tw-translate-x-1 tw-inline-block">Chính sách</a></li>
-                    <li><a th:href="@{/terms}" class="tw-transition-colors hover:tw-text-white hover:tw-translate-x-1 tw-inline-block">Điều khoản</a></li>
+            <div class="col-md-4 col-sm-6">
+                <h3 class="footer-title">Liên kết nhanh</h3>
+                <ul class="footer-links">
+                    <li><a th:href="@{/about}">Về chúng tôi</a></li>
+                    <li><a th:href="@{/contact}">Liên hệ</a></li>
+                    <li><a th:href="@{/policy}">Chính sách</a></li>
+                    <li><a th:href="@{/terms}">Điều khoản</a></li>
                 </ul>
             </div>
-
-            <div>
-                <h3 class="tw-font-bold tw-uppercase tw-tracking-[0.1em] tw-text-base tw-mb-6">Kết nối</h3>
-                <div class="tw-flex tw-gap-3">
-                    <a href="#" class="tw-w-10 tw-h-10 tw-rounded-full tw-border tw-border-gray-600 tw-flex tw-items-center tw-justify-center tw-text-gray-400 tw-transition-all hover:tw-bg-white hover:tw-text-black hover:tw-border-white">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="#" class="tw-w-10 tw-h-10 tw-rounded-full tw-border tw-border-gray-600 tw-flex tw-items-center tw-justify-center tw-text-gray-400 tw-transition-all hover:tw-bg-white hover:tw-text-black hover:tw-border-white">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="#" class="tw-w-10 tw-h-10 tw-rounded-full tw-border tw-border-gray-600 tw-flex tw-items-center tw-justify-center tw-text-gray-400 tw-transition-all hover:tw-bg-white hover:tw-text-black hover:tw-border-white">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="tw-font-bold tw-uppercase tw-tracking-[0.1em] tw-text-base tw-mb-6">Đăng ký nhận tin</h3>
-                <p class="tw-text-gray-400 tw-text-xs tw-mb-4">Nhận thông tin ưu đãi mới nhất từ Tulip Shop.</p>
-                <div class="tw-flex tw-w-full">
-                    <input type="email" placeholder="Email của bạn"
-                           class="tw-w-full tw-bg-[#1a1a1a] tw-text-white tw-px-4 tw-py-3 tw-text-sm tw-outline-none focus:tw-ring-1 focus:tw-ring-gray-500 tw-border-none placeholder:tw-text-gray-600">
-                    <button class="tw-bg-white tw-text-black tw-px-6 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-whitespace-nowrap hover:tw-bg-gray-200 tw-transition-colors">
-                        Gửi
-                    </button>
+            <div class="col-md-4 col-sm-6">
+                <h3 class="footer-title">Kết nối với chúng tôi</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="tw-border-t tw-border-gray-800 tw-bg-[#050505]">
-        <div class="tw-container tw-mx-auto tw-px-4 tw-py-6 tw-text-center tw-text-gray-600 tw-text-xs">
-            <p>&copy; 2025 Tulip Shop. All rights reserved.</p>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Tulip Shop. All rights reserved. By Group 3</p>
         </div>
     </div>
 
-    <div id="searchOverlay" class="tw-fixed tw-inset-0 tw-bg-white tw-z-[9999] tw-translate-y-[-100%] tw-transition-transform tw-duration-500 tw-ease-in-out tw-flex tw-flex-col">
+    <div id="searchOverlay" class="search-overlay">
+        <div class="container">
+            <div class="text-end pt-3">
+                <button class="btn-close-search" onclick="toggleSearchPanel()">
+                    <i class="fas fa-times"></i> ĐÓNG
+                </button>
+            </div>
 
-        <div class="tw-container tw-mx-auto tw-px-4 tw-py-6 tw-flex tw-justify-end">
-            <button class="tw-group tw-flex tw-items-center tw-gap-2 tw-text-sm tw-font-bold tw-uppercase tw-tracking-widest hover:tw-text-primary tw-transition-colors" onclick="toggleSearchPanel()">
-                <span class="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gray-100 tw-flex tw-items-center tw-justify-center group-hover:tw-bg-red-50 tw-transition-colors">
-                    <i class="fas fa-times"></i>
-                </span>
-                <span>Đóng</span>
-            </button>
-        </div>
-
-        <div class="tw-flex-1 tw-flex tw-flex-col tw-items-center tw-pt-10 tw-px-4 tw-overflow-y-auto">
-
-            <div class="tw-w-full tw-max-w-3xl tw-relative tw-mb-12">
-                <form action="/products" method="get" class="tw-relative">
-                    <input type="text" id="searchInput" name="search"
-                           class="tw-w-full tw-border-b-2 tw-border-gray-200 tw-text-2xl md:tw-text-4xl tw-font-bold tw-py-4 tw-px-0 tw-text-center focus:tw-outline-none focus:tw-border-black tw-bg-transparent placeholder:tw-text-gray-300"
+            <div class="search-box-wrapper text-center mt-3">
+                <form action="/products" method="get" class="position-relative">
+                    <input type="text" id="searchInput" name="search" class="form-control search-input"
                            placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
-                    <button type="submit" class="tw-absolute tw-right-0 tw-top-1/2 tw--translate-y-1/2 tw-text-2xl tw-text-gray-400 hover:tw-text-black tw-transition-colors">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <button type="submit" class="btn-search-submit"><i class="fas fa-search"></i></button>
                 </form>
             </div>
 
-            <div id="searchResults" class="tw-w-full tw-max-w-4xl tw-pb-10">
-                <div class="default-suggestions tw-text-center">
-                    <p class="tw-text-gray-400 tw-text-xs tw-uppercase tw-mb-6 tw-tracking-widest">Gợi ý từ khóa</p>
-                    <div class="tw-flex tw-justify-center tw-gap-3 tw-flex-wrap">
-                        <a href="/products?category=dam" class="tw-px-6 tw-py-2 tw-border tw-border-gray-200 tw-rounded-full tw-text-sm tw-text-gray-600 hover:tw-border-black hover:tw-text-black tw-transition-colors">Đầm dạo phố</a>
-                        <a href="/products?category=ao-kieu" class="tw-px-6 tw-py-2 tw-border tw-border-gray-200 tw-rounded-full tw-text-sm tw-text-gray-600 hover:tw-border-black hover:tw-text-black tw-transition-colors">Áo kiểu</a>
-                        <a href="/products?category=quan" class="tw-px-6 tw-py-2 tw-border tw-border-gray-200 tw-rounded-full tw-text-sm tw-text-gray-600 hover:tw-border-black hover:tw-text-black tw-transition-colors">Quần tây</a>
+            <div id="searchResults" class="search-results mt-4">
+                <div class="default-suggestions text-center">
+                    <p class="text-muted small text-uppercase mb-3">Gợi ý cho bạn</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/products?category=dam" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Đầm dạo phố</a>
+                        <a href="/products?category=ao-kieu" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Áo kiểu</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function toggleSearchPanel() {
             const panel = document.getElementById('searchOverlay');
@@ -102,26 +71,26 @@
 
             if (panel.classList.contains('open')) {
                 panel.classList.remove('open');
-                panel.style.transform = 'translateY(-100%)';
                 document.body.style.overflow = 'auto';
             } else {
                 panel.classList.add('open');
-                panel.style.transform = 'translateY(0)';
                 document.body.style.overflow = 'hidden';
                 setTimeout(() => input.focus(), 300);
             }
         }
 
         let typingTimer;
+        const doneTypingInterval = 400;
         const input = document.getElementById('searchInput');
         const resultDiv = document.getElementById('searchResults');
+        // Lưu nội dung gợi ý mặc định
         const defaultContent = resultDiv ? resultDiv.innerHTML : '';
 
         if(input){
             input.addEventListener('keyup', () => {
                 clearTimeout(typingTimer);
                 if (input.value.trim().length > 0) {
-                    typingTimer = setTimeout(performSearch, 400);
+                    typingTimer = setTimeout(performSearch, doneTypingInterval);
                 } else {
                     resultDiv.innerHTML = defaultContent;
                 }
@@ -130,43 +99,43 @@
 
         function performSearch() {
             const query = input.value;
-            fetch(`/api/store/search?q=${encodeURIComponent(query)}`)
+            // Sử dụng API base URL từ configuration
+            fetch(`${window.API_BASE_URL}/store/search?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
-                .then(data => renderResults(data))
-                .catch(error => console.error('Lỗi:', error));
+                .then(data => {
+                    renderResults(data);
+                })
+                .catch(error => console.error('Lỗi tìm kiếm:', error));
         }
 
         function renderResults(products) {
             if (products.length === 0) {
-                resultDiv.innerHTML = '<div class="tw-text-center tw-text-gray-500 tw-mt-8">Không tìm thấy sản phẩm nào.</div>';
+                resultDiv.innerHTML = '<div class="text-center text-muted mt-5">Không tìm thấy sản phẩm nào phù hợp.</div>';
                 return;
             }
 
-            // Grid Layout cho kết quả (Đẹp hơn list dọc)
-            let html = '<div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">';
+            let html = '<div class="row justify-content-center"><div class="col-md-8 list-group list-group-flush">';
 
             products.forEach(p => {
-                const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price);
-                const oldPrice = p.originalPrice ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.originalPrice) : '';
+                let priceHtml = `<span class="search-item-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price)}</span>`;
+                if (p.originalPrice) {
+                    priceHtml += `<span class="search-item-old-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.originalPrice)}</span>`;
+                }
 
                 html += `
-                <a href="${p.url}" class="tw-flex tw-gap-4 tw-p-4 tw-rounded-lg tw-border tw-border-transparent hover:tw-border-gray-100 hover:tw-bg-gray-50 tw-transition-all tw-group">
-                    <div class="tw-w-20 tw-h-24 tw-flex-shrink-0 tw-overflow-hidden tw-rounded tw-bg-gray-100">
-                        <img src="${p.thumbnail}" alt="${p.name}" class="tw-w-full tw-h-full tw-object-cover group-hover:tw-scale-105 tw-transition-transform tw-duration-500">
-                    </div>
-
-                    <div class="tw-flex tw-flex-col tw-justify-center">
-                        <div class="tw-text-sm tw-font-bold tw-uppercase tw-mb-1 tw-line-clamp-2">${p.name}</div>
-                        <div class="tw-flex tw-items-center tw-gap-2">
-                            <span class="tw-text-red-600 tw-font-bold tw-text-sm">${price}</span>
-                            ${oldPrice ? `<span class="tw-text-gray-400 tw-text-xs tw-line-through">${oldPrice}</span>` : ''}
-                        </div>
+                <a href="${p.url}" class="list-group-item list-group-item-action search-item d-flex align-items-center gap-3">
+                    <img src="${p.thumbnail}" alt="${p.name}">
+                    <div>
+                        <div class="search-item-title text-uppercase">${p.name}</div>
+                        ${priceHtml}
                     </div>
                 </a>
             `;
             });
 
-            html += `</div><div class="tw-text-center tw-mt-8"><a href="/products?search=${input.value}" class="tw-inline-block tw-border-b tw-border-black tw-pb-1 tw-text-sm tw-uppercase tw-font-bold hover:tw-text-primary hover:tw-border-primary tw-transition-colors">Xem tất cả kết quả</a></div>`;
+            html += `<div class="text-center mt-3"><a href="/products?search=${input.value}" class="btn btn-sm btn-link text-dark">Xem tất cả kết quả</a></div>`;
+            html += '</div></div>';
+
             resultDiv.innerHTML = html;
         }
     </script>
