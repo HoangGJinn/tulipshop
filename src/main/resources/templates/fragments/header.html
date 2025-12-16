@@ -50,7 +50,8 @@
                                     <i class="fas fa-bars"></i>
                                 </span>
                                 <a th:href="@{/}" class="logo-shop">
-                                    <span class="logo-text">TULIP SHOP</span>
+                                    <img th:src="@{/images/logo.png}" alt="Tulip Shop" class="logo-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                    <span class="logo-text" style="display: none;">TULIP SHOP</span>
                                 </a>
                             </div>
                         </div>
@@ -172,10 +173,12 @@
                                     <li class="user-menu-item">
                                         <!-- Hiển thị khi đã đăng nhập -->
                                         <div sec:authorize="isAuthenticated()" class="user-dropdown">
-                                            <a href="#" class="header-account-icon" id="user-menu-toggle">
+                                            <div class="header-account-icon" id="user-menu-toggle">
                                                 <i class="fas fa-user"></i>
-                                                <span class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.name}">User</span>
-                                            </a>
+                                                <a th:href="@{/account}" class="user-name-link">
+                                                    <span class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.name}">User</span>
+                                                </a>
+                                            </div>
                                             <div class="user-dropdown-menu" id="user-dropdown-menu">
                                                 <a th:href="@{/account}" class="dropdown-item">
                                                     <i class="fas fa-user-circle"></i> Tài khoản
@@ -272,8 +275,10 @@
     
     if (userMenuToggle && userDropdownMenu) {
         userMenuToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            userDropdownMenu.classList.toggle('active');
+            if (!e.target.closest('.user-name-link') && !e.target.classList.contains('user-name')) {
+                e.preventDefault();
+                userDropdownMenu.classList.toggle('active');
+            }
         });
 
         // Đóng dropdown khi click bên ngoài

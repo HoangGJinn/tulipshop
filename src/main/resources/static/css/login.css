@@ -190,3 +190,25 @@ form button:hover {
     padding: 0 16px 0 8px; /* Căn chỉnh khoảng cách chữ */
     font-size: 14px;
 }
+
+/* Text alignment utilities */
+.text-right {
+    text-align: right;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Forgot password link styling */
+.forgot-password-link {
+    color: #1976d2;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.forgot-password-link:hover {
+    color: #1565c0;
+    text-decoration: underline;
+}

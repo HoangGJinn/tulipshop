@@ -65,9 +65,12 @@ public class SecurityConfig {
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
                 .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
                 .requestMatchers("/verify-email", "/resend-otp").permitAll()
+                .requestMatchers("/forgot-password", "/reset-password").permitAll()
                 .requestMatchers("/products/**", "/product/**", "/trending", "/sale", "/about", "/contact").permitAll()
                 .requestMatchers("/v1/api/store/**").permitAll()
-                .requestMatchers("/v1/api/auth/**").permitAll()
+                .requestMatchers("/v1/api/auth/login", "/v1/api/auth/register", "/v1/api/auth/forgot-password", 
+                                 "/v1/api/auth/reset-password", "/v1/api/auth/resend-otp", "/v1/api/auth/verify-email").permitAll()
+                .requestMatchers("/v1/api/auth/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

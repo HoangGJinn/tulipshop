@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xác thực Email</title>
     <link rel="stylesheet" th:href="@{/css/login.css}">
+    <script src="https://cdn.jsdelivr.net/npm/validator@13.11.0/validator.min.js"></script>
 </head>
 <body>
     <div class="login-container">
@@ -33,10 +34,8 @@
                            id="otp" 
                            name="otp" 
                            placeholder="Nhập mã OTP 6 chữ số" 
-                           required 
                            autofocus
                            maxlength="6"
-                           pattern="[0-9]{6}"
                            style="text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: bold;">
                     <div id="otpError" class="error-message" style="display: none;"></div>
                 </div>
@@ -46,7 +45,7 @@
                 </div>
             </form>
             
-            <button type="button" onclick="handleResendOtp()" class="btn-resend" id="resendBtn" style="width: 100%; padding: 10px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; color: #555; margin-top: 15px;">
+            <button type="button" onclick="handleResendOtp('verify')" class="btn-resend" id="resendBtn" style="width: 100%; padding: 10px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; color: #555; margin-top: 15px;">
                 Gửi lại mã OTP
             </button>
             
@@ -89,8 +88,8 @@
             
             const otp = otpInput.value.trim();
             
-            // Validate client-side
-            if (!otp || otp.length !== 6 || !/^[0-9]{6}$/.test(otp)) {
+            // Validate bằng validator.js
+            if (!otp || !validator.isLength(otp, {min: 6, max: 6}) || !validator.isNumeric(otp)) {
                 otpError.textContent = 'Mã OTP phải là 6 chữ số';
                 otpError.style.display = 'block';
                 return;
@@ -135,7 +134,7 @@
         }
         
         // Xử lý gửi lại OTP
-        async function handleResendOtp() {
+        async function handleResendOtp(type) {
             const resendBtn = document.getElementById('resendBtn');
             
             // Disable button và hiển thị loading
@@ -143,13 +142,14 @@
             resendBtn.textContent = 'Đang gửi...';
             
             try {
-                const response = await fetch(apiBaseUrl + '/auth/resend-otp', {
+                const response = await fetch(apiBaseUrl + '/auth/resend-otp?type=' + type, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        email: email
+                        email: email,
+                        type: type
                     })
                 });
                 

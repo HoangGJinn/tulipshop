@@ -59,6 +59,24 @@ body {
 .logo-shop {
     text-decoration: none;
     color: #2C2C2C;
+    display: inline-flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 80px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+/* Responsive logo cho mobile */
+@media (max-width: 768px) {
+    .logo-image {
+        height: 45px;
+        max-width: 200px;
+    }
 }
 
 .logo-text {
@@ -656,6 +674,16 @@ body {
 }
 
 .header-account-icon:hover {
+    color: #D37171;
+}
+
+.user-name-link {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s;
+}
+
+.user-name-link:hover {
     color: #D37171;
 }
 

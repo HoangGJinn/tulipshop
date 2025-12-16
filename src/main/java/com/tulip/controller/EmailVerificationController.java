@@ -78,7 +78,9 @@ public class EmailVerificationController {
     // API endpoint để gửi lại OTP - trả về JSON
     @PostMapping("/v1/api/auth/resend-otp")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> resendOtp(@RequestBody ResendOtpRequest request) {
+    public ResponseEntity<Map<String, Object>> resendOtp(
+            @RequestBody ResendOtpRequest request, 
+            @RequestParam(required = false, defaultValue = "verify") String type) {
         Map<String, Object> response = new HashMap<>();
         
         // Validate input
@@ -88,8 +90,18 @@ public class EmailVerificationController {
             return ResponseEntity.badRequest().body(response);
         }
         
+        // Validate type parameter
+        String finalType = (type != null && !type.trim().isEmpty()) ? type.trim() : 
+                          (request.getType() != null && !request.getType().trim().isEmpty() ? request.getType().trim() : "verify");
+        
+        if (!finalType.equals("verify") && !finalType.equals("reset")) {
+            response.put("success", false);
+            response.put("message", "Type không hợp lệ. Chỉ chấp nhận 'verify' hoặc 'reset'");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
         try {
-            userService.resendOtp(request.getEmail().trim());
+            userService.resendOtp(request.getEmail().trim(), finalType);
             response.put("success", true);
             response.put("message", "Đã gửi lại mã OTP. Vui lòng kiểm tra email của bạn.");
             return ResponseEntity.ok(response);
@@ -113,6 +125,7 @@ public class EmailVerificationController {
     @NoArgsConstructor
     public static class ResendOtpRequest {
         private String email;
+        private String type;
     }
 
     // Form class giữ lại cho view (GET /verify-email)

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -59,7 +60,7 @@ public class UserServiceImpl implements UserService {
         
         // Gửi OTP để xác thực email
         String otp = otpService.generateOtp(email);
-        emailService.sendOTPToEmail(email, otp);
+        emailService.sendOTPToEmail(email, otp, "verify");
         log.info("OTP sent to email: {}", email);
         
         return user;
@@ -137,17 +138,143 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public void resendOtp(String email) {
+    public void resendOtp(String email, String type) {
         if (!userRepository.existsByEmail(email)) {
             throw new IllegalStateException("Email không tồn tại");
         }
         
+        // Xác định key cho OTP dựa trên type
+        String otpKey = "reset".equals(type) ? "reset_" + email : email;
+        
         // Xóa OTP cũ nếu có
-        otpService.clearOtp(email);
+        otpService.clearOtp(otpKey);
         
         // Tạo và gửi OTP mới
-        String otp = otpService.generateOtp(email);
-        emailService.sendOTPToEmail(email, otp);
-        log.info("OTP resent to email: {}", email);
+        String otp = otpService.generateOtp(otpKey);
+        emailService.sendOTPToEmail(email, otp, type);
+        log.info("{} OTP resent to email: {}", type, email);
+    }
+
+    @Override
+    @Transactional
+    public void sendPasswordResetOtp(String email, String type) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
+        
+        // Kiểm tra user có phải đăng ký bằng LOCAL không
+        if ("reset".equals(type) && !"LOCAL".equals(user.getAuthProvider())) {
+            String provider = "GOOGLE".equals(user.getAuthProvider()) ? "Google" : "OAuth2";
+            throw new IllegalStateException("Tài khoản này được đăng ký bằng " + provider + ". Vui lòng đăng nhập bằng " + provider + ".");
+        }
+        
+        // Xác định key cho OTP dựa trên type
+        String otpKey = "reset".equals(type) ? "reset_" + email : email;
+        
+        // Xóa OTP cũ nếu có
+        otpService.clearOtp(otpKey);
+        
+        // Tạo và gửi OTP mới
+        String otp = otpService.generateOtp(otpKey);
+        emailService.sendOTPToEmail(email, otp, type);
+        log.info("{} OTP sent to email: {}", type, email);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String email, String otp, String newPassword) {
+        // Kiểm tra email có tồn tại không
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
+        
+        // Kiểm tra user có phải đăng ký bằng LOCAL không
+        if (!"LOCAL".equals(user.getAuthProvider())) {
+            String provider = "GOOGLE".equals(user.getAuthProvider()) ? "Google" : "OAuth2";
+            throw new IllegalStateException("Tài khoản này được đăng ký bằng " + provider + ". Vui lòng đăng nhập bằng " + provider + ".");
+        }
+        
+        // Validate OTP
+        if (!otpService.validateOtp("reset_" + email, otp)) {
+            throw new IllegalStateException("Mã OTP không đúng hoặc đã hết hạn");
+        }
+        
+        // Validate password mới
+        if (newPassword == null || newPassword.trim().isEmpty() || newPassword.length() < 6) {
+            throw new IllegalStateException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+        
+        // Cập nhật mật khẩu mới
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password reset successfully for email: {}", email);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        // Kiểm tra email có tồn tại không
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
+        
+        // Kiểm tra user có phải đăng ký bằng LOCAL không
+        if (!"LOCAL".equals(user.getAuthProvider())) {
+            String provider = "GOOGLE".equals(user.getAuthProvider()) ? "Google" : "OAuth2";
+            throw new IllegalStateException("Tài khoản này được đăng ký bằng " + provider + ". Không thể thay đổi mật khẩu.");
+        }
+        
+        // Kiểm tra mật khẩu cũ
+        if (user.getPasswordHash() == null || !passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+            throw new IllegalStateException("Mật khẩu cũ không đúng");
+        }
+        
+        // Validate mật khẩu mới
+        if (newPassword == null || newPassword.trim().isEmpty() || newPassword.length() < 6) {
+            throw new IllegalStateException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+        
+        // Kiểm tra mật khẩu mới không được trùng với mật khẩu cũ
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new IllegalStateException("Mật khẩu mới phải khác mật khẩu cũ");
+        }
+        
+        // Cập nhật mật khẩu mới
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password changed successfully for email: {}", email);
+    }
+
+    @Override
+    @Transactional
+    public void setPassword(String email, String newPassword) {
+        // Kiểm tra email có tồn tại không
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
+        
+        // Validate mật khẩu mới
+        if (newPassword == null || newPassword.trim().isEmpty() || newPassword.length() < 6) {
+            throw new IllegalStateException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+        
+        // Cập nhật mật khẩu mới
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password set successfully for email: {}", email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getPasswordInfo(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        Map<String, Object> info = new HashMap<>();
+        // Đảm bảo authProvider không null (mặc định là LOCAL)
+        String authProvider = user.getAuthProvider();
+        if (authProvider == null || authProvider.trim().isEmpty()) {
+            authProvider = "LOCAL";
+        }
+        info.put("authProvider", authProvider);
+        info.put("hasPassword", user.getPasswordHash() != null && !user.getPasswordHash().isEmpty());
+        
+        return info;
     }
 }
