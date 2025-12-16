@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.tulip.service.impl.CustomUserDetails;
 
 import jakarta.validation.Valid;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/account")
@@ -27,6 +28,11 @@ public class UserProfileController {
 
         // Lấy thông tin profile dưới dạng DTO
         UserProfileDTO profileDTO = userService.getProfileByEmail(email);
+        
+        // Lấy thông tin về password để xác định form nào hiển thị
+        Map<String, Object> passwordInfo = userService.getPasswordInfo(email);
+        model.addAttribute("authProvider", passwordInfo.get("authProvider"));
+        model.addAttribute("hasPassword", passwordInfo.get("hasPassword"));
 
         // Dùng DTO trực tiếp cho form
         model.addAttribute("form", profileDTO);

@@ -1,5 +1,5 @@
 package com.tulip.service;
 
 public interface EmailService {
-    void sendOTPToEmail(String toEmail, String otp);
+    void sendOTPToEmail(String toEmail, String otp, String type);
 }

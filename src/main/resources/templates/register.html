@@ -45,12 +45,15 @@
                 <div>
                     <button type="submit" class="login-button">Đăng ký</button>
                 </div>
+                <div class="form-group text-center">
+                    <a href="/oauth2/authorization/google" class="btn-google">
+                        <div class="icon-wrapper">
+                            <img class="google-icon" th:src="@{/images/google.png}" alt="Google Logo"/>
+                        </div>
+                        <span class="btn-text">Đăng nhập bằng Google</span>
+                    </a>
+                </div>
             </form>
-            <div class="form-group">
-                <a href="/oauth2/authorization/google" class="btn btn-google">
-                    <i class="fab fa-google"></i> Đăng nhập bằng Google
-                </a>
-            </div>
             <div class="back-link">
                 <p><a th:href="@{/login}">Quay lại trang đăng nhập</a></p>
             </div>

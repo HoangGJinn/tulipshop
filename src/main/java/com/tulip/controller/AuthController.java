@@ -66,7 +66,11 @@ public class AuthController {
             model.addAttribute("message", "Bạn đã đăng xuất thành công.");
         }
         if (success != null) {
-            model.addAttribute("message", "Đăng ký thành công. Vui lòng đăng nhập để tiếp tục.");
+            if ("reset".equals(success)) {
+                model.addAttribute("message", "Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.");
+            } else {
+                model.addAttribute("message", "Đăng ký thành công. Vui lòng đăng nhập để tiếp tục.");
+            }
         }
         if (unverified != null) {
             model.addAttribute("error", "Vui lòng xác thực email trước khi đăng nhập!");
@@ -104,6 +108,29 @@ public class AuthController {
             model.addAttribute("error", ex.getMessage());
             return "register";
         }
+    }
+
+    @GetMapping("/forgot-password")
+    public String showForgotPassword(Model model) {
+        // Kiểm tra nếu đã đăng nhập thì redirect về trang chủ
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            return "redirect:/";
+        }
+        
+        return "forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String showResetPassword(@RequestParam("email") String email, Model model) {
+        // Kiểm tra nếu đã đăng nhập thì redirect về trang chủ
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            return "redirect:/";
+        }
+        
+        model.addAttribute("email", email);
+        return "reset-password";
     }
 
     @Data
@@ -192,5 +219,222 @@ public class AuthController {
     @Data
     public static class RefreshTokenRequest {
         private String refreshToken;
+    }
+
+    // API endpoint để yêu cầu reset password
+    @PostMapping("/v1/api/auth/forgot-password")
+    @ResponseBody
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Validate input
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Email không được để trống");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Validate email format
+        if (!request.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            response.put("success", false);
+            response.put("message", "Email không hợp lệ");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Mặc định type là "reset" nếu không được cung cấp
+        String type = request.getType() != null && !request.getType().trim().isEmpty() 
+                ? request.getType().trim() 
+                : "reset";
+
+        try {
+            userService.sendPasswordResetOtp(request.getEmail().trim(), type);
+            response.put("success", true);
+            response.put("message", "Đã gửi mã OTP đặt lại mật khẩu. Vui lòng kiểm tra email của bạn.");
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            response.put("success", false);
+            response.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // API endpoint để reset password
+    @PostMapping("/v1/api/auth/reset-password")
+    @ResponseBody
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Validate input
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Email không được để trống");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getOtp() == null || request.getOtp().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Mã OTP không được để trống");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (!request.getOtp().matches("^[0-9]{6}$")) {
+            response.put("success", false);
+            response.put("message", "Mã OTP phải là 6 chữ số");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới không được để trống");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới phải có ít nhất 6 ký tự");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            userService.resetPassword(
+                    request.getEmail().trim(),
+                    request.getOtp().trim(),
+                    request.getNewPassword()
+            );
+            response.put("success", true);
+            response.put("message", "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập với mật khẩu mới.");
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            response.put("success", false);
+            response.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // DTO classes
+    @Data
+    @NoArgsConstructor
+    public static class ForgotPasswordRequest {
+        private String email;
+        private String type; // "reset" hoặc "verify"
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class ResetPasswordRequest {
+        private String email;
+        private String otp;
+        private String newPassword;
+    }
+
+    // API endpoint để thay đổi mật khẩu
+    @PostMapping("/v1/api/auth/change-password")
+    @ResponseBody
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        
+        // Lấy email từ authentication
+        String email = authentication != null ? authentication.getName() : null;
+        if (email == null) {
+            response.put("success", false);
+            response.put("message", "Vui lòng đăng nhập để thay đổi mật khẩu");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        // Validate input
+        if (request.getOldPassword() == null || request.getOldPassword().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu cũ không được để trống");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới không được để trống");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới phải có ít nhất 6 ký tự");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getConfirmPassword() == null || !request.getNewPassword().equals(request.getConfirmPassword())) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới và xác nhận mật khẩu không khớp");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            userService.changePassword(email, request.getOldPassword().trim(), request.getNewPassword().trim());
+            response.put("success", true);
+            response.put("message", "Thay đổi mật khẩu thành công!");
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            response.put("success", false);
+            response.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class ChangePasswordRequest {
+        private String oldPassword;
+        private String newPassword;
+        private String confirmPassword;
+    }
+
+    // API endpoint để tạo mật khẩu (cho user Google chưa có password)
+    @PostMapping("/v1/api/auth/set-password")
+    @ResponseBody
+    public ResponseEntity<?> setPassword(@RequestBody SetPasswordRequest request, Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        
+        // Lấy email từ authentication
+        String email = authentication != null ? authentication.getName() : null;
+        if (email == null) {
+            response.put("success", false);
+            response.put("message", "Vui lòng đăng nhập để tạo mật khẩu");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        // Validate input
+        if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới không được để trống");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới phải có ít nhất 6 ký tự");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (request.getConfirmPassword() == null || !request.getNewPassword().equals(request.getConfirmPassword())) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu mới và xác nhận mật khẩu không khớp");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            userService.setPassword(email, request.getNewPassword().trim());
+            response.put("success", true);
+            response.put("message", "Tạo mật khẩu thành công! Bạn có thể đăng nhập bằng email/mật khẩu lần sau.");
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            response.put("success", false);
+            response.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class SetPasswordRequest {
+        private String newPassword;
+        private String confirmPassword;
     }
 }

@@ -138,19 +138,138 @@
             </div>
         </div>
 
-        <!-- Right Column: Address Section -->
-        <div th:replace="~{fragments/address-section :: address-section}"></div>
+        <!-- Right Column: Address Section & Change Password -->
+        <div class="col-md-5">
+            <!-- Address Section Content (without col-md-5 from fragment) -->
+            <div class="card">
+                <div class="card-body">
+                    <!-- Address Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-truck me-2 text-primary"></i>
+                            <h5 class="mb-0 fw-bold">DANH SÁCH ĐỊA CHỈ</h5>
+                        </div>
+                        <a href="#" class="text-danger text-decoration-none" id="viewAllAddresses" style="display: none;">
+                            Xem tất cả
+                        </a>
+                    </div>
+
+                    <!-- Address List Container -->
+                    <div id="addressList" class="mb-3">
+                        <!-- Addresses will be loaded here via AJAX -->
+                    </div>
+
+                    <!-- Add Address Button -->
+                    <div class="text-center border border-2 border-dashed rounded p-4" 
+                         style="border-color: #ddd !important; cursor: pointer;"
+                         id="addAddressBtn">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center mb-2"
+                                 style="width: 30px; height: 30px;">
+                                <i class="fas fa-plus fs-5"></i>
+                            </div>
+                            <a href="#" class="text-danger text-decoration-none">Thêm địa chỉ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Change Password Section -->
+            <div class="card mt-4">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-lock"></i> Bảo mật</h4>
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <i class="fas fa-key"></i> Đổi mật khẩu
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Address Modal -->
 <div th:replace="~{fragments/address-modal :: address-modal}"></div>
 
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="changePasswordModalLabel">
+                    <i class="fas fa-lock"></i> <span id="modalTitleText">Thay đổi mật khẩu</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="googleSetPasswordNotice" class="alert alert-info" style="display: none;">
+                    <i class="fas fa-info-circle"></i> 
+                    Bạn đang đăng nhập bằng Google. Hãy tạo mật khẩu nếu bạn muốn đăng nhập bằng tài khoản/mật khẩu lần sau.
+                </div>
+                
+                <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+                    <div class="mb-3" id="oldPasswordGroup">
+                        <label for="oldPassword" class="form-label">Mật khẩu cũ <span class="text-danger">*</span></label>
+                        <input type="password"
+                               class="form-control"
+                               id="oldPassword"
+                               name="oldPassword"
+                               placeholder="Nhập mật khẩu cũ">
+                        <div id="oldPasswordError" class="text-danger small mt-1" style="display: none;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Mật khẩu mới <span class="text-danger">*</span></label>
+                        <input type="password"
+                               class="form-control"
+                               id="newPassword"
+                               name="newPassword"
+                               placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                               required>
+                        <div id="newPasswordError" class="text-danger small mt-1" style="display: none;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                        <input type="password"
+                               class="form-control"
+                               id="confirmPassword"
+                               name="confirmPassword"
+                               placeholder="Nhập lại mật khẩu mới"
+                               required>
+                        <div id="confirmPasswordError" class="text-danger small mt-1" style="display: none;"></div>
+                    </div>
+
+                    <div id="changePasswordSuccess" class="alert alert-success" style="display: none;"></div>
+                    <div id="changePasswordError" class="alert alert-danger" style="display: none;"></div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Hủy
+                        </button>
+                        <button type="submit" class="btn btn-dark btn-secondary" id="changePasswordBtn">
+                            <i class="fas fa-save"></i> <span id="submitButtonText">Thay đổi mật khẩu</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script th:replace="~{fragments/header :: header-scripts}"></script>
 <script th:src="@{/js/address-api.js}"></script>
 <script th:replace="~{fragments/address-section :: address-scripts}"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.userPasswordInfo = {
+        authProvider: /*[[${authProvider}]]*/ 'LOCAL',
+        hasPassword: /*[[${hasPassword}]]*/ true
+    };
+    /*]]>*/
+</script>
 
 <script>
     $(document).ready(function() {
@@ -255,6 +374,159 @@
             });
         }
     }); // End of Profile Edit Mode $(document).ready()
+
+    const authProvider = window.userPasswordInfo.authProvider || 'LOCAL';
+    const hasPassword = window.userPasswordInfo.hasPassword === true || window.userPasswordInfo.hasPassword === 'true';
+    
+    const isCaseA = authProvider === 'LOCAL';
+    const isCaseB = authProvider === 'GOOGLE' && !hasPassword;
+    const isCaseC = authProvider === 'GOOGLE' && hasPassword;
+    
+    function configurePasswordModal() {
+        const oldPasswordGroup = $('#oldPasswordGroup');
+        const oldPasswordInput = $('#oldPassword');
+        const googleNotice = $('#googleSetPasswordNotice');
+        const modalTitle = $('#modalTitleText');
+        const submitButtonText = $('#submitButtonText');
+        
+        if (isCaseB) {
+            oldPasswordGroup.hide();
+            oldPasswordInput.removeAttr('required');
+            googleNotice.show();
+            modalTitle.text('Tạo mật khẩu');
+            submitButtonText.text('Tạo mật khẩu');
+        } else {
+            oldPasswordGroup.show();
+            oldPasswordInput.attr('required', 'required');
+            googleNotice.hide();
+            modalTitle.text('Thay đổi mật khẩu');
+            submitButtonText.text('Thay đổi mật khẩu');
+        }
+    }
+    
+    configurePasswordModal();
+    
+    $('#changePasswordModal').on('show.bs.modal', function () {
+        configurePasswordModal();
+    });
+    
+    $('#changePasswordModal').on('hidden.bs.modal', function () {
+        document.getElementById('changePasswordForm').reset();
+        document.getElementById('changePasswordSuccess').style.display = 'none';
+        document.getElementById('changePasswordError').style.display = 'none';
+        document.getElementById('oldPasswordError').style.display = 'none';
+        document.getElementById('newPasswordError').style.display = 'none';
+        document.getElementById('confirmPasswordError').style.display = 'none';
+    });
+    async function handleChangePassword(event) {
+        event.preventDefault();
+        
+        const oldPasswordInput = document.getElementById('oldPassword');
+        const newPasswordInput = document.getElementById('newPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const oldPasswordError = document.getElementById('oldPasswordError');
+        const newPasswordError = document.getElementById('newPasswordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        const successMessage = document.getElementById('changePasswordSuccess');
+        const errorMessage = document.getElementById('changePasswordError');
+        const submitBtn = document.getElementById('changePasswordBtn');
+        
+        const oldPassword = oldPasswordInput ? oldPasswordInput.value.trim() : '';
+        const newPassword = newPasswordInput.value.trim();
+        const confirmPassword = confirmPasswordInput.value.trim();
+        
+        if (oldPasswordError) oldPasswordError.style.display = 'none';
+        newPasswordError.style.display = 'none';
+        confirmPasswordError.style.display = 'none';
+        successMessage.style.display = 'none';
+        errorMessage.style.display = 'none';
+        
+        let hasError = false;
+        
+        if (!isCaseB) {
+            if (!oldPassword) {
+                oldPasswordError.textContent = 'Mật khẩu cũ không được để trống';
+                oldPasswordError.style.display = 'block';
+                hasError = true;
+            }
+        }
+        
+        if (!newPassword || !validator.isLength(newPassword, {min: 6})) {
+            newPasswordError.textContent = 'Mật khẩu mới phải có ít nhất 6 ký tự';
+            newPasswordError.style.display = 'block';
+            hasError = true;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            confirmPasswordError.textContent = 'Mật khẩu không khớp';
+            confirmPasswordError.style.display = 'block';
+            hasError = true;
+        }
+        
+        if (hasError) {
+            return;
+        }
+        
+        submitBtn.disabled = true;
+        const originalButtonText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+        
+        try {
+            let apiEndpoint, requestBody;
+            
+            if (isCaseB) {
+                apiEndpoint = '/v1/api/auth/set-password';
+                requestBody = {
+                    newPassword: newPassword,
+                    confirmPassword: confirmPassword
+                };
+            } else {
+                apiEndpoint = '/v1/api/auth/change-password';
+                requestBody = {
+                    oldPassword: oldPassword,
+                    newPassword: newPassword,
+                    confirmPassword: confirmPassword
+                };
+            }
+            
+            const response = await fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                successMessage.textContent = data.message;
+                successMessage.style.display = 'block';
+                
+                if (oldPasswordInput) oldPasswordInput.value = '';
+                newPasswordInput.value = '';
+                confirmPasswordInput.value = '';
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                errorMessage.textContent = data.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
+                errorMessage.style.display = 'block';
+                
+                if (data.message && data.message.includes('cũ') && oldPasswordInput) {
+                    oldPasswordInput.focus();
+                }
+            }
+        } catch (error) {
+            errorMessage.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            errorMessage.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalButtonText;
+        }
+    }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/validator@13.11.0/validator.min.js"></script>
 </body>
 </html>

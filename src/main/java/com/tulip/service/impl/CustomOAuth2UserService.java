@@ -75,7 +75,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 log.info("Created new OAuth2 user with verified email: {}", email);
             } else {
                 // User đã tồn tại - cập nhật nếu cần
-                if (existingUser.getAuthProvider() == null) {
+                if (existingUser.getAuthProvider() == null || existingUser.getAuthProvider().equals("LOCAL")) {
                     existingUser.setAuthProvider("GOOGLE");
                 }
 
