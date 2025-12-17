@@ -45,6 +45,7 @@ public class ProductServiceImpl implements ProductService {
                 .category(category)
                 .thumbnail(mainThumbnail)
                 .variants(new ArrayList<>())
+                .tags(dto.getTags())
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -369,6 +370,11 @@ public class ProductServiceImpl implements ProductService {
         }
         return result;
 
+    }
+
+    @Override
+    public List<Product> findProductsWithDeepDiscount() {
+        return productRepository.findProductsWithDeepDiscount();
     }
 
 

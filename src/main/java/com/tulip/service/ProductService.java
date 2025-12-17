@@ -21,4 +21,5 @@ public interface ProductService {
     List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId);
     List<ProductCardDTO> getViewedProducts(List<Long> productIds);
 
+    List<Product> findProductsWithDeepDiscount();
 }

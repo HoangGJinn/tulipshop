@@ -47,4 +47,43 @@ public class StoreApiController {
                 .build();
     }
 
+    // Hàng mới về
+    @GetMapping("/new-arrivals")
+    public ResponseEntity<List<ProductSearchDTO>> getNewArrivals() {
+        return ResponseEntity.ok(productRepository.findTop5ByOrderByIdDesc().stream()
+                .map(this::convertToSearchDTO)
+                .collect(Collectors.toList()));
+    }
+
+    // Sale > 18%
+    @GetMapping("/sale-18")
+    public ResponseEntity<List<ProductSearchDTO>> getSale18() {
+        return ResponseEntity.ok(productRepository.findProductsDiscountOver18().stream()
+                .map(this::convertToSearchDTO)
+                .collect(Collectors.toList()));
+    }
+
+    // Đang thịnh hành (Random)
+    @GetMapping("/trending")
+    public ResponseEntity<List<ProductSearchDTO>> getTrending() {
+        return ResponseEntity.ok(productRepository.findRandomProducts().stream()
+                .map(this::convertToSearchDTO)
+                .collect(Collectors.toList()));
+    }
+
+    // Lấy sản phẩm theo Occasion (Dịp: di-lam, di-choi, di-tiec)
+    @GetMapping("/occasion")
+    public ResponseEntity<List<ProductSearchDTO>> getProductsByOccasion(@RequestParam("tag") String tag) {
+        // Gọi repository tìm theo tag
+        List<Product> products = productRepository.findByTagsContainingIgnoreCase(tag);
+
+        // Convert sang DTO và giới hạn 10 sản phẩm
+        List<ProductSearchDTO> results = products.stream()
+                .limit(10)
+                .map(this::convertToSearchDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(results);
+    }
+
 }

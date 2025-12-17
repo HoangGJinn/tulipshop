@@ -62,8 +62,9 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
-                .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
+
+                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/assets/**", "/favicon.ico").permitAll()
+                .requestMatchers("/register", "/login", "/logout","/api/**" , "/h2-console/**").permitAll()
                 .requestMatchers("/verify-email", "/resend-otp").permitAll()
                 .requestMatchers("/forgot-password", "/reset-password").permitAll()
                 .requestMatchers("/products/**", "/product/**", "/trending", "/sale", "/about", "/contact").permitAll()

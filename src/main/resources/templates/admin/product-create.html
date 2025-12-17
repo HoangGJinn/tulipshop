@@ -16,7 +16,6 @@
 
             <div class="row">
                 <div class="col-lg-8">
-
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white fw-bold py-3">Thông tin chung</div>
                         <div class="card-body">
@@ -32,21 +31,19 @@
                     </div>
 
                     <div class="card shadow-sm border-0 mb-4">
-                        <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
-                            <span>Dữ liệu sản phẩm</span>
-                        </div>
+                        <div class="card-header bg-white fw-bold py-3">Dữ liệu sản phẩm</div>
                         <div class="card-body">
                             <ul class="nav nav-tabs mb-3" id="productTab" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active fw-bold" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button">Chung</button>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active fw-bold" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">Chung</button>
                                 </li>
-                                <li class="nav-item">
-                                    <button class="nav-link fw-bold" id="variations-tab" data-bs-toggle="tab" data-bs-target="#variations" type="button">Các biến thể</button>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link fw-bold" id="variations-tab" data-bs-toggle="tab" data-bs-target="#variations" type="button" role="tab">Các biến thể</button>
                                 </li>
                             </ul>
 
                             <div class="tab-content" id="productTabContent">
-                                <div class="tab-pane fade show active" id="general">
+                                <div class="tab-pane fade show active" id="general" role="tabpanel">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Giá bán thường (VNĐ)</label>
@@ -59,7 +56,7 @@
                                     </div>
                                 </div>
 
-                                <div class="tab-pane fade" id="variations">
+                                <div class="tab-pane fade" id="variations" role="tabpanel">
                                     <div id="variants-container">
                                     </div>
 
@@ -75,7 +72,6 @@
                 </div>
 
                 <div class="col-lg-4">
-
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white fw-bold py-3">Danh mục sản phẩm</div>
                         <div class="card-body">
@@ -109,6 +105,25 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Phân loại (Tags)</label>
+                        <div class="form-text mb-2">Nhập tag rồi nhấn <strong>Enter</strong> hoặc nút <strong>+</strong>.</div>
+
+                        <div id="tag-input-container" class="form-control d-flex flex-wrap align-items-center gap-2" style="min-height: 45px; padding-right: 40px; position: relative;">
+
+                            <input type="text" id="tag-input-field" class="border-0 bg-transparent shadow-none"
+                                   style="outline: none; min-width: 100px; flex-grow: 1;"
+                                   placeholder="Thêm tag..." />
+
+                            <button type="button" id="btn-add-tag" class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 30px; height: 30px; padding: 0; position: absolute; right: 8px;">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <input type="hidden" th:field="*{tags}" id="hidden-tags-input">
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('tags')}" th:errors="*{tags}"></div>
+                    </div>
                 </div>
             </div>
         </form>
@@ -116,9 +131,10 @@
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<template id="variant-template">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <template id="variant-template">
     <div class="variant-item border rounded p-3 mb-3 bg-white position-relative">
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="removeVariantRow(this)"></button>
         <div class="row g-3">
@@ -159,11 +175,12 @@
 
 <script th:inline="javascript">
     $(document).ready(function() {
+        // Khởi tạo dòng biến thể đầu tiên
         addVariantRow();
 
+        // Xử lý submit form
         $('#productForm').on('submit', function(e) {
             e.preventDefault();
-
             Swal.fire({
                 title: 'Đang xử lý...',
                 text: 'Vui lòng chờ upload ảnh...',
@@ -200,7 +217,7 @@
         });
     });
 
-    /* --- 1. Xử lý Ảnh Chính --- */
+    /* --- Logic Ảnh Chính --- */
     function previewMainImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -222,26 +239,29 @@
         document.getElementById('removeMainImageBtn').style.display = 'none';
     }
 
+    /* --- Logic Biến thể --- */
     let variantIndex = 0;
 
     function addVariantRow() {
         const container = document.getElementById('variants-container');
-        const template = document.getElementById('variant-template').content.cloneNode(true);
-        const div = template.querySelector('.variant-item');
+        const template = document.getElementById('variant-template');
 
-        // 1. Tên màu
+        // Kiểm tra template tồn tại
+        if (!template) {
+            console.error("Không tìm thấy template biến thể!");
+            return;
+        }
+
+        const clone = template.content.cloneNode(true);
+        const div = clone.querySelector('.variant-item');
+
+        // Gán name đúng chuẩn Spring Binding
         div.querySelector('.variant-name').name = `variants[${variantIndex}].colorName`;
-
-        // 2. Mã màu
         div.querySelector('.variant-color-code').name = `variants[${variantIndex}].colorCode`;
-
-        // 3. File ảnh (Sửa thành imageFiles số nhiều để khớp DTO List<MultipartFile>)
         div.querySelector('.variant-file').name = `variants[${variantIndex}].imageFiles`;
 
-        // 4. Stock inputs
         div.querySelectorAll('.variant-stock').forEach(input => {
             const sizeCode = input.getAttribute('data-size-code');
-            // Map<String, Integer> stockPerSize
             input.name = `variants[${variantIndex}].stockPerSize['${sizeCode}']`;
         });
 
@@ -250,19 +270,18 @@
     }
 
     function removeVariantRow(btn) {
+        // Nếu muốn giữ ít nhất 1 dòng thì uncomment dòng dưới
+        // if (document.querySelectorAll('.variant-item').length <= 1) return;
         btn.closest('.variant-item').remove();
     }
 
-    // Hàm hiển thị preview nhiều ảnh variant
     function updateFileName(input) {
         const label = input.parentElement.querySelector('.file-name');
-        const previewContainer = input.parentElement.nextElementSibling; // div.variant-preview-list
-        previewContainer.innerHTML = ''; // Xóa preview cũ
+        const previewContainer = input.parentElement.nextElementSibling;
+        previewContainer.innerHTML = '';
 
         if (input.files && input.files.length > 0) {
             label.textContent = `Đã chọn ${input.files.length} ảnh`;
-
-            // Loop qua từng file để preview
             Array.from(input.files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -280,6 +299,81 @@
             label.textContent = 'Chọn ảnh (Nhiều)...';
         }
     }
+
+    /* --- Logic Tags (Sửa đổi: Thêm bằng nút +) --- */
+    document.addEventListener('DOMContentLoaded', function() {
+        const tagContainer = document.getElementById('tag-input-container');
+        const inputField = document.getElementById('tag-input-field');
+        const hiddenInput = document.getElementById('hidden-tags-input');
+        const addTagBtn = document.getElementById('btn-add-tag'); // Nút thêm tag
+
+        let tags = (hiddenInput.value || "").split(',').filter(t => t.trim() !== '');
+
+        function renderTags() {
+            const currentBadges = tagContainer.querySelectorAll('.badge-tag');
+            currentBadges.forEach(tag => tag.remove());
+
+            tags.slice().reverse().forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'badge-tag badge bg-secondary d-flex align-items-center me-1 p-2';
+                tagElement.style.fontSize = '0.9rem';
+                tagElement.innerHTML = `
+                    ${tag}
+                    <span class="ms-2 cursor-pointer text-white" style="cursor: pointer;" onclick="removeTag('${tag}')">&times;</span>
+                `;
+                // Chèn vào trước input field
+                tagContainer.insertBefore(tagElement, inputField);
+            });
+        }
+
+        function updateHiddenInput() {
+            hiddenInput.value = tags.join(',');
+        }
+
+        function addTag(text) {
+            const tag = text.trim();
+            if (tag && !tags.includes(tag)) {
+                tags.push(tag);
+                renderTags();
+                updateHiddenInput();
+            }
+            inputField.value = '';
+            inputField.focus();
+        }
+
+        window.removeTag = function(tagToRemove) {
+            tags = tags.filter(tag => tag !== tagToRemove);
+            renderTags();
+            updateHiddenInput();
+        }
+
+        // Sự kiện click nút +
+        addTagBtn.addEventListener('click', function() {
+            addTag(inputField.value);
+        });
+
+        // Sự kiện phím Enter hoặc Phẩy
+        inputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                addTag(inputField.value);
+            }
+            if (e.key === 'Backspace' && inputField.value === '' && tags.length > 0) {
+                tags.pop();
+                renderTags();
+                updateHiddenInput();
+            }
+        });
+
+        tagContainer.addEventListener('click', function(e) {
+            // Chỉ focus nếu không click vào nút xóa hoặc nút thêm
+            if (e.target !== addTagBtn && !addTagBtn.contains(e.target)) {
+                inputField.focus();
+            }
+        });
+
+        renderTags();
+    });
 </script>
 
 <style>
@@ -290,6 +384,10 @@
     .image-upload-box:hover {
         border-color: #0d6efd !important;
         background-color: #e9ecef !important;
+    }
+    /* Style cho input tag để nút + nằm đẹp */
+    #tag-input-field {
+        min-width: 100px;
     }
 </style>
 

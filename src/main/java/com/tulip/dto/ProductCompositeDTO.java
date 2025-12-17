@@ -28,4 +28,7 @@ public class ProductCompositeDTO {
 
         private Map<String, Integer> stockPerSize;
     }
+
+    // hứng dữ liệu từ input hidden
+    private String tags;
 }
