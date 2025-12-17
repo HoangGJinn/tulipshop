@@ -1,82 +1,231 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/header :: head('Tulip Shop - Trang chủ')}"></head>
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tulip Shop - Performance Collection</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/supply-style.css}">
+    <!-- Google Fonts - Condensed Sans-serif for Impact-style typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined|Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- Lenis Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            prefix: "tw-", // Thêm prefix để tránh xung đột với Bootstrap
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#C8102E",
+                        "background-light": "#FFFFFF",
+                        "background-dark": "#121212",
+                        "surface-light": "#F9F9F9",
+                        "surface-dark": "#1E1E1E",
+                    },
+                    fontFamily: {
+                        display: ["'Oswald'", "sans-serif"],
+                        body: ["'Inter'", "sans-serif"],
+                        script: ["'Great Vibes'", "cursive"],
+                    },
+                },
+            },
+            // Quan trọng: Tắt preflight để không làm hỏng style cũ của Supply
+            corePlugins: {
+                preflight: false,
+            }
+        };
+    </script>
+
+    <!-- Three.js (ES Modules) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <style>
+        .marquee-container { overflow: hidden; white-space: nowrap; }
+        .marquee-content { display: inline-block; animation: marquee 20s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* Fix xung đột giữa Bootstrap và Tailwind (nếu có) */
+        .vertical-content a { text-decoration: none; }
+        .vertical-content ul { padding-left: 0; list-style: none; }
+
+        /* [FIX] CSS Patch cho phần Vertical Content */
+        .vertical-content img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .vertical-content h2,
+        .vertical-content h3,
+        .vertical-content h4 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .vertical-content p {
+            margin-bottom: 1rem;
+        }
+
+        /* Đảm bảo container không bị Bootstrap làm hỏng (nếu chưa xóa Bootstrap) */
+        .tw-container {
+            width: 100%;
+            margin-right: auto;
+            margin-left: auto;
+            padding-right: 1rem;
+            padding-left: 1rem;
+        }
+
+        /* Responsive container widths cho Tailwind */
+        @media (min-width: 640px) { .tw-container { max-width: 640px; } }
+        @media (min-width: 768px) { .tw-container { max-width: 768px; } }
+        @media (min-width: 1024px) { .tw-container { max-width: 1024px; } }
+        @media (min-width: 1280px) { .tw-container { max-width: 1280px; } }
+        @media (min-width: 1536px) { .tw-container { max-width: 1536px; } }
+
+        /* 1. Phạm vi áp dụng: Chỉ tác động vào phần Eva de Eva (.vertical-content), Footer (.site-footer) và Search (.search-overlay) */
+        .vertical-content img,
+        .site-footer img,
+        .search-overlay img {
+            display: block;       /* Sửa lỗi ảnh bị dính dòng text */
+            vertical-align: middle;
+            max-width: 100%;      /* Sửa lỗi ảnh bị tràn khung */
+
+        }
+
+        /* 2. Reset Button & Input: Khôi phục style cơ bản */
+        .vertical-content button,
+        .vertical-content input,
+        .site-footer button,
+        .site-footer input,
+        .search-overlay button,
+        .search-overlay input {
+            font-family: inherit; /* Kế thừa font chữ của web */
+            font-size: 100%;
+            line-height: 1.15;
+            margin: 0;
+            overflow: visible;
+            text-transform: none;
+            box-sizing: border-box; /* Quan trọng: Tính toán padding chuẩn */
+        }
+
+        /* 3. Style mặc định cho Button (tránh việc nó trông như text thường) */
+        .vertical-content button,
+        .site-footer button,
+        .search-overlay button {
+            -webkit-appearance: button; /* Hành vi nút bấm chuẩn */
+            cursor: pointer;
+            background-color: transparent; /* Để các class Tailwind bg-* hoạt động */
+            border-style: solid;  /* Để các class Tailwind border-* hoạt động */
+            border-width: 0;      /* Reset border mặc định xấu xí */
+        }
+
+        /* 4. Style mặc định cho Input (thêm viền để dễ nhìn) */
+        .vertical-content input,
+        .site-footer input,
+        .search-overlay input {
+            border-style: solid;
+            border-width: 1px;
+        }
+
+        /* 5. Fix lỗi icon FontAwesome/Material bị lệch dòng */
+        .vertical-content i, .vertical-content span.material-icons-outlined,
+        .site-footer i, .site-footer span.material-icons-outlined,
+        .search-overlay i {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tw-animate-fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+    </style>
+
+</head>
 <body>
-    <!-- Header -->
-    <div th:replace="~{fragments/header :: header}"></div>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Banner/Slider Section -->
-        <th:block th:replace="~{fragments/banner-category :: hero-slider}"></th:block>
-
-        <!-- Category Section -->
-        <th:block th:replace="~{fragments/banner-category :: category-section}" 
-                  th:with="categoryTitle='Danh mục sản phẩm', categoryStyle='grid', categories=${homeCategories != null ? homeCategories : []}"></th:block>
-
-        <!-- Featured Products Section -->
-        <section class="featured-section">
-            <div class="container">
-                <h2 class="section-title">Sản phẩm nổi bật</h2>
-                <div class="products-grid">
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 1</h3>
-                            <p class="product-price">500.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 2</h3>
-                            <p class="product-price">600.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 3</h3>
-                            <p class="product-price">700.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <div class="product-placeholder">
-                                <i class="fas fa-image"></i>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Sản phẩm mẫu 4</h3>
-                            <p class="product-price">800.000₫</p>
-                            <button class="btn btn-secondary">Thêm vào giỏ</button>
-                        </div>
-                    </div>
-                </div>
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <nav class="header-nav">
+            <div class="logo">
+                <a href="/">TULIP SHOP</a>
             </div>
-        </section>
+            <ul class="nav-links">
+                <li><a href="/products">Shop</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="header-actions">
+                <a href="/cart" class="cart-link">Cart <span class="cart-count">0</span></a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Horizontal Container -->
+    <main class="main-content">
+        <div id="main-container" class="horizontal-wrapper">
+            <div th:replace="~{fragments/home/hero :: hero}"></div>
+
+            <div th:replace="~{fragments/home/slides :: slides}"></div>
+        </div>
+
+        <div class="vertical-content tw-relative tw-z-20 tw-bg-white tw-text-gray-800">
+
+            <div th:replace="~{fragments/home/promotions :: promotions}"></div>
+
+            <div th:replace="~{fragments/home/categories :: categories}"></div>
+
+            <div th:replace="~{fragments/home/flash-sale :: flash-sale}"></div>
+
+            <div th:replace="~{fragments/home/trend-tabs :: trend-tabs}"></div>
+
+            <div th:replace="~{fragments/home/campaign :: campaign}"></div>
+
+            <div th:replace="~{fragments/home/occasions :: occasions}"></div>
+
+            <div th:replace="~{fragments/home/setcloths :: setcloths}"></div>
+
+            <div th:replace="~{fragments/home/news-social :: news-social}"></div>
+
+        </div>
+
     </main>
 
-    <!-- Footer -->
-    <div th:replace="~{fragments/footer :: footer}"></div>
 
-    <!-- Header Scripts -->
-    <th:block th:replace="~{fragments/header :: header-scripts}"></th:block>
+
+    <footer th:replace="~{fragments/home/home-footer :: footer}"></footer>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/supply-script.js}"></script>
+
+    <div th:replace="~{fragments/home/scripts :: scripts}"></div>
 </body>
 </html>
