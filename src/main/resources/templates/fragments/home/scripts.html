@@ -245,9 +245,9 @@
             grid.innerHTML = '<div class="tw-col-span-full tw-flex tw-justify-center tw-items-center tw-h-40"><div class="tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-primary"></div></div>';
 
             // 3. Chọn API tương ứng
-            let apiUrl = '/api/store/new-arrivals';
-            if (type === 'sale') apiUrl = '/api/store/sale-18';
-            if (type === 'trending') apiUrl = '/api/store/trending';
+            let apiUrl = '/v1/api/store/new-arrivals';
+            if (type === 'sale') apiUrl = '/v1/api/store/sale-18';
+            if (type === 'trending') apiUrl = '/v1/api/store/trending';
 
             // 4. Gọi API
             fetch(apiUrl)
@@ -365,7 +365,7 @@
             grid.innerHTML = '<div class="tw-col-span-full tw-flex tw-justify-center tw-py-10"><div class="tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-gray-900"></div></div>';
 
             // 3. Gọi API
-            fetch(`/api/store/occasion?tag=${tag}`)
+            fetch(`/v1/api/store/occasion?tag=${tag}`)
                 .then(res => res.json())
                 .then(products => {
                     grid.innerHTML = '';

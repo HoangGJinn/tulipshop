@@ -130,7 +130,7 @@
 
         function performSearch() {
             const query = input.value;
-            fetch(`/api/store/search?q=${encodeURIComponent(query)}`)
+            fetch(`/v1/api/store/search?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => renderResults(data))
                 .catch(error => console.error('Lỗi:', error));
