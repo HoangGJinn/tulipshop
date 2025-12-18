@@ -34,7 +34,7 @@ public class CartController {
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalPrice", totalPrice);
 
-        return "cart"; // Trả về file templates/cart.html
+        return "order/cart"; // Trả về file templates/order/cart.html
     }
 
     // 2. API Thêm vào giỏ (AJAX)

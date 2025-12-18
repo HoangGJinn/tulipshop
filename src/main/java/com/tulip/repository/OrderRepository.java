@@ -10,4 +10,7 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     // Lấy danh sách đơn hàng của 1 user (để làm trang lịch sử mua hàng sau này)
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
+    
+    // Tìm Order theo vnpTxnRef (dùng khi VNPAY callback về)
+    Order findByVnpTxnRef(String vnpTxnRef);
 }

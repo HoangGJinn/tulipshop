@@ -75,7 +75,7 @@ public class AuthController {
         if (unverified != null) {
             model.addAttribute("error", "Vui lòng xác thực email trước khi đăng nhập!");
         }
-        return "login";
+        return "auth/login";
     }
 
     @GetMapping("/register")
@@ -87,13 +87,13 @@ public class AuthController {
         }
         
         model.addAttribute("form", new RegisterForm());
-        return "register";
+        return "auth/register";
     }
 
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("form") RegisterForm form, BindingResult br, Model model, RedirectAttributes redirectAttributes) {
         if (br.hasErrors()) {
-            return "register";
+            return "auth/register";
         }
         try {
             userService.register(
@@ -106,7 +106,7 @@ public class AuthController {
             return "redirect:/verify-email?email=" + form.getEmail();
         } catch (Exception ex){
             model.addAttribute("error", ex.getMessage());
-            return "register";
+            return "auth/register";
         }
     }
 
@@ -118,7 +118,7 @@ public class AuthController {
             return "redirect:/";
         }
         
-        return "forgot-password";
+        return "auth/forgot-password";
     }
 
     @GetMapping("/reset-password")
@@ -130,7 +130,7 @@ public class AuthController {
         }
         
         model.addAttribute("email", email);
-        return "reset-password";
+        return "auth/reset-password";
     }
 
     @Data

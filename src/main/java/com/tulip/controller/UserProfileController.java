@@ -38,7 +38,7 @@ public class UserProfileController {
         model.addAttribute("form", profileDTO);
         model.addAttribute("profile", profileDTO);
 
-        return "user-profile";
+        return "user/user-profile";
     }
 
     @PostMapping
@@ -55,7 +55,7 @@ public class UserProfileController {
             UserProfileDTO profileDTO = userService.getProfileByEmail(email);
             redirectAttributes.addFlashAttribute("profile", profileDTO);
             redirectAttributes.addFlashAttribute("form", form);
-            return "user-profile";
+            return "user/user-profile";
         }
 
         try {
@@ -78,6 +78,6 @@ public class UserProfileController {
 
         // Lấy danh sách địa chỉ và gửi sang View
         model.addAttribute("addresses", addressService.getUserAddresses(userId));
-        return "user-addresses"; // Trả về file user-addresses.html
+        return "user/user-addresses"; // Trả về file user/user-addresses.html
     }
 }

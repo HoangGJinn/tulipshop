@@ -58,10 +58,10 @@
                                 <i class="fas fa-money-bill-wave text-success me-2"></i> Thanh toán khi nhận hàng (COD)
                             </label>
                         </div>
-                        <div class="form-check disabled">
-                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="VNPAY" id="pay-vnpay" disabled>
-                            <label class="form-check-label text-muted" for="pay-vnpay">
-                                <i class="fas fa-qrcode me-2"></i> VNPAY (Đang bảo trì)
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="VNPAY" id="pay-vnpay" required>
+                            <label class="form-check-label" for="pay-vnpay">
+                                <i class="fas fa-qrcode text-primary me-2"></i> VNPAY (Thanh toán online)
                             </label>
                         </div>
                     </div>

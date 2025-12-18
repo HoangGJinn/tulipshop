@@ -67,7 +67,8 @@ public class OrderServiceImpl implements OrderService {
                 .shippingPrice(shippingFee)
                 .finalPrice(finalPrice)
                 .status(Order.OrderStatus.PENDING)
-                .paymentMethod(request.getPaymentMethod())
+                .paymentMethod(PaymentMethod.fromString(request.getPaymentMethod()))
+                .paymentStatus(PaymentStatus.PENDING) // Mặc định là PENDING khi tạo đơn
                 .shippingAddress(shippingAddress)
                 .orderItems(new ArrayList<>())
                 .build();

@@ -74,6 +74,10 @@ public class SecurityConfig {
                 .requestMatchers("/v1/api/auth/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                    // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
+                    .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
+                    // CHỈ người dùng đã đăng nhập mới được mua hàng:
+                    .requestMatchers("/v1/api/vnpay/create-payment").authenticated()
                 .anyRequest().authenticated()
             )
             // Xử lý exception: Nếu đã authenticated nhưng không có quyền hoặc URL không tồn tại
