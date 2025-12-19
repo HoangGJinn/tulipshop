@@ -26,10 +26,13 @@
                         Kết quả thanh toán
                     </h3>
 
-                    <!-- Order ID -->
-                    <div th:if="${orderId != null}" class="mb-4">
+                        <!-- Order Code -->
+                    <div th:if="${orderCode != null or orderId != null}" class="mb-4">
                         <p class="text-muted mb-2">Mã đơn hàng của bạn:</p>
-                        <p class="h5 fw-bold" th:text="'#' + ${orderId}">#12345</p>
+                        <p class="h5 fw-bold" th:text="${orderCode != null ? orderCode : '#' + orderId}">
+                            <span th:if="${orderCode != null}" th:text="${orderCode}">TULIP-15012025-12345-5678</span>
+                            <span th:if="${orderCode == null}" th:text="'#' + ${orderId}">#12345</span>
+                        </p>
                     </div>
 
                     <!-- Additional Info -->

@@ -74,15 +74,33 @@ public class SecurityConfig {
                 .requestMatchers("/v1/api/auth/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                    // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
-                    .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
-                    // CHỈ người dùng đã đăng nhập mới được mua hàng:
-                    .requestMatchers("/v1/api/vnpay/create-payment").authenticated()
+                // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
+                .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
+                // CHỈ người dùng đã đăng nhập mới được mua hàng:
+                .requestMatchers("/v1/api/vnpay/create-payment").authenticated()
+                // Các endpoint giỏ hàng và thanh toán yêu cầu authentication:
+                .requestMatchers("/v1/api/cart/**").authenticated()
+                .requestMatchers("/cart", "/checkout", "/checkout/**", "/order-success", "/orders", "/orders/**").authenticated()
                 .anyRequest().authenticated()
             )
             // Xử lý exception: Nếu đã authenticated nhưng không có quyền hoặc URL không tồn tại
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
+                    String path = request.getRequestURI();
+                    String acceptHeader = request.getHeader("Accept");
+                    boolean isApiRequest = path.startsWith("/v1/api/") || 
+                                          (acceptHeader != null && acceptHeader.contains("application/json"));
+                    
+                    // Nếu là API request, trả về JSON thay vì redirect
+                    if (isApiRequest) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json;charset=UTF-8");
+                        String jsonResponse = "{\"status\":\"error\",\"message\":\"Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng\"}";
+                        response.getWriter().write(jsonResponse);
+                        response.getWriter().flush();
+                        return;
+                    }
+                    
                     // Kiểm tra xem có JWT token trong request không
                     String authHeader = request.getHeader("Authorization");
                     Cookie[] cookies = request.getCookies();

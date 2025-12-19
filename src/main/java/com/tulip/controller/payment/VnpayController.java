@@ -2,6 +2,8 @@ package com.tulip.controller.payment;
 
 import com.tulip.dto.request.VnpayRequest;
 import com.tulip.dto.response.VnpayResponse;
+import com.tulip.entity.Order;
+import com.tulip.repository.OrderRepository;
 import com.tulip.service.VnpayService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,9 @@ public class VnpayController {
 
     @Autowired
     private VnpayService vnpayService;
+    
+    @Autowired
+    private OrderRepository orderRepository;
 
     // 1. Endpoint tạo URL thanh toán (API endpoint - dùng @ResponseBody)
     @PostMapping("/v1/api/vnpay/create-payment")
@@ -48,12 +53,19 @@ public class VnpayController {
         Long orderId = vnpayService.handlePaymentCallback(request);
         
         if (orderId != null) {
+            // Lấy Order để lấy vnp_txn_ref
+            Order order = orderRepository.findById(orderId).orElse(null);
+            
             // Lấy response code để hiển thị thông báo
             String responseCode = request.getParameter("vnp_ResponseCode");
             boolean isSuccess = "00".equals(responseCode);
             
             model.addAttribute("success", isSuccess);
             model.addAttribute("orderId", orderId);
+            // Hiển thị vnp_txn_ref (mã đơn hàng) cho khách hàng
+            if (order != null && order.getVnpTxnRef() != null) {
+                model.addAttribute("orderCode", order.getVnpTxnRef());
+            }
             model.addAttribute("message", isSuccess ? "Thanh toán thành công!" : "Thanh toán thất bại!");
             
             return "payment/payment-result";

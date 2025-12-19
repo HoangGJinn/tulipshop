@@ -5,6 +5,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,6 +55,38 @@ public class VnpayUtil {
             sb.append(chars.charAt(rnd.nextInt(chars.length())));
         }
         return sb.toString();
+    }
+
+    /**
+     * Tạo vnp_txn_ref với format: TULIP-DDMMYYYY-Orderid-XXXX
+     * Ví dụ: TULIP-15012025-12345-5678
+     */
+    public static String generateVnpTxnRef(Long orderId) {
+        LocalDate today = LocalDate.now();
+        String dateStr = today.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
+        
+        String randomSuffix = getRandomNumber(4);
+        
+        return String.format("TULIP-%s-%d-%s", dateStr, orderId, randomSuffix);
+    }
+
+    public static Long extractOrderIdFromVnpTxnRef(String vnpTxnRef) {
+        if (vnpTxnRef == null || vnpTxnRef.isEmpty()) {
+            return null;
+        }
+        
+        try {
+            String[] parts = vnpTxnRef.split("-");
+            
+            if (parts.length == 4 && "TULIP".equals(parts[0])) {
+                // Order ID là phần thứ 3 (index 2)
+                return Long.parseLong(parts[2]);
+            }
+        } catch (NumberFormatException e) {
+            return null;
+        }
+        
+        return null;
     }
 
     public static String getPaymentURL(Map<String, String> paramsMap, boolean encodeKey) {
