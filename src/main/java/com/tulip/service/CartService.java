@@ -22,4 +22,7 @@ public interface CartService {
 
     // Tính tổng tiền tạm tính
     java.math.BigDecimal getTotalPrice(Long userId);
+
+    // Xóa toàn bộ giỏ hàng
+    void clearCart(Long userId);
 }

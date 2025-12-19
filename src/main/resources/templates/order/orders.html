@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng của tôi - Tulip Shop</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        .orders-page {
+            background-color: #f8f9fa;
+            min-height: 70vh;
+            padding: 40px 0;
+        }
+        .order-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .order-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .order-body {
+            padding: 20px;
+        }
+        .order-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .order-item-img {
+            width: 80px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+        .status-shipping { background-color: #cce5ff; color: #004085; }
+        .status-delivered { background-color: #d4edda; color: #155724; }
+        .status-cancelled { background-color: #f8d7da; color: #721c24; }
+        .status-returned { background-color: #e2e3e5; color: #383d41; }
+        .payment-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .payment-success { background-color: #d4edda; color: #155724; }
+        .payment-pending { background-color: #fff3cd; color: #856404; }
+        .payment-failed { background-color: #f8d7da; color: #721c24; }
+        .empty-orders {
+            text-align: center;
+            padding: 60px 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .empty-orders i {
+            font-size: 64px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="orders-page">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-uppercase mb-0">Đơn hàng của tôi</h2>
+            <a th:href="@{/products}" class="btn btn-outline-dark">
+                <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+            </a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(orders)}" class="empty-orders">
+            <i class="fas fa-shopping-bag"></i>
+            <h4 class="mb-3">Bạn chưa có đơn hàng nào</h4>
+            <p class="text-muted mb-4">Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!</p>
+            <a th:href="@{/products}" class="btn btn-dark">Mua sắm ngay</a>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(orders)}">
+            <div th:each="order : ${orders}" class="order-card" th:onclick="'window.location.href=\'/orders/' + ${order.id} + '\''">
+                <div class="order-header">
+                    <div>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <span class="fw-bold">Mã đơn hàng: 
+                                <span th:text="${order.vnpTxnRef != null ? order.vnpTxnRef : '#' + order.id}"></span>
+                            </span>
+                            <span th:classappend="'status-badge status-' + ${#strings.toLowerCase(order.status.toString())}"
+                                  th:text="${#strings.toUpperCase(order.status.toString())}">
+                                PENDING
+                            </span>
+                        </div>
+                        <div class="small text-muted">
+                            <i class="far fa-calendar me-1"></i>
+                            <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold fs-5 mb-1" th:text="${#numbers.formatDecimal(order.finalPrice, 0, 'COMMA', 0, 'POINT') + '₫'}">
+                            0₫
+                        </div>
+                        <div class="small text-muted">
+                            <span th:classappend="'payment-badge payment-' + ${#strings.toLowerCase(order.paymentStatus.toString())}"
+                                  th:text="${order.paymentStatus == T(com.tulip.entity.PaymentStatus).SUCCESS ? 'Đã thanh toán' : (order.paymentStatus == T(com.tulip.entity.PaymentStatus).PENDING ? 'Chờ thanh toán' : 'Thanh toán thất bại')}">
+                                Chờ thanh toán
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-body">
+                    <div th:each="item : ${order.orderItems}" class="order-item">
+                        <img th:if="${item.variant != null and not #lists.isEmpty(item.variant.images)}"
+                             th:src="${item.variant.images[0].imageUrl}"
+                             class="order-item-img"
+                             alt="Sản phẩm"
+                             th:onerror="this.src=(${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'});">
+                        <img th:if="${item.variant == null or #lists.isEmpty(item.variant.images)}"
+                             th:src="${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'}"
+                             class="order-item-img"
+                             alt="Sản phẩm">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold mb-1" th:text="${item.product != null ? item.product.name : 'Sản phẩm đã bị xóa'}">
+                                Tên sản phẩm
+                            </div>
+                            <div class="small text-muted">
+                                <span th:if="${item.variant != null}" th:text="'Màu: ' + ${item.variant.colorName}">Màu: Đỏ</span>
+                                <span th:if="${item.size != null}" th:text="' | Size: ' + ${item.size.code}"> | Size: M</span>
+                                <span th:text="' | SL: ' + ${item.quantity}"> | SL: 1</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold" th:text="${#numbers.formatDecimal(item.priceAtPurchase, 0, 'COMMA', 0, 'POINT') + '₫'}">
+                                0₫
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
+                        <div class="small text-muted">
+                            <span th:text="${order.paymentMethod == T(com.tulip.entity.PaymentMethod).COD ? 'Thanh toán khi nhận hàng (COD)' : (order.paymentMethod == T(com.tulip.entity.PaymentMethod).VNPAY ? 'Thanh toán qua VNPAY' : 'Thanh toán qua MOMO')}">
+                                Thanh toán khi nhận hàng
+                            </span>
+                        </div>
+                        <a th:href="@{/orders/{id}(id=${order.id})}" 
+                           class="btn btn-outline-dark btn-sm"
+                           th:onclick="'event.stopPropagation();'">
+                            Xem chi tiết <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
+

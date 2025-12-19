@@ -232,11 +232,56 @@ function addToCart() {
 
     fetch(window.API_BASE_URL + '/cart/add', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'Accept': 'application/json'
+        },
+        credentials: 'include' // Để gửi cookie
     })
-        .then(response => {
-            if (response.status === 401) throw new Error('LOGIN_REQUIRED');
-            if (!response.ok) throw new Error('API_ERROR');
+        .then(async response => {
+            // Kiểm tra content-type để đảm bảo là JSON
+            const contentType = response.headers.get('content-type');
+            const isJson = contentType && contentType.includes('application/json');
+            
+            // Xử lý response 401 (chưa đăng nhập)
+            if (response.status === 401) {
+                let errorMessage = 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng';
+                if (isJson) {
+                    try {
+                        const data = await response.json();
+                        if (data.message) {
+                            errorMessage = data.message;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                    }
+                }
+                throw new Error('LOGIN_REQUIRED:' + errorMessage);
+            }
+            
+            if (!response.ok) {
+                let errorMessage = 'Có lỗi xảy ra';
+                if (isJson) {
+                    try {
+                        const data = await response.json();
+                        if (data.message) {
+                            errorMessage = data.message;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                    }
+                } else {
+                    // Nếu không phải JSON, có thể là HTML redirect
+                    errorMessage = 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng';
+                    throw new Error('LOGIN_REQUIRED:' + errorMessage);
+                }
+                throw new Error(errorMessage);
+            }
+            
+            if (!isJson) {
+                throw new Error('LOGIN_REQUIRED:Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+            }
+            
             return response.json();
         })
         .then(data => {
@@ -250,15 +295,16 @@ function addToCart() {
                 // Update cart count badge (nếu có)
                 updateCartBadge(data.totalItems);
             } else {
-                throw new Error(data.message);
+                throw new Error(data.message || 'Có lỗi xảy ra');
             }
         })
         .catch(error => {
-            if (error.message === 'LOGIN_REQUIRED') {
+            if (error.message && error.message.startsWith('LOGIN_REQUIRED:')) {
+                const message = error.message.replace('LOGIN_REQUIRED:', '');
                 Swal.fire({
                     icon: 'info',
                     title: 'Yêu cầu đăng nhập',
-                    text: 'Bạn cần đăng nhập để mua hàng.',
+                    text: message || 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
                     confirmButtonText: 'Đăng nhập ngay'
                 }).then((result) => {
                     if (result.isConfirmed) window.location.href = '/login';

@@ -9,6 +9,7 @@ import com.tulip.entity.product.ProductStock;
 import com.tulip.entity.product.ProductVariantImage;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductStockRepository productStockRepository;
     private final UserRepository userRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -126,6 +128,19 @@ public class CartServiceImpl implements CartService {
         return cart.getCartItems().stream()
                 .map(CartItem::getSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Override
+    @Transactional
+    public void clearCart(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        if (cart != null && cart.getId() != null) {
+            // Xóa tất cả cart items
+            cartItemRepository.deleteAllByCartId(cart.getId());
+            // Flush để đảm bảo thay đổi được commit ngay lập tức
+            entityManager.flush();
+            entityManager.clear(); // Clear persistence context để tránh stale data
+        }
     }
 
     // Helper: Convert Entity -> DTO

@@ -92,7 +92,7 @@ public class ProductController {
             model.addAttribute("reviews", reviews);
             model.addAttribute("ratingSummary", ratingSummary);
 
-            return "product-detail";
+            return "product/product-detail";
         } catch (RuntimeException e) {
             return "redirect:/products";
         }
@@ -136,6 +136,6 @@ public class ProductController {
         model.addAttribute("selectedSize", size);
         model.addAttribute("selectedPriceRange", priceRange);
 
-        return "products";
+        return "product/products";
     }
 }

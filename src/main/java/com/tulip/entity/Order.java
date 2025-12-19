@@ -41,8 +41,19 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status; // PENDING, SHIPPING, COMPLETED, CANCELLED
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method")
-    private String paymentMethod; // COD, VNPOINTS, BANKING
+    private PaymentMethod paymentMethod; // COD, VNPAY, MOMO
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status")
+    private PaymentStatus paymentStatus; // PENDING, SUCCESS, FAILED
+
+    @Column(name = "transaction_id", length = 255)
+    private String transactionId; // Mã giao dịch từ nhà cung cấp thanh toán
+
+    @Column(name = "vnp_txn_ref", length = 255)
+    private String vnpTxnRef; // Mã đơn hàng gửi sang VNPAY (dùng để tìm đơn hàng khi callback)
 
     @Column(name = "shipping_address")
     private String shippingAddress;

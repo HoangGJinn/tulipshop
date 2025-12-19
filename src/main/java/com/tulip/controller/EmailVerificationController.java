@@ -29,7 +29,7 @@ public class EmailVerificationController {
         if (unverified != null) {
             model.addAttribute("error", "Vui lòng xác thực email trước khi đăng nhập!");
         }
-        return "verify-email";
+        return "auth/verify-email";
     }
 
     // API endpoint để verify OTP - trả về JSON
