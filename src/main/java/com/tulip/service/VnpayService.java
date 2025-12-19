@@ -2,7 +2,6 @@ package com.tulip.service;
 
 import com.tulip.dto.request.VnpayRequest;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.ResponseEntity;
 import java.io.UnsupportedEncodingException;
 
 public interface VnpayService {

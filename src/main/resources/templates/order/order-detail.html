@@ -41,6 +41,7 @@
         .status-delivered { background-color: #d4edda; color: #155724; }
         .status-cancelled { background-color: #f8d7da; color: #721c24; }
         .status-returned { background-color: #e2e3e5; color: #383d41; }
+        .status-expired { background-color: #f8d7da; color: #721c24; }
         .payment-badge {
             padding: 6px 12px;
             border-radius: 4px;
@@ -231,6 +232,23 @@
                         <span class="fs-5 fw-bold">Tổng thanh toán:</span>
                         <span class="fs-5 fw-bold text-danger" th:text="${#numbers.formatDecimal(order.finalPrice, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
                     </div>
+                </div>
+                
+                <!-- Nút Tiếp tục thanh toán -->
+                <div th:if="${order.status == T(com.tulip.entity.Order.OrderStatus).PENDING 
+                             and order.paymentStatus == T(com.tulip.entity.PaymentStatus).PENDING 
+                             and order.paymentUrl != null 
+                             and order.paymentExpireAt != null 
+                             and order.paymentExpireAt.isAfter(T(java.time.LocalDateTime).now())}" 
+                     class="mt-4 text-center">
+                    <a th:href="${order.paymentUrl}" 
+                       class="btn btn-primary btn-lg px-5">
+                        <i class="fas fa-credit-card me-2"></i>Tiếp tục thanh toán
+                    </a>
+                    <p class="text-muted small mt-2 mb-0">
+                        Link thanh toán còn hiệu lực đến: 
+                        <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
+                    </p>
                 </div>
             </div>
         </div>

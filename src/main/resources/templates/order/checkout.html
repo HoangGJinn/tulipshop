@@ -25,9 +25,11 @@
 
                         <div th:each="addr : ${addresses}" class="form-check mb-3 border-bottom pb-2">
                             <input class="form-check-input" type="radio"
-                                   th:field="*{addressId}"
+                                   th:name="addressId"
                                    th:value="${addr.id}"
-                                   th:id="'addr-' + ${addr.id}" required>
+                                   th:id="'addr-' + ${addr.id}"
+                                   th:checked="${addr.isDefault}"
+                                   required>
 
                             <label class="form-check-label" th:for="'addr-' + ${addr.id}">
                                 <strong th:text="${addr.recipientName}"></strong> -
@@ -54,14 +56,23 @@
                     <div class="card-body">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="COD" id="pay-cod" checked required>
-                            <label class="form-check-label" for="pay-cod">
-                                <i class="fas fa-money-bill-wave text-success me-2"></i> Thanh toán khi nhận hàng (COD)
+                            <label class="form-check-label d-flex align-items-center" for="pay-cod" style="cursor: pointer;">
+                                <img th:src="@{/images/cod-logo.png}" alt="COD" style="height: 30px; margin-right: 10px;">
+                                <span>Thanh toán khi nhận hàng (COD)</span>
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="VNPAY" id="pay-vnpay" required>
+                            <label class="form-check-label d-flex align-items-center" for="pay-vnpay" style="cursor: pointer;">
+                                <img th:src="@{/images/vnpay-logo.png}" alt="VNPAY" style="height: 30px; margin-right: 10px;">
+                                <span>VNPAY (Thanh toán online)</span>
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="VNPAY" id="pay-vnpay" required>
-                            <label class="form-check-label" for="pay-vnpay">
-                                <i class="fas fa-qrcode text-primary me-2"></i> VNPAY (Thanh toán online)
+                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="MOMO" id="pay-momo" required>
+                            <label class="form-check-label d-flex align-items-center" for="pay-momo" style="cursor: pointer;">
+                                <img th:src="@{/images/momo-logo.png}" alt="MoMo" style="height: 30px; margin-right: 10px;">
+                                <span>MoMo (Thanh toán online)</span>
                             </label>
                         </div>
                     </div>

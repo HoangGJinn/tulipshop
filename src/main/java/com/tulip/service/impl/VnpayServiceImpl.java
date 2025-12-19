@@ -5,7 +5,6 @@ import com.tulip.dto.request.VnpayRequest;
 import com.tulip.entity.Order;
 import com.tulip.entity.PaymentStatus;
 import com.tulip.repository.OrderRepository;
-import com.tulip.service.CartService;
 import com.tulip.service.VnpayService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +26,6 @@ public class VnpayServiceImpl implements VnpayService {
     
     @Autowired
     private OrderRepository orderRepository;
-    
-    @Autowired
-    private CartService cartService;
 
     @Override
     public String createPayment(VnpayRequest paymentRequest, HttpServletRequest request) throws UnsupportedEncodingException {
@@ -151,9 +147,6 @@ public class VnpayServiceImpl implements VnpayService {
                 if ("00".equals(vnp_ResponseCode)) {
                     order.setPaymentStatus(PaymentStatus.SUCCESS);
                     order.setTransactionId(vnp_TransactionNo);
-                    
-                    // Xóa giỏ hàng sau khi thanh toán thành công (sử dụng service để có transaction)
-                    cartService.clearCart(order.getUser().getId());
                 } else {
                     order.setPaymentStatus(PaymentStatus.FAILED);
                 }
@@ -172,11 +165,6 @@ public class VnpayServiceImpl implements VnpayService {
                 // Thanh toán thành công
                 order.setPaymentStatus(PaymentStatus.SUCCESS);
                 order.setTransactionId(vnp_TransactionNo);
-                // Có thể cập nhật order status thành CONFIRMED nếu muốn
-                // order.setStatus(Order.OrderStatus.CONFIRMED);
-                
-                // Xóa giỏ hàng sau khi thanh toán thành công (sử dụng service để có transaction)
-                cartService.clearCart(order.getUser().getId());
             } else {
                 // Thanh toán thất bại
                 order.setPaymentStatus(PaymentStatus.FAILED);
