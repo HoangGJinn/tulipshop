@@ -53,7 +53,13 @@ public class Order {
     private String transactionId; // Mã giao dịch từ nhà cung cấp thanh toán
 
     @Column(name = "vnp_txn_ref", length = 255)
-    private String vnpTxnRef; // Mã đơn hàng gửi sang VNPAY (dùng để tìm đơn hàng khi callback)
+    private String vnpTxnRef;
+
+    @Column(name = "payment_url", columnDefinition = "TEXT")
+    private String paymentUrl;
+
+    @Column(name = "payment_expire_at")
+    private LocalDateTime paymentExpireAt;
 
     @Column(name = "shipping_address")
     private String shippingAddress;
@@ -71,6 +77,6 @@ public class Order {
     private LocalDateTime updatedAt;
 
     public enum OrderStatus {
-        PENDING, CONFIRMED, SHIPPING, DELIVERED, CANCELLED, RETURNED
+        PENDING, CONFIRMED, SHIPPING, DELIVERED, CANCELLED, RETURNED, EXPIRED
     }
 }
