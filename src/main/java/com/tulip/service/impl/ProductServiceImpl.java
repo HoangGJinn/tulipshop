@@ -225,74 +225,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-    @Transactional
-    public Long createProduct(ProductCreateDTO dto){
-        String thumbnailUrl = "https://placehold.co/600x800?text=No+Image";
 
-        if (dto.getThumbnailFile() != null && !dto.getThumbnailFile().isEmpty()) {
-            thumbnailUrl = cloudinaryService.uploadImage(dto.getThumbnailFile());
-        }
-
-        Category category = categoryRepository.findBySlug(dto.getCategorySlug())
-                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
-
-
-        Product product = Product.builder()
-                .name(dto.getName())
-                .basePrice(dto.getPrice())
-                .discountPrice(dto.getDiscountPrice())
-                .description(dto.getDescription())
-                .category(category)
-                .thumbnail(thumbnailUrl)// Lưu link ảnh từ Cloudinary
-                .variants(new ArrayList<>())
-                .build();
-
-        Product savedProduct = productRepository.save(product);
-
-        if (dto.getColors() != null && !dto.getColors().isBlank()) {
-            // Tách chuỗi "Trắng, Đen" thành mảng ["Trắng", "Đen"]
-            String[] colorList = dto.getColors().split(",");
-
-            List<Size> selectedSizes = new ArrayList<>();
-            if (dto.getSizes() != null && !dto.getSizes().isEmpty()) {
-                selectedSizes = sizeRepository.findAll().stream()
-                        .filter(s -> dto.getSizes().contains(s.getCode()))
-                        .toList();
-
-            }else{
-                selectedSizes = sizeRepository.findAll();
-            }
-
-
-
-            for (String colorName : colorList){
-                colorName = colorName.trim(); // xoá khoảng trắng thừa
-                if (colorName.isEmpty()) continue;
-
-                ProductVariant variant = ProductVariant.builder()
-                        .product(savedProduct)
-                        .colorName(colorName)
-                        .colorCode("#000000") // để tạm
-                        .stocks(new ArrayList<>())
-                        .build();
-
-                // Tạo Stock (Kho hàng) cho từng Size (Mặc định số lượng = 0)
-                for (Size size : selectedSizes) {
-                    ProductStock stock = ProductStock.builder()
-                            .variant(variant)
-                            .size(size)
-                            .quantity(0) // Mặc định 0
-                            .sku(savedProduct.getId() + "-" + colorName.toUpperCase() + "-" + size.getCode())
-                            .build();
-                    variant.getStocks().add(stock);
-                }
-
-                variantRepository.save(variant);
-
-            }
-        }
-        return savedProduct.getId();
-    }
 
     @Transactional
     public void addVariant(Long productId, String colorName, String colorCode) {
@@ -375,6 +308,193 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> findProductsWithDeepDiscount() {
         return productRepository.findProductsWithDeepDiscount();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductCompositeDTO getProductByIdAsDTO(Long id) {
+        // 1. Tìm sản phẩm
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm ID: " + id));
+
+        // 2. Map thông tin chung
+        ProductCompositeDTO dto = new ProductCompositeDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setPrice(product.getBasePrice());
+        dto.setDiscountPrice(product.getDiscountPrice());
+        dto.setDescription(product.getDescription());
+        dto.setTags(product.getTags());
+
+        // Gán URL ảnh cũ để hiển thị
+        dto.setThumbnailUrl(product.getThumbnail());
+
+        if (product.getCategory() != null) {
+            dto.setCategorySlug(product.getCategory().getSlug());
+        }
+
+        // 3. Map biến thể (Variants)
+        List<ProductCompositeDTO.VariantInput> variantInputs = new ArrayList<>();
+
+        for (ProductVariant variant : product.getVariants()) {
+            ProductCompositeDTO.VariantInput vInput = new ProductCompositeDTO.VariantInput();
+
+            // Map ID để phân biệt update
+            vInput.setId(variant.getId());
+            vInput.setColorName(variant.getColorName());
+            vInput.setColorCode(variant.getColorCode());
+
+            // Lấy danh sách URL ảnh cũ của biến thể
+            List<String> urls = variant.getImages().stream()
+                    .map(ProductVariantImage::getImageUrl)
+                    .collect(Collectors.toList());
+            vInput.setImageUrls(urls);
+
+            // Map tồn kho (Size -> Quantity)
+            Map<String, Integer> stockMap = new HashMap<>();
+            for (ProductStock stock : variant.getStocks()) {
+                if (stock.getSize() != null) {
+                    stockMap.put(stock.getSize().getCode(), stock.getQuantity());
+                }
+            }
+            vInput.setStockPerSize(stockMap);
+
+            variantInputs.add(vInput);
+        }
+
+        dto.setVariants(variantInputs);
+        return dto;
+    }
+
+    @Override
+    @Transactional
+    public void updateProduct(Long id, ProductCompositeDTO dto) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm ID: " + id));
+
+        //  Cập nhật thông tin cơ bản
+        product.setName(dto.getName());
+        product.setBasePrice(dto.getPrice());
+        product.setDiscountPrice(dto.getDiscountPrice());
+        product.setDescription(dto.getDescription());
+        product.setTags(dto.getTags());
+
+        // Cập nhật Category
+        if (dto.getCategorySlug() != null) {
+            Category category = categoryRepository.findBySlug(dto.getCategorySlug())
+                    .orElseThrow(() -> new RuntimeException("Category không tồn tại"));
+            product.setCategory(category);
+        }
+
+        // Cập nhật Ảnh đại diện (Chỉ upload nếu user chọn file mới)
+        if (dto.getMainImageFile() != null && !dto.getMainImageFile().isEmpty()) {
+            String newUrl = cloudinaryService.uploadImage(dto.getMainImageFile());
+            product.setThumbnail(newUrl);
+        }
+
+        //  Xử lý Variants (Thêm mới hoặc Cập nhật)
+        if (dto.getVariants() != null) {
+            for (ProductCompositeDTO.VariantInput vInput : dto.getVariants()) {
+                // Bỏ qua dòng rỗng
+                if (vInput.getColorName() == null || vInput.getColorName().isBlank()) continue;
+
+                if (vInput.getId() != null) {
+                    // --- UPDATE VARIANT CŨ ---
+                    variantRepository.findById(vInput.getId()).ifPresent(existingVariant -> {
+                        existingVariant.setColorName(vInput.getColorName());
+                        existingVariant.setColorCode(vInput.getColorCode());
+
+                        // Upload thêm ảnh cho variant cũ (nếu có)
+                        if (vInput.getImageFiles() != null) {
+                            if (existingVariant.getImages() == null) {
+                                existingVariant.setImages(new ArrayList<>());
+                            }
+                            for (MultipartFile file : vInput.getImageFiles()) {
+                                if (!file.isEmpty()) {
+                                    String url = cloudinaryService.uploadImage(file);
+                                    ProductVariantImage img = ProductVariantImage.builder()
+                                            .variant(existingVariant)
+                                            .imageUrl(url).build();
+                                    existingVariant.getImages().add(img);
+                                }
+                            }
+                        }
+
+                        // Cập nhật Stock
+                        if (vInput.getStockPerSize() != null) {
+                            for (Map.Entry<String, Integer> entry : vInput.getStockPerSize().entrySet()) {
+                                String sizeCode = entry.getKey();
+                                Integer qty = entry.getValue();
+
+                                // Tìm stock của size này
+                                Optional<ProductStock> stockOpt = existingVariant.getStocks().stream()
+                                        .filter(s -> s.getSize().getCode().equals(sizeCode))
+                                        .findFirst();
+
+                                if (stockOpt.isPresent()) {
+                                    stockOpt.get().setQuantity(qty);
+                                } else {
+                                    // Size mới chưa có trong variant này -> Tạo mới
+                                    sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                                        ProductStock newStock = ProductStock.builder()
+                                                .variant(existingVariant)
+                                                .size(size)
+                                                .quantity(qty != null ? qty : 0)
+                                                .sku(product.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
+                                                .build();
+                                        existingVariant.getStocks().add(newStock);
+                                    });
+                                }
+                            }
+                        }
+                        variantRepository.save(existingVariant);
+                    });
+
+                } else {
+                    // --- TẠO VARIANT MỚI (Logic giống Create) ---
+                    ProductVariant newVariant = ProductVariant.builder()
+                            .product(product)
+                            .colorName(vInput.getColorName())
+                            .colorCode(vInput.getColorCode())
+                            .images(new ArrayList<>())
+                            .stocks(new ArrayList<>())
+                            .build();
+
+                    // Upload ảnh
+                    if (vInput.getImageFiles() != null) {
+                        for (MultipartFile file : vInput.getImageFiles()) {
+                            if (!file.isEmpty()) {
+                                String url = cloudinaryService.uploadImage(file);
+                                ProductVariantImage img = ProductVariantImage.builder()
+                                        .variant(newVariant)
+                                        .imageUrl(url).build();
+                                newVariant.getImages().add(img);
+                            }
+                        }
+                    }
+
+                    // Tạo Stock
+                    if (vInput.getStockPerSize() != null) {
+                        for (Map.Entry<String, Integer> entry : vInput.getStockPerSize().entrySet()) {
+                            String sizeCode = entry.getKey();
+                            Integer qty = entry.getValue();
+                            sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                                ProductStock stock = ProductStock.builder()
+                                        .variant(newVariant)
+                                        .size(size)
+                                        .quantity(qty != null ? qty : 0)
+                                        .sku(product.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
+                                        .build();
+                                newVariant.getStocks().add(stock);
+                            });
+                        }
+                    }
+                    product.getVariants().add(newVariant);
+                    variantRepository.save(newVariant);
+                }
+            }
+        }
+        productRepository.save(product);
     }
 
 
