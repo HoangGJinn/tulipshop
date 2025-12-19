@@ -5,13 +5,16 @@ import com.tulip.entity.product.Category;
 import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.SizeRepository;
 import com.tulip.service.ProductService;
+import com.tulip.service.impl.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +26,7 @@ public class AdminProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
     private final SizeRepository sizeRepository;
+    private final CloudinaryService cloudinaryService;
 
     // --- 1. HIỂN THỊ DANH SÁCH SẢN PHẨM (Trang chủ Admin Products) ---
     // Đây là route mà AJAX sẽ redirect về sau khi lưu thành công
@@ -133,6 +137,29 @@ public class AdminProductController {
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    // API upload ảnh từ TinyMCE lên Cloudinary
+    @PostMapping("/api/upload-image")
+    @ResponseBody
+    public ResponseEntity<?> uploadImageFromEditor(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File không được để trống"));
+            }
+
+            // Upload lên Cloudinary
+            String imageUrl = cloudinaryService.uploadImage(file);
+
+            // TinyMCE cần response format: { "location": "url" }
+            Map<String, String> response = new HashMap<>();
+            response.put("location", imageUrl);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", "Lỗi upload ảnh: " + e.getMessage()));
         }
     }
 }
