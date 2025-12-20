@@ -37,26 +37,35 @@
     <div id="sale-slider" class="tw-flex tw-overflow-x-auto tw-pb-4 tw-scroll-smooth tw-snap-x" style="scrollbar-width: none; -ms-overflow-style: none;">
 
         <div th:each="p : ${saleProducts}"
-             class="tw-w-[160px] md:tw-w-[240px] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-border tw-border-transparent hover:tw-border-gray-200 hover:tw-shadow-lg tw-transition-all tw-duration-300 tw-rounded-lg tw-bg-white">
+             class="tw-w-[160px] md:tw-w-[240px] tw-flex-shrink-0 tw-mr-4 tw-snap-start tw-group tw-border tw-border-transparent hover:tw-border-gray-200 hover:tw-shadow-lg tw-transition-all tw-duration-300 tw-rounded-lg tw-bg-white tw-h-full">
 
-            <a th:href="@{'/product/' + ${p.id}}" class="tw-block tw-p-2">
-                <div class="tw-relative tw-overflow-hidden tw-mb-3 tw-rounded-md">
-                    <img th:src="${p.thumbnail}" th:alt="${p.name}"
-                         class="tw-w-full tw-h-[200px] md:tw-h-[320px] tw-object-cover tw-object-top group-hover:tw-scale-105 tw-transition-transform tw-duration-500">
+            <a th:href="@{'/product/' + ${p.id}}" class="tw-block tw-p-2 tw-flex tw-flex-col tw-h-full">
 
-                    <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1 tw-rounded">
-                                    -<span th:text="${#numbers.formatDecimal((1.0 * (p.basePrice - p.discountPrice) / p.basePrice) * 100, 0, 0)}"></span>%
-                                </span>
+                <div class="tw-relative tw-w-full tw-aspect-[3/4] tw-rounded-md tw-overflow-hidden tw-mb-3">
+
+                    <img th:src="${p.thumbnail}" th:alt="${p.name}" loading="lazy"
+                         class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-top group-hover:tw-scale-110 tw-transition-transform tw-duration-500">
+
+                    <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-primary tw-text-white tw-text-[10px] tw-font-bold tw-px-2 tw-py-1 tw-rounded tw-z-10"
+                          th:if="${p.basePrice > p.discountPrice}">
+                    -<span th:text="${#numbers.formatDecimal((1.0 * (p.basePrice - p.discountPrice) / p.basePrice) * 100, 0, 0)}"></span>%
+                </span>
                 </div>
 
-                <h3 class="tw-text-xs tw-text-gray-700 tw-font-medium tw-mb-1 tw-truncate tw-uppercase" th:text="${p.name}">
-                    Tên sản phẩm
-                </h3>
-                <div class="tw-flex tw-flex-col md:tw-flex-row md:tw-items-baseline tw-gap-1 md:tw-gap-2">
-                                <span class="tw-text-primary tw-font-bold tw-text-sm"
-                                      th:text="${#numbers.formatDecimal(p.discountPrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                    <span class="tw-text-gray-400 tw-text-[10px] tw-line-through"
-                          th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                <div class="tw-flex-grow tw-flex tw-flex-col tw-justify-between">
+
+                    <h3 class="tw-text-xs tw-text-gray-700 tw-font-medium tw-mb-2 tw-uppercase tw-line-clamp-2 tw-min-h-[2.5rem]"
+                        th:text="${p.name}" th:title="${p.name}">
+                        Tên sản phẩm
+                    </h3>
+
+                    <div class="tw-flex tw-flex-col md:tw-flex-row md:tw-items-baseline tw-gap-1 md:tw-gap-2">
+                    <span class="tw-text-primary tw-font-bold tw-text-sm"
+                          th:text="${#numbers.formatDecimal(p.discountPrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span class="tw-text-gray-400 tw-text-[10px] tw-line-through"
+                              th:if="${p.basePrice > p.discountPrice}"
+                              th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    </div>
                 </div>
             </a>
         </div>
@@ -65,6 +74,7 @@
             <p>Hiện chưa có sản phẩm nào giảm giá sâu.</p>
         </div>
     </div>
+
 
     <div class="tw-text-center tw-mt-10">
         <button style="border-width: 1px;" class="tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
