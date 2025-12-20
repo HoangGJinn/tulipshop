@@ -4,7 +4,7 @@ import com.tulip.config.payment.MomoConfig;
 import com.tulip.dto.request.CreateMomoRequest;
 import com.tulip.dto.response.CreateMomoResponse;
 import com.tulip.entity.Order;
-import com.tulip.entity.PaymentStatus;
+import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.repository.OrderRepository;
 import com.tulip.service.MomoService;
 import lombok.extern.slf4j.Slf4j;

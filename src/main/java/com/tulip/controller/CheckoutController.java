@@ -5,7 +5,7 @@ import com.tulip.dto.OrderCreationDTO;
 import com.tulip.dto.UserAddressDTO;
 import com.tulip.dto.request.VnpayRequest;
 import com.tulip.entity.Order;
-import com.tulip.entity.PaymentMethod;
+import com.tulip.entity.enums.PaymentMethod;
 import com.tulip.repository.OrderRepository;
 import com.tulip.security.JwtUtil;
 import com.tulip.service.AddressService;

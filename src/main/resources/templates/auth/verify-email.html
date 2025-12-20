@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xác thực Email</title>
     <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" th:href="@{/css/notification.css}">
     <script src="https://cdn.jsdelivr.net/npm/validator@13.11.0/validator.min.js"></script>
+    <script th:src="@{/js/notification.js}"></script>
 </head>
 <body>
     <div class="login-container">
@@ -115,8 +117,10 @@
                 
                 if (data.success) {
                     // Hiển thị thông báo thành công và redirect
-                    alert(data.message);
-                    window.location.href = '/login?verified=true';
+                    showSuccess('Thành công', data.message || 'Email đã được xác thực thành công!');
+                    setTimeout(() => {
+                        window.location.href = '/login?verified=true';
+                    }, 1500);
                 } else {
                     // Hiển thị lỗi
                     otpError.textContent = data.message || 'Mã OTP không đúng hoặc đã hết hạn';
@@ -156,15 +160,15 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert(data.message);
+                    showSuccess('Thành công', data.message || 'Mã OTP đã được gửi lại!');
                     // Xóa OTP input và focus lại
                     document.getElementById('otp').value = '';
                     document.getElementById('otp').focus();
                 } else {
-                    alert(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
+                    showError('Lỗi', data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
                 }
             } catch (error) {
-                alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                showError('Lỗi', 'Có lỗi xảy ra. Vui lòng thử lại.');
             } finally {
                 resendBtn.disabled = false;
                 resendBtn.textContent = 'Gửi lại mã OTP';

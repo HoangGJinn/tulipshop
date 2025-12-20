@@ -1,7 +1,7 @@
 package com.tulip.controller.payment;
 
 import com.tulip.entity.Order;
-import com.tulip.entity.PaymentStatus;
+import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

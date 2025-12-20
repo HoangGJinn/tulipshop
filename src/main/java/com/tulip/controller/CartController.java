@@ -97,7 +97,20 @@ public class CartController {
         try {
             cartService.updateQuantity(userDetails.getUserId(), itemId, quantity);
             BigDecimal newTotal = cartService.getTotalPrice(userDetails.getUserId());
-            return ResponseEntity.ok(newTotal);
+            
+            // Lấy lại item để tính subtotal mới
+            List<CartItemDTO> items = cartService.getCartItems(userDetails.getUserId());
+            CartItemDTO updatedItem = items.stream()
+                    .filter(item -> item.getId().equals(itemId))
+                    .findFirst()
+                    .orElse(null);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalPrice", newTotal);
+            response.put("subTotal", updatedItem != null ? updatedItem.getSubTotal() : BigDecimal.ZERO);
+            response.put("totalItems", cartService.countItems(userDetails.getUserId()));
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -114,7 +127,19 @@ public class CartController {
             return ResponseEntity.status(401).body("Token không hợp lệ hoặc đã hết hạn");
         }
 
-        cartService.removeFromCart(userDetails.getUserId(), itemId);
-        return ResponseEntity.ok("Đã xóa");
+        try {
+            cartService.removeFromCart(userDetails.getUserId(), itemId);
+            BigDecimal newTotal = cartService.getTotalPrice(userDetails.getUserId());
+            int totalItems = cartService.countItems(userDetails.getUserId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalPrice", newTotal);
+            response.put("totalItems", totalItems);
+            response.put("isEmpty", totalItems == 0);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

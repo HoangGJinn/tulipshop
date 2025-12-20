@@ -1,5 +1,8 @@
 package com.tulip.entity;
 
+import com.tulip.entity.enums.OrderStatus;
+import com.tulip.entity.enums.PaymentMethod;
+import com.tulip.entity.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,15 +42,15 @@ public class Order {
     private BigDecimal finalPrice; // Tổng tiền phải trả (sau khi trừ voucher + ship)
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status; // PENDING, SHIPPING, COMPLETED, CANCELLED
+    private OrderStatus status; // PENDING, CONFIRMED, SHIPPING, DELIVERED, CANCELLED, RETURNED
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method")
     private PaymentMethod paymentMethod; // COD, VNPAY, MOMO
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status")
-    private PaymentStatus paymentStatus; // PENDING, SUCCESS, FAILED
+    @Column(name = "payment_status", length = 20)
+    private PaymentStatus paymentStatus; // PENDING, SUCCESS, FAILED, EXPIRED
 
     @Column(name = "transaction_id", length = 255)
     private String transactionId; // Mã giao dịch từ nhà cung cấp thanh toán
@@ -75,8 +78,4 @@ public class Order {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public enum OrderStatus {
-        PENDING, CONFIRMED, SHIPPING, DELIVERED, CANCELLED, RETURNED, EXPIRED
-    }
 }

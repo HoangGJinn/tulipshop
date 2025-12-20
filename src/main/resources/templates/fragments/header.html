@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/notification.css}">
     <style>
         .active-color {
             border: 2px solid #000 !important;
@@ -349,6 +350,12 @@
     window.changeSlide = changeSlide;
     window.currentSlide = currentSlide;
 </script>
+
+<!-- Notification Script - Load before header-scripts ends -->
+<script th:src="@{/js/notification.js}"></script>
+
+<!-- Notification Script Fragment (for backward compatibility) -->
+<script th:fragment="notification-script" th:src="@{/js/notification.js}"></script>
 
 </body>
 </html>
