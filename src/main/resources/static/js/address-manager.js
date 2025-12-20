@@ -75,18 +75,18 @@ function saveAddress() {
             if(header && token) xhr.setRequestHeader(header, token);
         },
         success: function(response) {
-            alert("Lưu thành công!");
-            location.reload();
+            showSuccess('Thành công', 'Lưu thành công!');
+            setTimeout(() => location.reload(), 1000);
         },
         error: function(xhr) {
             if (xhr.responseJSON && typeof xhr.responseJSON === 'object') {
-                var msg = "Lỗi:\n";
+                var msg = "";
                 for (var key in xhr.responseJSON) {
-                    msg += "- " + xhr.responseJSON[key] + "\n";
+                    msg += xhr.responseJSON[key] + "\n";
                 }
-                alert(msg);
+                showError('Lỗi', msg.trim());
             } else {
-                alert("Lỗi: " + xhr.responseText);
+                showError('Lỗi', xhr.responseText || 'Có lỗi xảy ra');
             }
         }
     });
@@ -109,7 +109,7 @@ function deleteAddress(id) {
             location.reload();
         },
         error: function(xhr) {
-            alert("Lỗi xóa: " + xhr.responseText);
+            showError('Lỗi', 'Lỗi xóa: ' + (xhr.responseText || 'Có lỗi xảy ra'));
         }
     });
 }
@@ -129,7 +129,7 @@ function setDefault(id) {
             location.reload();
         },
         error: function(xhr) {
-            alert("Lỗi: " + xhr.responseText);
+            showError('Lỗi', xhr.responseText || 'Có lỗi xảy ra');
         }
     });
 }

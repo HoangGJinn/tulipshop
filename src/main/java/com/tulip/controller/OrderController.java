@@ -1,7 +1,6 @@
 package com.tulip.controller;
 
 import com.tulip.entity.Order;
-import com.tulip.repository.OrderRepository;
 import com.tulip.security.JwtUtil;
 import com.tulip.service.OrderService;
 import com.tulip.service.impl.CustomUserDetails;
@@ -12,6 +11,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,6 @@ import java.util.Optional;
 public class OrderController {
     
     private final OrderService orderService;
-    private final OrderRepository orderRepository;
     private final JwtUtil jwtUtil;
     
     @GetMapping("/orders")
@@ -60,6 +60,29 @@ public class OrderController {
         model.addAttribute("user", userDetails);
         
         return "order/order-detail";
+    }
+    
+    /**
+     * Mua lại đơn hàng đã hết hạn - thêm sản phẩm vào giỏ hàng và chuyển đến checkout
+     */
+    @PostMapping("/orders/{orderId}/re-order")
+    public String reOrder(@PathVariable Long orderId,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
+                         HttpServletRequest request,
+                         RedirectAttributes redirectAttributes) {
+        if (userDetails == null || !jwtUtil.validateJwtToken(request, userDetails)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+            return "redirect:/login";
+        }
+        
+        try {
+            orderService.reOrderToCart(userDetails.getUserId(), orderId);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã thêm sản phẩm vào giỏ hàng. Vui lòng kiểm tra lại trước khi thanh toán.");
+            return "redirect:/checkout";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/orders/" + orderId;
+        }
     }
 }
 

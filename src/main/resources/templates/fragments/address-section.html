@@ -94,7 +94,7 @@
                     if (xhr.status === 401) {
                         console.log('Chưa đăng nhập');
                     } else {
-                        alert('Lỗi khi tải danh sách địa chỉ');
+                        showError('Lỗi', 'Lỗi khi tải danh sách địa chỉ');
                     }
                 }
             });
@@ -181,7 +181,7 @@
                     }
                 },
                 error: function() {
-                    alert('Lỗi khi tải thông tin địa chỉ');
+                    showError('Lỗi', 'Lỗi khi tải thông tin địa chỉ');
                 }
             });
         }
@@ -264,7 +264,7 @@
                     });
                 })
                 .fail(function() {
-                    alert('Lỗi khi tải danh sách tỉnh/thành phố');
+                    showError('Lỗi', 'Lỗi khi tải danh sách tỉnh/thành phố');
                 });
         }
 
@@ -292,7 +292,7 @@
                 })
                 .fail(function() {
                     $districtSelect.html('<option value="">Lỗi khi tải dữ liệu</option>');
-                    alert('Lỗi khi tải danh sách quận/huyện');
+                    showError('Lỗi', 'Lỗi khi tải danh sách quận/huyện');
                 });
         }
 
@@ -319,7 +319,7 @@
                 })
                 .fail(function() {
                     $wardSelect.html('<option value="">Lỗi khi tải dữ liệu</option>');
-                    alert('Lỗi khi tải danh sách phường/xã');
+                    showError('Lỗi', 'Lỗi khi tải danh sách phường/xã');
                 });
         }
 
@@ -367,7 +367,7 @@
 
             // Validation
             if (!addressData.recipientName || !addressData.recipientPhone || !addressData.addressLine) {
-                alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+                showWarning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
                 return;
             }
 
@@ -384,22 +384,22 @@
                 success: function(response) {
                     $('#addressModal').modal('hide');
                     loadAddresses();
-                    alert(addressId ? 'Cập nhật địa chỉ thành công!' : 'Thêm địa chỉ thành công!');
+                    showSuccess('Thành công', addressId ? 'Cập nhật địa chỉ thành công!' : 'Thêm địa chỉ thành công!');
                 },
                 error: function(xhr) {
                     if (xhr.status === 400) {
                         const errors = xhr.responseJSON;
                         if (typeof errors === 'object') {
-                            let errorMsg = 'Có lỗi xảy ra:\n';
+                            let errorMsg = '';
                             for (let field in errors) {
-                                errorMsg += `- ${errors[field]}\n`;
+                                errorMsg += `${errors[field]}\n`;
                             }
-                            alert(errorMsg);
+                            showError('Lỗi', errorMsg.trim() || 'Có lỗi xảy ra khi lưu địa chỉ');
                         } else {
-                            alert(errors || 'Có lỗi xảy ra khi lưu địa chỉ');
+                            showError('Lỗi', errors || 'Có lỗi xảy ra khi lưu địa chỉ');
                         }
                     } else {
-                        alert('Có lỗi xảy ra khi lưu địa chỉ');
+                        showError('Lỗi', 'Có lỗi xảy ra khi lưu địa chỉ');
                     }
                 }
             });
@@ -417,11 +417,11 @@
                 type: 'DELETE',
                 success: function() {
                     loadAddresses();
-                    alert('Đã xóa địa chỉ thành công');
+                    showSuccess('Thành công', 'Đã xóa địa chỉ thành công');
                 },
                 error: function(xhr) {
                     const errorMsg = xhr.responseText || 'Có lỗi xảy ra khi xóa địa chỉ';
-                    alert(errorMsg);
+                    showError('Lỗi', errorMsg);
                 }
             });
         });
@@ -434,10 +434,10 @@
                 type: 'POST',
                 success: function() {
                     loadAddresses();
-                    alert('Đã đặt làm địa chỉ mặc định');
+                    showSuccess('Thành công', 'Đã đặt làm địa chỉ mặc định');
                 },
                 error: function() {
-                    alert('Có lỗi xảy ra');
+                    showError('Lỗi', 'Có lỗi xảy ra');
                 }
             });
         });

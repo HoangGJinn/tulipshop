@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/notification.css}">
 
     <style>
         /* CSS riêng cho trang cart */
@@ -16,7 +17,52 @@
         .cart-summary { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .btn-checkout { background-color: #000; color: #fff; width: 100%; padding: 12px; font-weight: 600; text-transform: uppercase; border: none; }
         .btn-checkout:hover { background-color: #333; color: #fff; }
-        .quantity-input { max-width: 60px; text-align: center; border: 1px solid #ddd; }
+        .quantity-controls {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .quantity-btn {
+            background-color: #f8f9fa;
+            border: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .quantity-btn:hover {
+            background-color: #e9ecef;
+            color: #000;
+        }
+        .quantity-btn:active {
+            background-color: #dee2e6;
+        }
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            border: none;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            padding: 6px 4px;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: #fff;
+        }
+        .quantity-input:focus {
+            outline: none;
+        }
         .trash-icon { color: #999; cursor: pointer; transition: 0.2s; }
         .trash-icon:hover { color: #dc3545; }
     </style>
@@ -49,8 +95,8 @@
                                 <th class="py-3 text-end pe-4"></th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <tr th:each="item : ${cartItems}">
+                            <tbody id="cart-items-body">
+                            <tr th:each="item : ${cartItems}" th:data-item-id="${item.id}">
                                 <td class="ps-4 py-3">
                                     <div class="d-flex align-items-center">
                                         <a th:href="@{/product/{id}(id=${item.productId})}">
@@ -71,14 +117,32 @@
                                     <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
                                 </td>
                                 <td class="text-center">
-                                    <input type="number"
-                                           class="form-control form-control-sm quantity-input d-inline-block"
-                                           th:value="${item.quantity}"
-                                           min="1"
-                                           th:onchange="'updateQuantity(' + ${item.id} + ', this.value)'">
+                                    <div class="quantity-controls">
+                                        <button type="button" 
+                                                class="quantity-btn quantity-btn-decrease"
+                                                th:data-item-id="${item.id}"
+                                                th:disabled="${item.quantity <= 1}"
+                                                th:onclick="'decreaseQuantity(' + ${item.id} + ')'"
+                                                title="Giảm số lượng">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="text"
+                                               class="quantity-input"
+                                               th:value="${item.quantity}"
+                                               th:data-item-id="${item.id}"
+                                               th:data-item-price="${item.price}"
+                                               readonly>
+                                        <button type="button"
+                                                class="quantity-btn quantity-btn-increase"
+                                                th:data-item-id="${item.id}"
+                                                th:onclick="'increaseQuantity(' + ${item.id} + ')'"
+                                                title="Tăng số lượng">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
                                 </td>
                                 <td class="text-end fw-bold">
-                                    <span th:text="${#numbers.formatDecimal(item.subTotal, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
+                                    <span class="item-subtotal" th:data-item-id="${item.id}" th:text="${#numbers.formatDecimal(item.subTotal, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
                                 </td>
                                 <td class="text-end pe-4">
                                     <i class="fas fa-trash-alt trash-icon"
@@ -97,7 +161,7 @@
                     <h5 class="fw-bold mb-3">Tóm tắt đơn hàng</h5>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Tạm tính</span>
-                        <span class="fw-bold" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
+                        <span class="fw-bold" id="cart-subtotal" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
                     </div>
                     <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
                         <span class="text-muted">Phí vận chuyển</span>
@@ -105,7 +169,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-4">
                         <span class="fw-bold fs-5">Tổng cộng</span>
-                        <span class="fw-bold fs-5 text-danger" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
+                        <span class="fw-bold fs-5 text-danger" id="cart-total" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
                     </div>
 
                     <a href="/checkout" class="btn btn-checkout rounded-0">
@@ -124,34 +188,125 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<script>
+<script th:src="@{/js/notification.js}"></script>
+<script th:inline="javascript">
+    const API_BASE_URL = /*[[@{/v1/api}]]*/ '/v1/api';
+    
+    // Hàm format số tiền
+    function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN').format(price) + '₫';
+    }
+    
+    // Hàm cập nhật tổng tiền trong summary
+    function updateCartSummary(totalPrice) {
+        document.getElementById('cart-subtotal').textContent = formatPrice(totalPrice);
+        document.getElementById('cart-total').textContent = formatPrice(totalPrice);
+    }
+    
+    // Hàm cập nhật số lượng trong header
+    function updateCartCount(count) {
+        const cartCounts = document.querySelectorAll('.cart-count');
+        cartCounts.forEach(el => {
+            el.textContent = count;
+            el.style.display = count > 0 ? 'inline-block' : 'none';
+        });
+    }
+    
+    // Hàm tăng số lượng
+    function increaseQuantity(itemId) {
+        const input = document.querySelector(`input.quantity-input[data-item-id="${itemId}"]`);
+        if (!input) return;
+        
+        const currentQty = parseInt(input.value) || 1;
+        const newQty = currentQty + 1;
+        updateQuantity(itemId, newQty);
+    }
+    
+    // Hàm giảm số lượng
+    function decreaseQuantity(itemId) {
+        const input = document.querySelector(`input.quantity-input[data-item-id="${itemId}"]`);
+        if (!input) return;
+        
+        const currentQty = parseInt(input.value) || 1;
+        if (currentQty <= 1) {
+            showWarning('Cảnh báo', 'Số lượng tối thiểu là 1');
+            return;
+        }
+        const newQty = currentQty - 1;
+        updateQuantity(itemId, newQty);
+    }
+    
     // Hàm cập nhật số lượng
     function updateQuantity(itemId, newQuantity) {
+        const input = document.querySelector(`input[data-item-id="${itemId}"]`);
+        if (!input) return;
+        
+        const oldValue = input.value; // Lưu giá trị cũ
+        
         if (newQuantity < 1) {
-            alert("Số lượng phải lớn hơn 0");
-            location.reload();
+            showWarning('Cảnh báo', 'Số lượng phải lớn hơn 0');
+            input.value = oldValue; // Reset về giá trị cũ
             return;
         }
 
-        // Gọi API: POST /api/cart/update (đã định nghĩa trong CartController)
+        // Disable input và các nút trong lúc xử lý
+        input.disabled = true;
+        const decreaseBtn = document.querySelector(`button.quantity-btn-decrease[data-item-id="${itemId}"]`);
+        const increaseBtn = document.querySelector(`button.quantity-btn-increase[data-item-id="${itemId}"]`);
+        if (decreaseBtn) decreaseBtn.disabled = true;
+        if (increaseBtn) increaseBtn.disabled = true;
+
+        // Gọi API: POST /v1/api/cart/update
         const formData = new FormData();
         formData.append('itemId', itemId);
         formData.append('quantity', newQuantity);
 
-        fetch(window.API_BASE_URL + '/cart/update', {
+        fetch(API_BASE_URL + '/cart/update', {
             method: 'POST',
             body: formData
         })
             .then(response => {
                 if (response.ok) {
-                    location.reload(); // Tải lại trang để cập nhật giá tiền
+                    return response.json();
                 } else {
                     return response.text().then(text => { throw new Error(text) });
                 }
             })
+            .then(data => {
+                // Cập nhật số lượng hiển thị
+                input.value = newQuantity;
+                
+                // Cập nhật trạng thái nút giảm (disable nếu số lượng = 1)
+                if (decreaseBtn) {
+                    decreaseBtn.disabled = newQuantity <= 1;
+                }
+                
+                // Cập nhật subtotal của item
+                const subtotalSpan = document.querySelector(`span.item-subtotal[data-item-id="${itemId}"]`);
+                if (subtotalSpan && data.subTotal) {
+                    subtotalSpan.textContent = formatPrice(data.subTotal);
+                }
+                
+                // Cập nhật tổng tiền
+                if (data.totalPrice) {
+                    updateCartSummary(data.totalPrice);
+                }
+                
+                // Cập nhật số lượng trong header
+                if (data.totalItems !== undefined) {
+                    updateCartCount(data.totalItems);
+                }
+            })
             .catch(error => {
-                alert('Lỗi: ' + error.message);
-                location.reload();
+                showError('Lỗi', error.message || 'Có lỗi xảy ra khi cập nhật số lượng');
+                // Reset về giá trị cũ
+                input.value = oldValue;
+            })
+            .finally(() => {
+                // Enable lại input và các nút
+                input.disabled = false;
+                if (decreaseBtn) decreaseBtn.disabled = false;
+                if (increaseBtn) increaseBtn.disabled = false;
             });
     }
 
@@ -159,18 +314,55 @@
     function removeItem(itemId) {
         if (!confirm('Bạn chắc chắn muốn xóa sản phẩm này?')) return;
 
+        // Tìm row cần xóa
+        const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+        if (!row) {
+            showError('Lỗi', 'Không tìm thấy sản phẩm');
+            return;
+        }
+
         // Gọi API: DELETE /v1/api/cart/remove/{itemId}
-        fetch(`${window.API_BASE_URL}/cart/remove/${itemId}`, {
+        fetch(API_BASE_URL + '/cart/remove/' + itemId, {
             method: 'DELETE'
         })
             .then(response => {
                 if (response.ok) {
-                    location.reload(); // Tải lại trang sau khi xóa
+                    return response.json();
                 } else {
-                    alert('Có lỗi xảy ra khi xóa sản phẩm.');
+                    return response.text().then(text => { throw new Error(text) });
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .then(data => {
+                // Xóa row khỏi DOM với animation
+                row.style.transition = 'opacity 0.3s';
+                row.style.opacity = '0';
+                setTimeout(() => {
+                    row.remove();
+                    
+                    // Kiểm tra nếu giỏ hàng trống
+                    const cartBody = document.getElementById('cart-items-body');
+                    if (data.isEmpty || !cartBody || cartBody.querySelectorAll('tr').length === 0) {
+                        // Reload trang để hiển thị message giỏ hàng trống
+                        location.reload();
+                    } else {
+                        // Cập nhật tổng tiền
+                        if (data.totalPrice !== undefined) {
+                            updateCartSummary(data.totalPrice);
+                        }
+                        
+                        // Cập nhật số lượng trong header
+                        if (data.totalItems !== undefined) {
+                            updateCartCount(data.totalItems);
+                        }
+                    }
+                }, 300);
+                
+                showSuccess('Thành công', 'Đã xóa sản phẩm khỏi giỏ hàng');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Lỗi', error.message || 'Có lỗi xảy ra khi xóa sản phẩm.');
+            });
     }
 </script>
 

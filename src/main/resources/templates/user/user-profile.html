@@ -261,6 +261,8 @@
 <script th:replace="~{fragments/header :: header-scripts}"></script>
 <script th:src="@{/js/address-api.js}"></script>
 <script th:replace="~{fragments/address-section :: address-scripts}"></script>
+<link rel="stylesheet" th:href="@{/css/notification.css}">
+<script th:src="@{/js/notification.js}"></script>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
@@ -355,13 +357,13 @@
                 if (file) {
                     // Validate file type
                     if (!file.type.startsWith('image/')) {
-                        alert('Vui lòng chọn file ảnh!');
+                        showWarning('Cảnh báo', 'Vui lòng chọn file ảnh!');
                         return;
                     }
 
                     // Validate file size (max 5MB)
                     if (file.size > 5 * 1024 * 1024) {
-                        alert('Kích thước ảnh không được vượt quá 5MB!');
+                        showWarning('Cảnh báo', 'Kích thước ảnh không được vượt quá 5MB!');
                         return;
                     }
 
@@ -500,8 +502,7 @@
             const data = await response.json();
             
             if (data.success) {
-                successMessage.textContent = data.message;
-                successMessage.style.display = 'block';
+                showSuccess('Thành công', data.message || 'Mật khẩu đã được thay đổi thành công!');
                 
                 if (oldPasswordInput) oldPasswordInput.value = '';
                 newPasswordInput.value = '';
@@ -511,16 +512,14 @@
                     window.location.reload();
                 }, 2000);
             } else {
-                errorMessage.textContent = data.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
-                errorMessage.style.display = 'block';
+                showError('Lỗi', data.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
                 
                 if (data.message && data.message.includes('cũ') && oldPasswordInput) {
                     oldPasswordInput.focus();
                 }
             }
         } catch (error) {
-            errorMessage.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
-            errorMessage.style.display = 'block';
+            showError('Lỗi', 'Có lỗi xảy ra. Vui lòng thử lại.');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalButtonText;

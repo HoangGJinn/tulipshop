@@ -1,4 +1,4 @@
-package com.tulip.entity;
+package com.tulip.entity.enums;
 
 public enum PaymentMethod {
     COD("COD"),
@@ -15,11 +15,6 @@ public enum PaymentMethod {
         return value;
     }
     
-    /**
-     * Chuyển đổi từ String sang PaymentMethod enum
-     * @param value giá trị String
-     * @return PaymentMethod enum, mặc định là COD nếu không tìm thấy
-     */
     public static PaymentMethod fromString(String value) {
         if (value == null || value.trim().isEmpty()) {
             return COD;
@@ -36,4 +31,5 @@ public enum PaymentMethod {
         return COD; // Default
     }
 }
+
 

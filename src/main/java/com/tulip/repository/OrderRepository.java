@@ -1,6 +1,7 @@
 package com.tulip.repository;
 
 import com.tulip.entity.Order;
+import com.tulip.entity.enums.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,6 +35,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "WHERE o.status = :status " +
            "AND o.paymentExpireAt IS NOT NULL " +
            "AND o.paymentExpireAt < :now")
-    List<Order> findExpiredPendingOrders(@Param("status") Order.OrderStatus status, 
+    List<Order> findExpiredPendingOrders(@Param("status") OrderStatus status, 
                                          @Param("now") LocalDateTime now);
 }

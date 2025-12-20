@@ -11,7 +11,8 @@
         <div class="col-md-7">
             <h4 class="mb-4">Thông tin giao hàng</h4>
 
-            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}" id="errorMessage" style="display: none;"></div>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}" id="successMessage" style="display: none;"></div>
 
             <form th:action="@{/checkout/place-order}" method="post" th:object="${orderRequest}">
 
@@ -129,6 +130,24 @@
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script th:src="@{/js/notification.js}"></script>
+<script>
+    // Hiển thị thông báo từ flash attributes
+    const successMessage = /*[[${successMessage}]]*/ null;
+    const errorMessage = /*[[${errorMessage}]]*/ null;
+    
+    if (successMessage) {
+        showSuccess('Thành công', successMessage);
+        const el = document.getElementById('successMessage');
+        if (el) el.remove();
+    }
+    if (errorMessage) {
+        showError('Lỗi', errorMessage);
+        const el = document.getElementById('errorMessage');
+        if (el) el.remove();
+    }
+</script>
 
 </body>
 </html>

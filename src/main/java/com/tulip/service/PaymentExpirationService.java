@@ -2,6 +2,8 @@ package com.tulip.service;
 
 import com.tulip.entity.Order;
 import com.tulip.entity.OrderItem;
+import com.tulip.entity.enums.OrderStatus;
+import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.repository.OrderRepository;
 import com.tulip.repository.ProductStockRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,7 @@ public class PaymentExpirationService {
         log.info("Checking for expired payment orders...");
         
         List<Order> expiredOrders = orderRepository.findExpiredPendingOrders(
-                Order.OrderStatus.PENDING, 
+                OrderStatus.PENDING, 
                 LocalDateTime.now()
         );
         
@@ -41,8 +43,8 @@ public class PaymentExpirationService {
         for (Order order : expiredOrders) {
             try {
                 restoreStock(order);
-                order.setStatus(com.tulip.entity.Order.OrderStatus.EXPIRED);
-                order.setPaymentStatus(com.tulip.entity.PaymentStatus.FAILED);
+                order.setStatus(OrderStatus.CANCELLED);
+                order.setPaymentStatus(PaymentStatus.EXPIRED);
                 orderRepository.save(order);
                 log.info("Cancelled expired order: {}", order.getId());
             } catch (Exception e) {
