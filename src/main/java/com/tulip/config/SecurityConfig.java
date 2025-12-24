@@ -73,6 +73,7 @@ public class SecurityConfig {
                 .requestMatchers("/v1/api/auth/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
                 // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
                 .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
                 // MoMo callback URL cho phép truy cập công khai vì không có JWT:

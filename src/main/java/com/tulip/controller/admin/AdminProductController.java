@@ -2,17 +2,18 @@ package com.tulip.controller.admin;
 
 import com.tulip.dto.ProductCompositeDTO;
 import com.tulip.entity.product.Category;
+import com.tulip.entity.product.Product;
 import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.SizeRepository;
+import com.tulip.repository.ProductRepository;
 import com.tulip.service.ProductService;
-import com.tulip.service.impl.CloudinaryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,20 +22,75 @@ import java.util.Map;
 @Controller
 @RequestMapping("/admin/products")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminProductController {
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
     private final SizeRepository sizeRepository;
-    private final CloudinaryService cloudinaryService;
+    private final ProductRepository productRepository;
 
     // --- 1. HIỂN THỊ DANH SÁCH SẢN PHẨM (Trang chủ Admin Products) ---
-    // Đây là route mà AJAX sẽ redirect về sau khi lưu thành công
     @GetMapping
     public String showProductList(Model model) {
-        // TODO: Thêm logic lấy danh sách sản phẩm từ Service vào đây
-        // model.addAttribute("products", productService.getAllProducts());
-        return "products"; // File HTML danh sách sản phẩm (bạn cần có file này)
+        // Tính toán stats
+        List<Product> allProducts = productRepository.findAll();
+        long totalProducts = allProducts.size();
+        long lowStockProducts = allProducts.stream()
+            .filter(p -> {
+                int totalStock = p.getVariants().stream()
+                    .flatMap(v -> v.getStocks().stream())
+                    .mapToInt(s -> s.getQuantity())
+                    .sum();
+                return totalStock <= 5;
+            })
+            .count();
+        BigDecimal totalValue = allProducts.stream()
+            .map(p -> p.getBasePrice().multiply(BigDecimal.valueOf(
+                p.getVariants().stream()
+                    .flatMap(v -> v.getStocks().stream())
+                    .mapToInt(s -> s.getQuantity())
+                    .sum()
+            )))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Tạo stats list
+        List<Map<String, Object>> stats = new ArrayList<>();
+        Map<String, Object> stat1 = new HashMap<>();
+        stat1.put("label", "Tổng sản phẩm");
+        stat1.put("value", totalProducts);
+        stat1.put("colorClass", "text-black");
+        stats.add(stat1);
+        
+        Map<String, Object> stat2 = new HashMap<>();
+        stat2.put("label", "Sắp hết hàng");
+        stat2.put("value", lowStockProducts);
+        stat2.put("colorClass", "text-red-500");
+        stats.add(stat2);
+        
+        Map<String, Object> stat3 = new HashMap<>();
+        stat3.put("label", "Tổng giá trị");
+        stat3.put("value", String.format("%.0f", totalValue.doubleValue()) + "₫");
+        stat3.put("colorClass", "text-green-600");
+        stats.add(stat3);
+        
+        Map<String, Object> stat4 = new HashMap<>();
+        stat4.put("label", "Danh mục");
+        stat4.put("value", categoryRepository.count());
+        stat4.put("colorClass", "text-blue-500");
+        stats.add(stat4);
+        
+        model.addAttribute("stats", stats);
+        model.addAttribute("pageTitle", "PRODUCTS");
+        model.addAttribute("currentPage", "products");
+        model.addAttribute("contentTemplate", "admin/products/list");
+        model.addAttribute("showSearch", true);
+        
+        // Table headers cho product list
+        List<String> tableHeaders = List.of("Ảnh", "Sản phẩm", "Danh mục", "Giá", "Kho", "");
+        model.addAttribute("tableHeaders", tableHeaders);
+        
+        return "admin/layouts/layout";
     }
 
     // --- 2. FORM THÊM/SỬA (Chung 1 Route) ---
@@ -65,38 +121,12 @@ public class AdminProductController {
         }
         model.addAttribute("categories", hierarchicalCategories);
 
-        return "admin/product-form";
-    }
+        // Sử dụng layout như các trang khác
+        model.addAttribute("pageTitle", id != null ? "Cập nhật sản phẩm" : "Thêm sản phẩm");
+        model.addAttribute("currentPage", "products");
+        model.addAttribute("contentTemplate", "admin/products/form");
 
-    // --- 3. XỬ LÝ LƯU (AJAX API) ---
-    // Phải dùng @ResponseBody và trả về ResponseEntity để JS nhận được JSON
-    @PostMapping("/save")
-    @ResponseBody
-    public ResponseEntity<?> saveOrUpdateProduct(@ModelAttribute ProductCompositeDTO productDTO) {
-        try {
-            if (productDTO.getId() != null) {
-                // --- UPDATE ---
-                productService.updateProduct(productDTO.getId(), productDTO);
-                return ResponseEntity.ok(Map.of(
-                        "status", "success",
-                        "message", "Cập nhật sản phẩm thành công!"
-                ));
-            } else {
-                // --- CREATE ---
-                // Validate ảnh
-                if (productDTO.getMainImageFile() == null || productDTO.getMainImageFile().isEmpty()) {
-                    return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng chọn ảnh đại diện!"));
-                }
-                productService.CreateFullProduct(productDTO);
-                return ResponseEntity.ok(Map.of(
-                        "status", "success",
-                        "message", "Thêm sản phẩm mới thành công!"
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
-        }
+        return "admin/layouts/layout";
     }
 
     // --- CÁC HÀM HELPER KHÁC ---
@@ -113,53 +143,4 @@ public class AdminProductController {
 
     public record CategoryOption(Long id, String slug, String displayName) {}
 
-    // API thêm danh mục nhanh
-    @PostMapping("/api/quick-add-category")
-    @ResponseBody
-    public ResponseEntity<?> quickAddCategory(@RequestBody Map<String, String> payload) {
-        try {
-            String name = payload.get("name");
-            String parentIdStr = payload.get("parentId");
-
-            Category category = new Category();
-            category.setName(name);
-            category.setSlug(name.toLowerCase().replace(" ", "-").replaceAll("[^a-z0-9-]", ""));
-
-            if (parentIdStr != null && !parentIdStr.isEmpty() && !parentIdStr.equals("-1")) {
-                Category parent = categoryRepository.findById(Long.parseLong(parentIdStr)).orElse(null);
-                category.setParent(parent);
-            }
-
-            Category saved = categoryRepository.save(category);
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "category", new CategoryOption(saved.getId(), saved.getSlug(), saved.getName())
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
-        }
-    }
-
-    // API upload ảnh từ TinyMCE lên Cloudinary
-    @PostMapping("/api/upload-image")
-    @ResponseBody
-    public ResponseEntity<?> uploadImageFromEditor(@RequestParam("file") MultipartFile file) {
-        try {
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "File không được để trống"));
-            }
-
-            // Upload lên Cloudinary
-            String imageUrl = cloudinaryService.uploadImage(file);
-
-            // TinyMCE cần response format: { "location": "url" }
-            Map<String, String> response = new HashMap<>();
-            response.put("location", imageUrl);
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("error", "Lỗi upload ảnh: " + e.getMessage()));
-        }
-    }
 }

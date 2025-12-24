@@ -184,6 +184,11 @@
                                                 <a th:href="@{/account}" class="dropdown-item">
                                                     <i class="fas fa-user-circle"></i> Tài khoản
                                                 </a>
+                                                <th:if sec:authorize="hasRole('ADMIN')">
+                                                    <a th:href="@{/admin/dashboard}" class="dropdown-item">
+                                                        <i class="fas fa-cog"></i> Quản trị
+                                                    </a>
+                                                </th:if>
                                                 <a th:href="@{/orders}" class="dropdown-item">
                                                     <i class="fas fa-shopping-bag"></i> Đơn hàng của tôi
                                                 </a>
