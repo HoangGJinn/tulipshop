@@ -393,3 +393,354 @@ function toggleFilter(filterType, checkboxInput) {
         }
     });
 }
+
+// === EXPANDABLE CONTENT FUNCTIONALITY ===
+
+class ExpandableContentManager {
+    constructor() {
+        this.sections = new Map();
+        this.init();
+    }
+
+    init() {
+        // Wait for DOM to be fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.setupSections());
+        } else {
+            this.setupSections();
+        }
+    }
+
+    setupSections() {
+        document.querySelectorAll('.expandable-section').forEach(section => {
+            this.setupSection(section);
+        });
+    }
+
+    setupSection(section) {
+        const content = section.querySelector('.expandable-content');
+        const button = section.querySelector('.toggle-btn');
+        const maxHeight = parseInt(content.dataset.maxHeight) || 400;
+        
+        if (!content || !button) {
+            console.warn('Expandable section missing required elements:', section.id);
+            return;
+        }
+        
+        // Check if content needs truncation
+        const actualHeight = content.scrollHeight;
+        const needsTruncation = actualHeight > maxHeight;
+        
+        if (needsTruncation) {
+            content.classList.add('collapsed');
+            content.style.maxHeight = maxHeight + 'px';
+            button.style.display = 'flex';
+            
+            // Add click event listener
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleSection(section);
+            });
+            
+            // Add keyboard support
+            button.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.toggleSection(section);
+                }
+            });
+        } else {
+            // Content fits within limit, hide button and overlay
+            button.style.display = 'none';
+            const overlay = section.querySelector('.gradient-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        // Store section data
+        this.sections.set(section.id, {
+            content,
+            button,
+            maxHeight,
+            isExpanded: false,
+            needsTruncation
+        });
+    }
+
+    toggleSection(section) {
+        const sectionData = this.sections.get(section.id);
+        if (!sectionData || !sectionData.needsTruncation) return;
+        
+        const { content, button, maxHeight } = sectionData;
+        const isExpanded = sectionData.isExpanded;
+        
+        // Add expanding animation class
+        content.classList.add('expanding');
+        
+        if (isExpanded) {
+            // Collapse
+            this.collapseSection(section, sectionData);
+        } else {
+            // Expand
+            this.expandSection(section, sectionData);
+        }
+        
+        // Remove animation class after transition
+        setTimeout(() => {
+            content.classList.remove('expanding');
+        }, 400);
+    }
+
+    expandSection(section, sectionData) {
+        const { content, button } = sectionData;
+        
+        // Set max-height to actual content height for smooth animation
+        content.style.maxHeight = content.scrollHeight + 'px';
+        content.classList.remove('collapsed');
+        content.classList.add('expanded');
+        
+        // Update button
+        button.classList.add('expanded');
+        button.querySelector('.btn-text').textContent = 'Thu gọn';
+        
+        // Update state
+        sectionData.isExpanded = true;
+        
+        // Smooth scroll to ensure button visibility after expansion
+        setTimeout(() => {
+            const buttonRect = button.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            
+            // If button is not visible, scroll to it
+            if (buttonRect.bottom > windowHeight || buttonRect.top < 0) {
+                button.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest',
+                    inline: 'nearest'
+                });
+            }
+        }, 450); // Wait for expansion animation to complete
+    }
+
+    collapseSection(section, sectionData) {
+        const { content, button, maxHeight } = sectionData;
+        
+        // First set to actual height, then to collapsed height for smooth animation
+        content.style.maxHeight = content.scrollHeight + 'px';
+        
+        // Force reflow
+        content.offsetHeight;
+        
+        // Then collapse
+        setTimeout(() => {
+            content.style.maxHeight = maxHeight + 'px';
+            content.classList.remove('expanded');
+            content.classList.add('collapsed');
+        }, 10);
+        
+        // Update button
+        button.classList.remove('expanded');
+        button.querySelector('.btn-text').textContent = 'Xem thêm';
+        
+        // Update state
+        sectionData.isExpanded = false;
+        
+        // Scroll to section title if it's out of view
+        setTimeout(() => {
+            const sectionRect = section.getBoundingClientRect();
+            if (sectionRect.top < 0) {
+                section.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start',
+                    inline: 'nearest'
+                });
+            }
+        }, 450);
+    }
+
+    // Public method to expand a specific section
+    expandSectionById(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section && this.sections.has(sectionId)) {
+            const sectionData = this.sections.get(sectionId);
+            if (!sectionData.isExpanded) {
+                this.toggleSection(section);
+            }
+        }
+    }
+
+    // Public method to collapse a specific section
+    collapseSectionById(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section && this.sections.has(sectionId)) {
+            const sectionData = this.sections.get(sectionId);
+            if (sectionData.isExpanded) {
+                this.toggleSection(section);
+            }
+        }
+    }
+
+    // Public method to check if section is expanded
+    isSectionExpanded(sectionId) {
+        const sectionData = this.sections.get(sectionId);
+        return sectionData ? sectionData.isExpanded : false;
+    }
+}
+
+// Initialize expandable content manager
+let expandableManager;
+
+// Update the existing DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Khởi tạo: Chọn màu đầu tiên
+    const firstColorOption = document.querySelector('.color-swatch');
+    if (firstColorOption) {
+        selectColor(firstColorOption);
+    }
+
+    // 2. Khởi tạo Zoom ảnh
+    initImageZoom();
+
+    // 3. Khởi tạo Expandable Content Manager
+    expandableManager = new ExpandableContentManager();
+});
+
+// Utility function to handle window resize
+let resizeTimeout;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (expandableManager) {
+            // Re-check content heights on resize
+            expandableManager.sections.forEach((sectionData, sectionId) => {
+                const section = document.getElementById(sectionId);
+                if (section && sectionData.needsTruncation) {
+                    const content = sectionData.content;
+                    const actualHeight = content.scrollHeight;
+                    const maxHeight = sectionData.maxHeight;
+                    
+                    // Update truncation status
+                    const needsTruncation = actualHeight > maxHeight;
+                    sectionData.needsTruncation = needsTruncation;
+                    
+                    const button = sectionData.button;
+                    const overlay = section.querySelector('.gradient-overlay');
+                    
+                    if (needsTruncation) {
+                        button.style.display = 'flex';
+                        if (overlay) overlay.style.display = 'block';
+                    } else {
+                        button.style.display = 'none';
+                        if (overlay) overlay.style.display = 'none';
+                    }
+                }
+            });
+        }
+    }, 250);
+});
+
+// Export for potential external use
+window.ExpandableContentManager = ExpandableContentManager;
+
+// === TABBED PRODUCT INFO FUNCTIONALITY ===
+
+function switchTab(tabName) {
+    // Remove active class from all tab headers
+    document.querySelectorAll('.tab-header').forEach(header => {
+        header.classList.remove('active');
+    });
+    
+    // Hide all tab panels
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+    
+    // Add active class to clicked tab header
+    const activeHeader = document.querySelector(`[data-tab="${tabName}"]`);
+    if (activeHeader) {
+        activeHeader.classList.add('active');
+    }
+    
+    // Show corresponding tab panel
+    const activePanel = document.getElementById(`tab-${tabName}`);
+    if (activePanel) {
+        activePanel.classList.add('active');
+    }
+}
+
+// Initialize tabs on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure the first tab is active by default
+    const firstTab = document.querySelector('.tab-header[data-tab="description"]');
+    const firstPanel = document.getElementById('tab-description');
+    
+    if (firstTab && firstPanel) {
+        firstTab.classList.add('active');
+        firstPanel.classList.add('active');
+    }
+    
+    // Add keyboard support for tabs
+    document.querySelectorAll('.tab-header').forEach(header => {
+        header.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+            }
+        });
+    });
+});
+
+// Update the existing DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Khởi tạo: Chọn màu đầu tiên
+    const firstColorOption = document.querySelector('.color-swatch');
+    if (firstColorOption) {
+        selectColor(firstColorOption);
+    }
+
+    // 2. Khởi tạo Zoom ảnh
+    initImageZoom();
+
+    // 3. Khởi tạo Expandable Content Manager (legacy)
+    expandableManager = new ExpandableContentManager();
+
+    // 4. Initialize tabs (handled in tab section above)
+    // Tab initialization is handled in the tab-specific DOMContentLoaded listener
+});
+
+// Handle window resize for legacy expandable content
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        // Legacy expandable manager resize handling
+        if (expandableManager) {
+            expandableManager.sections.forEach((sectionData, sectionId) => {
+                const section = document.getElementById(sectionId);
+                if (section && sectionData.needsTruncation) {
+                    const content = sectionData.content;
+                    const actualHeight = content.scrollHeight;
+                    const maxHeight = sectionData.maxHeight;
+                    
+                    const needsTruncation = actualHeight > maxHeight;
+                    sectionData.needsTruncation = needsTruncation;
+                    
+                    const button = sectionData.button;
+                    const overlay = section.querySelector('.gradient-overlay');
+                    
+                    if (needsTruncation) {
+                        button.style.display = 'flex';
+                        if (overlay) overlay.style.display = 'block';
+                    } else {
+                        button.style.display = 'none';
+                        if (overlay) overlay.style.display = 'none';
+                    }
+                }
+            });
+        }
+    }, 250);
+});
+
+// Export for potential external use
+window.ExpandableContentManager = ExpandableContentManager;
