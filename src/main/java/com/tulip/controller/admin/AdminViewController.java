@@ -1,0 +1,66 @@
+package com.tulip.controller.admin;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/admin")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminViewController {
+
+    // Xử lý route /admin - redirect đến dashboard
+    @GetMapping
+    public String adminHome() {
+        return "redirect:/admin/dashboard";
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
+        model.addAttribute("pageTitle", "DASHBOARD");
+        model.addAttribute("currentPage", "dashboard");
+        model.addAttribute("contentTemplate", "admin/dashboard/dashboard");
+        model.addAttribute("showSearch", false);
+        return "admin/layouts/layout";
+    }
+
+    @GetMapping("/orders")
+    public String orders(Model model) {
+        model.addAttribute("pageTitle", "ORDERS");
+        model.addAttribute("currentPage", "orders");
+        model.addAttribute("contentTemplate", "admin/orders/orders");
+        model.addAttribute("showSearch", true);
+        return "admin/layouts/layout";
+    }
+
+    @GetMapping("/customers")
+    public String customers(Model model) {
+        model.addAttribute("pageTitle", "CUSTOMERS");
+        model.addAttribute("currentPage", "customers");
+        model.addAttribute("contentTemplate", "admin/customers/customers");
+        model.addAttribute("showSearch", true);
+        return "admin/layouts/layout";
+    }
+
+    @GetMapping("/categories")
+    public String categories(Model model) {
+        model.addAttribute("pageTitle", "CATEGORIES");
+        model.addAttribute("currentPage", "categories");
+        model.addAttribute("contentTemplate", "admin/categories/categories");
+        model.addAttribute("showSearch", true);
+        return "admin/layouts/layout";
+    }
+
+    @GetMapping("/settings")
+    public String settings(Model model) {
+        model.addAttribute("pageTitle", "SETTINGS");
+        model.addAttribute("currentPage", "settings");
+        model.addAttribute("contentTemplate", "admin/settings/settings");
+        model.addAttribute("showSearch", false);
+        return "admin/layouts/layout";
+    }
+}
