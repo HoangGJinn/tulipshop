@@ -1,0 +1,583 @@
+/* ============================================
+   INVENTORY MANAGEMENT - CUSTOM STYLES
+   ============================================ */
+
+/* CSS Variables for Inventory Page */
+:root {
+    --primary-color: #000000;
+    --accent-red: #ef4444;
+    --accent-yellow: #eab308;
+    --accent-green: #10b981;
+    --bg-light: #f9fafb;
+    --bg-white: #ffffff;
+    --border-color: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+}
+
+/* ============================================
+   EDITABLE STOCK CELL STYLING
+   ============================================ */
+
+/* Base editable stock cell */
+.editable-stock {
+    position: relative;
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    min-width: 60px;
+    text-align: center;
+}
+
+.editable-stock:hover {
+    background-color: #f3f4f6;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Editing state */
+.editable-stock.editing {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+    padding: 0;
+}
+
+.editable-stock.editing input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    outline: none;
+    font-weight: 600;
+    text-align: center;
+    background: transparent;
+}
+
+/* Warning state for negative available stock */
+.editable-stock.warning {
+    background-color: #fef2f2;
+    color: var(--accent-red);
+    border: 2px solid var(--accent-red);
+}
+
+.editable-stock.warning input {
+    color: var(--accent-red);
+}
+
+/* Edit controls */
+.edit-controls {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+}
+
+.edit-controls button {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.edit-controls .save-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.edit-controls .save-btn:hover {
+    background-color: #1f2937;
+}
+
+.edit-controls .cancel-btn {
+    background-color: white;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.edit-controls .cancel-btn:hover {
+    background-color: #f9fafb;
+}
+
+/* ============================================
+   TOAST NOTIFICATION ANIMATIONS
+   ============================================ */
+
+/* Toast container */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+/* Base toast styles */
+.toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid;
+    min-width: 320px;
+    max-width: 420px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* Toast variants */
+.toast.success {
+    border-left-color: var(--accent-green);
+}
+
+.toast.error {
+    border-left-color: var(--accent-red);
+}
+
+.toast.warning {
+    border-left-color: var(--accent-yellow);
+}
+
+.toast.info {
+    border-left-color: #3b82f6;
+}
+
+/* Toast icon */
+.toast-icon {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.toast.success .toast-icon {
+    color: var(--accent-green);
+}
+
+.toast.error .toast-icon {
+    color: var(--accent-red);
+}
+
+.toast.warning .toast-icon {
+    color: var(--accent-yellow);
+}
+
+.toast.info .toast-icon {
+    color: #3b82f6;
+}
+
+/* Toast content */
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-bottom: 0.125rem;
+}
+
+.toast-message {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Toast close button */
+.toast-close {
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.toast-close:hover {
+    color: var(--text-primary);
+}
+
+/* Toast animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast.removing {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+
+/* Toast progress bar */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: currentColor;
+    opacity: 0.3;
+    animation: progressBar 3s linear forwards;
+}
+
+@keyframes progressBar {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+/* ============================================
+   MODAL OVERLAY AND CONTENT
+   ============================================ */
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+/* Modal content */
+.modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 56rem;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: scaleIn 0.2s ease-out;
+}
+
+/* Modal header */
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.125rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    color: var(--text-primary);
+}
+
+.modal-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.modal-close {
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+/* Modal body */
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+/* Modal footer */
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Modal animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   LOADING INDICATORS
+   ============================================ */
+
+/* Spinner */
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 2px;
+}
+
+.spinner-lg {
+    width: 3rem;
+    height: 3rem;
+    border-width: 5px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Loading overlay for buttons */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* Skeleton loading for table rows */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #f3f4f6 0%,
+        #e5e7eb 50%,
+        #f3f4f6 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.25rem;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 0.25rem;
+    border: 1px solid;
+}
+
+.status-badge.in-stock {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #10b981;
+}
+
+.status-badge.low-stock {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #f59e0b;
+}
+
+.status-badge.out-of-stock {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #ef4444;
+}
+
+/* ============================================
+   ALERT BANNERS
+   ============================================ */
+
+.alert-banner {
+    border-left-width: 4px;
+    padding: 1rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.alert-banner.dismissing {
+    animation: slideUp 0.3s ease-in forwards;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+        max-height: 200px;
+    }
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+}
+
+/* ============================================
+   TABLE ENHANCEMENTS
+   ============================================ */
+
+/* Hover effect for table rows */
+.inventory-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.inventory-table tbody tr:hover {
+    background-color: rgba(249, 250, 251, 0.5);
+}
+
+/* Highlight row being edited */
+.inventory-table tbody tr.editing {
+    background-color: #fffbeb;
+    box-shadow: inset 0 0 0 2px #fbbf24;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+    #toast-container {
+        top: 0.5rem;
+        right: 0.5rem;
+        left: 0.5rem;
+    }
+
+    .toast {
+        min-width: auto;
+        max-width: none;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+        margin: 0.5rem;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1rem;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
+    transition: all 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+.focus-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Disabled state */
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}

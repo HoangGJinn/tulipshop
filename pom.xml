@@ -136,6 +136,21 @@
             <version>0.12.3</version>
             <scope>runtime</scope>
         </dependency>
+        
+        <!-- Property-Based Testing -->
+        <dependency>
+            <groupId>net.jqwik</groupId>
+            <artifactId>jqwik</artifactId>
+            <version>1.9.2</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- Apache POI for Excel Export -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
     </dependencies>
 
 
