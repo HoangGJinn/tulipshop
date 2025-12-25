@@ -23,7 +23,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Slf4j
@@ -74,10 +73,13 @@ public class SecurityConfig {
                 .requestMatchers("/v1/api/auth/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
                 // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
                 .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
+                // MoMo callback URL cho phép truy cập công khai vì không có JWT:
+                .requestMatchers("/v1/api/momo/payment-callback", "/api/momo/callback").permitAll()
                 // CHỈ người dùng đã đăng nhập mới được mua hàng:
-                .requestMatchers("/v1/api/vnpay/create-payment").authenticated()
+                .requestMatchers("/v1/api/vnpay/create-payment", "/v1/api/momo/create-payment", "/api/momo/create-payment").authenticated()
                 // Các endpoint giỏ hàng và thanh toán yêu cầu authentication:
                 .requestMatchers("/v1/api/cart/**").authenticated()
                 .requestMatchers("/cart", "/checkout", "/checkout/**", "/order-success", "/orders", "/orders/**").authenticated()
@@ -101,34 +103,28 @@ public class SecurityConfig {
                         return;
                     }
                     
-                    // Kiểm tra xem có JWT token trong request không
-                    String authHeader = request.getHeader("Authorization");
-                    Cookie[] cookies = request.getCookies();
-                    boolean hasToken = (authHeader != null && authHeader.startsWith("Bearer ")) ||
-                                     (cookies != null && java.util.Arrays.stream(cookies)
-                                         .anyMatch(c -> "accessToken".equals(c.getName()) || "refreshToken".equals(c.getName())));
-                    
                     Authentication auth = org.springframework.security.core.context.SecurityContextHolder
                             .getContext().getAuthentication();
                     
-                    // Nếu đã có authentication
-                    if (auth != null && auth.isAuthenticated()) {
-                        // Đã authenticated, để Spring MVC xử lý 404
-                        // Không redirect, để request tiếp tục và Spring MVC sẽ xử lý
-                        // Nhưng vì authenticationEntryPoint được gọi, có nghĩa là có vấn đề với authorization
-                        // Nên để request tiếp tục và Spring MVC sẽ xử lý 404 hoặc 403
+                    // Kiểm tra xem có phải là anonymous user không (chưa đăng nhập thật sự)
+                    boolean isAnonymous = auth == null || 
+                                         !auth.isAuthenticated() || 
+                                         auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken;
+                    
+                    // Nếu là anonymous user (chưa đăng nhập), redirect về login
+                    if (isAnonymous) {
+                        // Lưu URL hiện tại để redirect lại sau khi login
+                        String redirectUrl = request.getRequestURI();
+                        if (request.getQueryString() != null) {
+                            redirectUrl += "?" + request.getQueryString();
+                        }
+                        response.sendRedirect("/login?redirect=" + java.net.URLEncoder.encode(redirectUrl, java.nio.charset.StandardCharsets.UTF_8));
                         return;
                     }
                     
-                    // Nếu có token trong request nhưng không hợp lệ, vẫn để Spring MVC xử lý
-                    // (có thể là 404 nếu URL không tồn tại, hoặc có thể là token hết hạn)
-                    if (hasToken) {
-                        // Có token, để Spring MVC xử lý (không redirect về login)
-                        return;
-                    }
-                    
-                    // Chưa authenticated và không có token, redirect về login
-                    response.sendRedirect("/login");
+                    // Nếu đã authenticated nhưng vẫn bị chặn, có thể là vấn đề về quyền
+                    // Để Spring MVC xử lý (có thể là 403 hoặc 404)
+                    return;
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
                     // Nếu đã authenticated nhưng không có quyền, hiển thị trang 403

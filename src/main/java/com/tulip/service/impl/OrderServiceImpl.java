@@ -3,6 +3,9 @@ package com.tulip.service.impl;
 import com.tulip.dto.CartItemDTO;
 import com.tulip.dto.OrderCreationDTO;
 import com.tulip.entity.*;
+import com.tulip.entity.enums.OrderStatus;
+import com.tulip.entity.enums.PaymentMethod;
+import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.entity.product.ProductStock;
 import com.tulip.entity.product.ProductVariant;
 import com.tulip.repository.*;
@@ -61,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
                 .totalPrice(totalPrice)
                 .shippingPrice(shippingFee)
                 .finalPrice(finalPrice)
-                .status(Order.OrderStatus.PENDING)
+                .status(OrderStatus.PENDING)
                 .paymentMethod(PaymentMethod.fromString(request.getPaymentMethod()))
                 .paymentStatus(PaymentStatus.PENDING)
                 .shippingAddress(shippingAddress)
@@ -132,5 +135,77 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return Optional.empty();
+    }
+    
+    @Override
+    @Transactional
+    public void reOrderToCart(Long userId, Long orderId) {
+        // 1. Lấy đơn hàng cũ và kiểm tra quyền sở hữu
+        Order oldOrder = orderRepository.findByIdWithDetails(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        
+        if (!oldOrder.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền truy cập đơn hàng này");
+        }
+        
+        // 2. Chỉ cho phép mua lại đơn hàng đã CANCELLED do hết hạn thanh toán
+        if (oldOrder.getStatus() != OrderStatus.CANCELLED || 
+            oldOrder.getPaymentStatus() != PaymentStatus.EXPIRED) {
+            throw new RuntimeException("Chỉ có thể mua lại đơn hàng đã hết hạn thanh toán");
+        }
+        
+        // 3. Kiểm tra tồn kho và thêm vào giỏ hàng
+        if (oldOrder.getOrderItems() == null || oldOrder.getOrderItems().isEmpty()) {
+            throw new RuntimeException("Đơn hàng không có sản phẩm nào");
+        }
+        
+        List<String> unavailableItems = new ArrayList<>();
+        
+        for (OrderItem item : oldOrder.getOrderItems()) {
+            if (item.getStock() == null) {
+                unavailableItems.add(item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm không xác định");
+                continue;
+            }
+            
+            ProductStock stock = productStockRepository.findById(item.getStock().getId())
+                    .orElse(null);
+            
+            if (stock == null) {
+                unavailableItems.add(item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm không xác định");
+                continue;
+            }
+            
+            int requestedQuantity = item.getQuantity();
+            int availableQuantity = stock.getQuantity();
+            
+            if (availableQuantity <= 0) {
+                unavailableItems.add((item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm") + 
+                        " (Size: " + (item.getSize() != null ? item.getSize().getCode() : "N/A") + ") - Hết hàng");
+                continue;
+            }
+            
+            // Thêm vào giỏ với số lượng tối đa có thể (nếu yêu cầu nhiều hơn có sẵn)
+            int quantityToAdd = Math.min(requestedQuantity, availableQuantity);
+            try {
+                cartService.addToCart(userId, stock.getId(), quantityToAdd);
+                
+                // Thông báo nếu số lượng ít hơn yêu cầu
+                if (quantityToAdd < requestedQuantity) {
+                    unavailableItems.add((item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm") + 
+                            " (Size: " + (item.getSize() != null ? item.getSize().getCode() : "N/A") + 
+                            ") - Chỉ còn " + availableQuantity + " sản phẩm (đã thêm " + quantityToAdd + " vào giỏ)");
+                }
+            } catch (Exception e) {
+                unavailableItems.add((item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm") + 
+                        " - " + e.getMessage());
+            }
+        }
+        
+        // 4. Nếu có sản phẩm không khả dụng, throw exception với thông tin chi tiết
+        if (!unavailableItems.isEmpty()) {
+            String message = "Một số sản phẩm không thể thêm vào giỏ hàng:\n" + 
+                    String.join("\n", unavailableItems);
+            throw new RuntimeException(message);
+        }
     }
 }

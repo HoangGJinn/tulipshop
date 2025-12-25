@@ -3,9 +3,8 @@ package com.tulip.service.impl;
 import com.tulip.config.payment.VnpayConfig;
 import com.tulip.dto.request.VnpayRequest;
 import com.tulip.entity.Order;
-import com.tulip.entity.PaymentStatus;
+import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.repository.OrderRepository;
-import com.tulip.service.CartService;
 import com.tulip.service.VnpayService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +26,6 @@ public class VnpayServiceImpl implements VnpayService {
     
     @Autowired
     private OrderRepository orderRepository;
-    
-    @Autowired
-    private CartService cartService;
 
     @Override
     public String createPayment(VnpayRequest paymentRequest, HttpServletRequest request) throws UnsupportedEncodingException {
@@ -139,21 +135,17 @@ public class VnpayServiceImpl implements VnpayService {
                 return null; // Signature không hợp lệ
             }
 
-            // Trích xuất Order ID từ vnp_TxnRef (format: TULIP-DDMMYYYY-Orderid-XXXX)
+            // Trích xuất Order ID từ vnp_TxnRef
             Long orderId = com.tulip.util.VnpayUtil.extractOrderIdFromVnpTxnRef(vnp_TxnRef);
             if (orderId == null) {
-                // Fallback: tìm theo vnpTxnRef trực tiếp (tương thích với dữ liệu cũ)
                 Order order = orderRepository.findByVnpTxnRef(vnp_TxnRef);
                 if (order == null) {
-                    return null; // Không tìm thấy Order
+                    return null;
                 }
                 // Cập nhật Order dựa trên response code
                 if ("00".equals(vnp_ResponseCode)) {
                     order.setPaymentStatus(PaymentStatus.SUCCESS);
                     order.setTransactionId(vnp_TransactionNo);
-                    
-                    // Xóa giỏ hàng sau khi thanh toán thành công (sử dụng service để có transaction)
-                    cartService.clearCart(order.getUser().getId());
                 } else {
                     order.setPaymentStatus(PaymentStatus.FAILED);
                 }
@@ -172,13 +164,7 @@ public class VnpayServiceImpl implements VnpayService {
                 // Thanh toán thành công
                 order.setPaymentStatus(PaymentStatus.SUCCESS);
                 order.setTransactionId(vnp_TransactionNo);
-                // Có thể cập nhật order status thành CONFIRMED nếu muốn
-                // order.setStatus(Order.OrderStatus.CONFIRMED);
-                
-                // Xóa giỏ hàng sau khi thanh toán thành công (sử dụng service để có transaction)
-                cartService.clearCart(order.getUser().getId());
             } else {
-                // Thanh toán thất bại
                 order.setPaymentStatus(PaymentStatus.FAILED);
             }
 
@@ -191,12 +177,8 @@ public class VnpayServiceImpl implements VnpayService {
         }
     }
 
-    /**
-     * Verify signature từ VNPAY callback
-     */
     private boolean verifySignature(Map<String, String> vnpParams, String vnp_SecureHash) {
         try {
-            // Sắp xếp params theo alphabet
             List<String> fieldNames = new ArrayList<>(vnpParams.keySet());
             Collections.sort(fieldNames);
 
@@ -211,7 +193,7 @@ public class VnpayServiceImpl implements VnpayService {
                 }
             }
             if (hashData.length() > 0) {
-                hashData.setLength(hashData.length() - 1); // Xóa ký tự & cuối cùng
+                hashData.setLength(hashData.length() - 1);
             }
 
             // Tính toán hash

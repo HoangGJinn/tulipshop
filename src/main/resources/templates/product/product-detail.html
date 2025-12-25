@@ -6,6 +6,7 @@
 <div th:replace="~{fragments/header :: header}"></div>
 
 <link rel="stylesheet" th:href="@{/css/product-detail.css}">
+<link rel="stylesheet" th:href="@{/css/notification.css}">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 
 <div class="container py-4 product-page">
@@ -439,6 +440,7 @@
     const productData = /*[[${product}]]*/ {};
 </script>
 
+<script th:src="@{/js/notification.js}"></script>
 <script th:src="@{/js/product-detail.js}"></script>
 
 </body>

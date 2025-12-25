@@ -5,12 +5,13 @@ import com.tulip.dto.OrderCreationDTO;
 import com.tulip.dto.UserAddressDTO;
 import com.tulip.dto.request.VnpayRequest;
 import com.tulip.entity.Order;
-import com.tulip.entity.PaymentMethod;
+import com.tulip.entity.enums.PaymentMethod;
 import com.tulip.repository.OrderRepository;
 import com.tulip.security.JwtUtil;
 import com.tulip.service.AddressService;
 import com.tulip.service.CartService;
 import com.tulip.service.OrderService;
+import com.tulip.service.MomoService;
 import com.tulip.service.VnpayService;
 import com.tulip.service.impl.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -37,6 +39,7 @@ public class CheckoutController {
     private final AddressService addressService;
     private final OrderService orderService;
     private final VnpayService vnpayService;
+    private final MomoService momoService;
     private final OrderRepository orderRepository;
     private final JwtUtil jwtUtil;
 
@@ -104,6 +107,9 @@ public class CheckoutController {
         try {
             Order order = orderService.placeOrder(userDetails.getUserId(), orderRequest);
             
+            // Xóa giỏ hàng ngay sau khi tạo order thành công (cho tất cả phương thức thanh toán)
+            cartService.clearCart(userDetails.getUserId());
+            
             // Kiểm tra phương thức thanh toán
             PaymentMethod paymentMethod = PaymentMethod.fromString(orderRequest.getPaymentMethod());
             
@@ -130,23 +136,50 @@ public class CheckoutController {
                         .build();
                 
                 try {
-                    // Tạo payment URL với vnpTxnRef đã được lưu vào Order
                     String paymentUrl = vnpayService.createPaymentWithTxnRef(vnpayRequest, vnpTxnRef, httpRequest);
+                    order.setPaymentUrl(paymentUrl);
+                    order.setPaymentExpireAt(LocalDateTime.now().plusMinutes(15));
+                    orderRepository.save(order);
                     return "redirect:" + paymentUrl;
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                     redirectAttributes.addFlashAttribute("errorMessage", "Lỗi tạo link thanh toán VNPAY: " + e.getMessage());
                     return "redirect:/checkout";
                 }
-            } else {
-                // COD: Đặt hàng thành công -> Xóa giỏ hàng và chuyển sang trang thông báo
-                // Tạo mã đơn hàng với format TULIP-DDMMYYYY-Orderid-XXXX cho COD
+            } else if (paymentMethod == PaymentMethod.MOMO) {
                 String orderCode = com.tulip.util.VnpayUtil.generateVnpTxnRef(order.getId());
                 order.setVnpTxnRef(orderCode);
                 orderRepository.save(order);
                 
-                // Xóa giỏ hàng sau khi đặt hàng COD thành công (sử dụng service để có transaction)
-                cartService.clearCart(userDetails.getUserId());
+                BigDecimal finalPrice = order.getFinalPrice();
+                if (finalPrice == null) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: Không thể xác định tổng tiền đơn hàng");
+                    return "redirect:/checkout";
+                }
+                String amountString = finalPrice.setScale(0, RoundingMode.HALF_UP).toPlainString();
+                
+                try {
+                    String paymentUrl = momoService.createPaymentRequest(
+                            amountString,
+                            orderCode,
+                            "Thanh toan don hang " + orderCode,
+                            "payWithMethod"
+                    );
+                    order.setPaymentUrl(paymentUrl);
+                    order.setPaymentExpireAt(LocalDateTime.now().plusMinutes(15));
+                    orderRepository.save(order);
+                    return "redirect:" + paymentUrl;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    redirectAttributes.addFlashAttribute("errorMessage", "Lỗi tạo link thanh toán MoMo: " + e.getMessage());
+                    return "redirect:/checkout";
+                }
+            } else {
+                // COD: Đặt hàng thành công -> Chuyển sang trang thông báo
+                // Tạo mã đơn hàng với format TULIP-DDMMYYYY-Orderid-XXXX cho COD
+                String orderCode = com.tulip.util.VnpayUtil.generateVnpTxnRef(order.getId());
+                order.setVnpTxnRef(orderCode);
+                orderRepository.save(order);
                 
                 // Redirect đến trang kết quả đặt hàng thành công
                 return "redirect:/order-success?orderId=" + order.getId() + "&orderCode=" + orderCode;

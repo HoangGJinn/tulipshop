@@ -195,11 +195,7 @@ function updateQuantity(change) {
 
 function addToCart() {
     if (!selectedSize) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Chưa chọn kích thước',
-            text: 'Vui lòng chọn size bạn muốn mua!'
-        });
+        showWarning('Chưa chọn kích thước', 'Vui lòng chọn size bạn muốn mua!');
         return;
     }
 
@@ -216,7 +212,7 @@ function addToCart() {
         // Bạn cần đảm bảo backend gửi Object Stock hoặc có logic khác.
         // Tạm thời alert lỗi nếu không có ID
         console.error("Thiếu Stock ID", stockInfo);
-        Swal.fire('Lỗi', 'Không tìm thấy thông tin sản phẩm trong kho', 'error');
+        showError('Lỗi', 'Không tìm thấy thông tin sản phẩm trong kho');
         return;
     }
 
@@ -286,12 +282,7 @@ function addToCart() {
         })
         .then(data => {
             if (data.status === 'success') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Đã thêm vào giỏ!',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
+                showSuccess('Đã thêm vào giỏ!', 'Sản phẩm đã được thêm vào giỏ hàng của bạn');
                 // Update cart count badge (nếu có)
                 updateCartBadge(data.totalItems);
             } else {
@@ -310,7 +301,7 @@ function addToCart() {
                     if (result.isConfirmed) window.location.href = '/login';
                 });
             } else {
-                Swal.fire('Lỗi', error.message || 'Có lỗi xảy ra', 'error');
+                showError('Lỗi', error.message || 'Có lỗi xảy ra');
             }
         })
         .finally(() => {
