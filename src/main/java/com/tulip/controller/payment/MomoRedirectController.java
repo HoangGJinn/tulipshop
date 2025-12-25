@@ -3,8 +3,10 @@ package com.tulip.controller.payment;
 import com.tulip.entity.Order;
 import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.repository.OrderRepository;
+import com.tulip.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -19,7 +21,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class MomoRedirectController {
     
     private final OrderRepository orderRepository;
-    
+
+    @Autowired
+    private OrderService orderService;
+
     @GetMapping("/v1/api/momo/payment-callback")
     @Transactional
     public String paymentCallback(@RequestParam(required = false) String orderId,
@@ -57,6 +62,7 @@ public class MomoRedirectController {
                     order.setTransactionId(transId);
                 }
                 log.info("Payment successful for order: {}", order.getId());
+                orderService.confirmOrderPayment(Long.parseLong(orderId));
             } else {
                 order.setPaymentStatus(PaymentStatus.FAILED);
                 log.warn("Payment failed for order: {}, resultCode: {}", order.getId(), resultCode);

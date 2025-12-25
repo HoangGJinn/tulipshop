@@ -96,13 +96,17 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional(readOnly = true)
     public List<StockHistoryDTO> getStockHistory(Long stockId) {
+        System.out.println("=== Service: Getting stock history for stockId: " + stockId);
         // Fetch history records ordered by timestamp descending
-        List<StockHistory> historyRecords = stockHistoryRepository.findByStockIdOrderByCreatedAtDesc(stockId);
+        List<StockHistory> historyRecords = stockHistoryRepository.findByStock_IdOrderByCreatedAtDesc(stockId);
+        System.out.println("=== Service: Found " + historyRecords.size() + " history records");
         
         // Map to DTOs
-        return historyRecords.stream()
+        List<StockHistoryDTO> dtos = historyRecords.stream()
                 .map(this::convertToStockHistoryDTO)
                 .collect(Collectors.toList());
+        System.out.println("=== Service: Converted to " + dtos.size() + " DTOs");
+        return dtos;
     }
 
     @Override

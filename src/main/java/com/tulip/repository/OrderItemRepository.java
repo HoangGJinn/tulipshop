@@ -11,6 +11,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     
     @Query("SELECT COALESCE(SUM(oi.quantity), 0) FROM OrderItem oi " +
            "WHERE oi.stock.id = :stockId " +
-           "AND oi.order.status IN ('PENDING', 'CONFIRMED')")
+           "AND oi.order.status = 'PENDING'")
     Integer calculateReservedStock(@Param("stockId") Long stockId);
 }

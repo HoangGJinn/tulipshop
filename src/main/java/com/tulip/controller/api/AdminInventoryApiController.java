@@ -8,10 +8,7 @@ import com.tulip.dto.request.StockInitRequest;
 import com.tulip.dto.request.StockUpdateRequest;
 import com.tulip.service.InventoryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,9 +86,13 @@ public class AdminInventoryApiController {
     @GetMapping("/{stockId}/history")
     public ResponseEntity<List<StockHistoryDTO>> getStockHistory(@PathVariable Long stockId) {
         try {
+            System.out.println("=== Getting stock history for stockId: " + stockId);
             List<StockHistoryDTO> history = inventoryService.getStockHistory(stockId);
+            System.out.println("=== Found " + history.size() + " history records");
             return ResponseEntity.ok(history);
         } catch (Exception e) {
+            System.err.println("=== Error getting stock history: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -130,14 +131,15 @@ public class AdminInventoryApiController {
             // Generate filename with timestamp
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String filename = "inventory_" + timestamp + ".xlsx";
-            
-            // Set response headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", filename);
-            
+
+            // Use ContentDisposition builder to properly format the header
+            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                    .filename(filename)
+                    .build();
+
             return ResponseEntity.ok()
-                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                     .body(excelData);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

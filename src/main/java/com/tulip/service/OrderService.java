@@ -20,4 +20,6 @@ public interface OrderService {
      * @throws RuntimeException nếu đơn hàng không hợp lệ hoặc không đủ tồn kho
      */
     void reOrderToCart(Long userId, Long orderId);
+
+    void confirmOrderPayment(Long orderId);
 }

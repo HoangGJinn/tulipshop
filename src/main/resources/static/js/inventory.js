@@ -321,10 +321,6 @@ function removeToast(toast) {
     }, 300);
 }
 
-function exportToExcel() {
-    console.log('Export handler - to be implemented');
-}
-
 // ============================================================================
 // STOCK HISTORY MODAL
 // ============================================================================
@@ -334,9 +330,15 @@ function exportToExcel() {
  * @param {string} stockId - The stock ID to show history for
  */
 async function openHistoryModal(stockId) {
+    console.log('openHistoryModal called with stockId:', stockId);
+    
     const modal = document.getElementById('history-modal');
     const tableBody = document.getElementById('history-table-body');
     const productNameEl = document.getElementById('history-product-name');
+    
+    console.log('Modal element:', modal);
+    console.log('Table body element:', tableBody);
+    console.log('Product name element:', productNameEl);
     
     // Find the product name
     const item = InventoryModule.inventoryData.find(i => i.stockId == stockId);
@@ -352,13 +354,22 @@ async function openHistoryModal(stockId) {
     
     try {
         // Fetch history data
-        const response = await fetch(`/api/admin/inventory/${stockId}/history`);
+        const url = `/api/admin/inventory/${stockId}/history`;
+        console.log('Fetching history from:', url);
+        
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
         
         if (!response.ok) {
-            throw new Error('Failed to load history');
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`Failed to load history: ${response.status} ${response.statusText}`);
         }
         
         const history = await response.json();
+        console.log('History data:', history);
+        console.log('History length:', history.length);
         
         // Render history table
         if (history.length === 0) {
@@ -394,11 +405,32 @@ function closeHistoryModal() {
 
 /**
  * Format date and time for display
- * @param {string} timestamp - ISO timestamp string
+ * @param {string|Array} timestamp - ISO timestamp string or array format from backend
  * @returns {string} Formatted date and time
  */
 function formatDateTime(timestamp) {
-    const date = new Date(timestamp);
+    // Handle both string format (yyyy-MM-dd HH:mm:ss) and potential array format
+    let date;
+    
+    if (typeof timestamp === 'string') {
+        // If it's already a formatted string from backend, parse it
+        // Format: "yyyy-MM-dd HH:mm:ss"
+        const parts = timestamp.split(' ');
+        if (parts.length === 2) {
+            const dateParts = parts[0].split('-');
+            const timeParts = parts[1].split(':');
+            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], timeParts[2]);
+        } else {
+            // Fallback to standard Date parsing
+            date = new Date(timestamp);
+        }
+    } else if (Array.isArray(timestamp)) {
+        // Handle array format [year, month, day, hour, minute, second]
+        date = new Date(timestamp[0], timestamp[1] - 1, timestamp[2], timestamp[3] || 0, timestamp[4] || 0, timestamp[5] || 0);
+    } else {
+        date = new Date(timestamp);
+    }
+    
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
@@ -438,28 +470,31 @@ async function exportToExcel() {
         // Get the blob
         const blob = await response.blob();
         
-        // Create download link
+        // Generate filename with timestamp
+        const now = new Date();
+        const timestamp = now.getFullYear() + 
+                         String(now.getMonth() + 1).padStart(2, '0') + 
+                         String(now.getDate()).padStart(2, '0') + '_' +
+                         String(now.getHours()).padStart(2, '0') + 
+                         String(now.getMinutes()).padStart(2, '0') + 
+                         String(now.getSeconds()).padStart(2, '0');
+        const filename = 'inventory_' + timestamp + '.xlsx';
+        
+        // Create download link with explicit filename
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
+        a.style.display = 'none';
         a.href = url;
+        a.download = filename; // Force the filename with .xlsx extension
         
-        // Get filename from Content-Disposition header or use default
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = 'inventory-export.xlsx';
-        if (contentDisposition) {
-            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
-            if (filenameMatch) {
-                filename = filenameMatch[1];
-            }
-        }
-        
-        a.download = filename;
         document.body.appendChild(a);
         a.click();
         
         // Cleanup
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }, 100);
         
         showToast('Xuất Excel thành công', 'success');
         
@@ -616,27 +651,6 @@ function dismissAlert(alertId) {
             alert.classList.remove('dismissing');
         }, 300);
     }
-}
-
-function openHistoryModal(stockId) {
-    console.log('Open history modal - to be implemented');
-}
-
-function closeHistoryModal() {
-    const modal = document.getElementById('history-modal');
-    modal.classList.add('hidden');
-}
-
-function previousPage() {
-    console.log('Previous page - to be implemented');
-}
-
-function nextPage() {
-    console.log('Next page - to be implemented');
-}
-
-function showToast(message, type) {
-    console.log('Toast notification - to be implemented');
 }
 
 // ============================================================================

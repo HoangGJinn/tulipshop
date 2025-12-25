@@ -81,8 +81,8 @@ public class OrderServiceImpl implements OrderService {
                 throw new RuntimeException("Sản phẩm " + itemDTO.getProductName() + " không đủ số lượng!");
             }
 
-            realStock.setQuantity(realStock.getQuantity() - itemDTO.getQuantity());
-            productStockRepository.save(realStock);
+//           realStock.setQuantity(realStock.getQuantity() - itemDTO.getQuantity());
+//           productStockRepository.save(realStock);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -206,6 +206,38 @@ public class OrderServiceImpl implements OrderService {
             String message = "Một số sản phẩm không thể thêm vào giỏ hàng:\n" + 
                     String.join("\n", unavailableItems);
             throw new RuntimeException(message);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void confirmOrderPayment(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Chỉ trừ kho nếu đơn hàng chuyển từ trạng thái giữ chỗ (PENDING) sang đã thanh toán
+        if (order.getStatus() == OrderStatus.PENDING) {
+            for (OrderItem item : order.getOrderItems()) {
+                ProductStock stock = item.getStock();
+                // Bây giờ mới thực sự trừ kho vật lý
+                int newQuantity = stock.getQuantity() - item.getQuantity();
+                if (newQuantity < 0) {
+                    throw new RuntimeException("Kho không đủ để hoàn tất đơn hàng này (Lỗi bất thường)");
+                }
+
+                // Gọi service update để đảm bảo có Lock và lưu Lịch sử (History)
+                // Lưu ý: Cần inject InventoryService vào OrderServiceImpl để gọi hàm này
+                // Hoặc update trực tiếp tại đây và tự tạo history:
+                stock.setQuantity(newQuantity);
+                productStockRepository.save(stock);
+
+                // TODO: Lưu StockHistory tại đây nếu muốn lưu vết là "Đơn hàng thành công"
+            }
+
+            // Cập nhật trạng thái đơn hàng
+            order.setStatus(OrderStatus.CONFIRMED);
+            order.setPaymentStatus(PaymentStatus.SUCCESS);
+            orderRepository.save(order);
         }
     }
 }
