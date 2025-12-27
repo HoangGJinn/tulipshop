@@ -22,4 +22,6 @@ public interface OrderService {
     void reOrderToCart(Long userId, Long orderId);
 
     void confirmOrderPayment(Long orderId);
+
+    void handlePaymentFailure(Long orderId);
 }

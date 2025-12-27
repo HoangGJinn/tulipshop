@@ -70,9 +70,17 @@ public class VnpayController {
             if (order != null && order.getVnpTxnRef() != null) {
                 model.addAttribute("orderCode", order.getVnpTxnRef());
             }
-            model.addAttribute("message", isSuccess ? "Thanh toán thành công!" : "Thanh toán thất bại!");
 
-            orderService.confirmOrderPayment(orderId);
+            if (isSuccess) {
+                // === SỬA LỖI TẠI ĐÂY: Chỉ xác nhận khi thành công ===
+                model.addAttribute("message", "Thanh toán thành công!");
+                orderService.confirmOrderPayment(orderId);
+            } else {
+                // === XỬ LÝ KHI THẤT BẠI ===
+                model.addAttribute("message", "Thanh toán thất bại!");
+                // Gọi hàm xử lý thất bại (cập nhật trạng thái đơn hàng)
+                orderService.handlePaymentFailure(orderId);
+            }
 
             return "payment/payment-result";
         } else {

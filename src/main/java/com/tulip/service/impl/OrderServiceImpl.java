@@ -118,6 +118,7 @@ public class OrderServiceImpl implements OrderService {
             }
             if (item.getVariant() != null) {
                 Hibernate.initialize(item.getVariant());
+                Hibernate.initialize(item.getVariant().getImages());
             }
             if (item.getSize() != null) {
                 Hibernate.initialize(item.getSize());
@@ -287,6 +288,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 if (item.getVariant() != null) {
                     Hibernate.initialize(item.getVariant());
+                    Hibernate.initialize(item.getVariant().getImages());
                 }
                 if (item.getSize() != null) {
                     Hibernate.initialize(item.getSize());
@@ -295,6 +297,25 @@ public class OrderServiceImpl implements OrderService {
             
             // Send order confirmation email for online payment
             emailService.sendOrderConfirmation(savedOrder);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void handlePaymentFailure(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Nếu đơn hàng đang chờ thanh toán mà bị lỗi, cập nhật trạng thái
+        if (order.getStatus() == OrderStatus.PENDING) {
+            // Bạn có thể set là CANCELLED hoặc tạo thêm enum PAYMENT_FAILED tùy logic
+            order.setStatus(OrderStatus.CANCELLED);
+            order.setPaymentStatus(PaymentStatus.FAILED); // Cần đảm bảo enum PaymentStatus có giá trị FAILED
+
+            // Lưu ý: Code cũ của bạn chưa trừ kho ở bước PENDING nên không cần cộng lại kho ở đây.
+            // Nếu logic thay đổi (đã trừ kho từ lúc đặt), thì phải cộng lại kho ở đây.
+
+            orderRepository.save(order);
         }
     }
 }

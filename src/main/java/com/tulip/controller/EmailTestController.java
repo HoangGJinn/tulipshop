@@ -37,6 +37,7 @@ public class EmailTestController {
                 }
                 if (item.getVariant() != null) {
                     Hibernate.initialize(item.getVariant());
+                    Hibernate.initialize(item.getVariant().getImages());
                 }
                 if (item.getSize() != null) {
                     Hibernate.initialize(item.getSize());
