@@ -1,5 +1,6 @@
 package com.tulip.service.impl;
 
+import com.tulip.entity.Order;
 import com.tulip.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -9,6 +10,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 @Service
 @Slf4j // automatically creates a logger instance
@@ -17,8 +20,12 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public EmailServiceImpl(JavaMailSender mailSender) {
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine) {
         this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
     }
     // This annotation makes the method run in a separate thread (Multi-threading)
     // So the caller doesn't have to wait for it to finish
@@ -42,6 +49,56 @@ public class EmailServiceImpl implements EmailService {
             log.info("✅ OTP email sent successfully to: {}", toEmail);
         } catch (MessagingException e) {
             log.error("❌ Failed to send OTP email to: {}. Error: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
+    @Async
+    @Override
+    public void sendOrderConfirmation(Order order) {
+        try {
+            log.info("🔄 [EMAIL] Starting sendOrderConfirmation for order #{}", order.getId());
+            
+            if (order.getUser() == null) {
+                log.error("❌ [EMAIL] Order #{} has no user!", order.getId());
+                return;
+            }
+            
+            String customerEmail = order.getUser().getEmail();
+            if (customerEmail == null || customerEmail.trim().isEmpty()) {
+                log.error("❌ [EMAIL] Order #{} user has no email address!", order.getId());
+                return;
+            }
+            
+            String customerName = order.getUser().getProfile() != null ? 
+                order.getUser().getProfile().getFullName() : order.getUser().getEmail();
+            
+            log.info("🔄 [EMAIL] Preparing to send order confirmation email to: {} for order #{}", customerEmail, order.getId());
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(customerEmail);
+            helper.setSubject("Xác nhận đơn hàng #" + order.getId() + " - Tulipshop");
+
+            log.info("🔄 [EMAIL] Creating Thymeleaf context for order #{}", order.getId());
+            
+            // Create Thymeleaf context and add order data
+            Context context = new Context();
+            context.setVariable("order", order);
+
+            log.info("🔄 [EMAIL] Processing template for order #{}", order.getId());
+            
+            // Process the template
+            String htmlContent = templateEngine.process("mail/order-confirmation", context);
+            helper.setText(htmlContent, true);
+
+            log.info("📧 [EMAIL] Sending order confirmation email to: {} for order #{}", customerEmail, order.getId());
+            mailSender.send(message);
+            log.info("✅ [EMAIL] Order confirmation email sent successfully to: {} for order #{}", customerEmail, order.getId());
+        } catch (MessagingException e) {
+            log.error("❌ [EMAIL] MessagingException for order #{}. Error: {}", order.getId(), e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("❌ [EMAIL] Unexpected error while sending order confirmation email for order #{}. Error: {}", order.getId(), e.getMessage(), e);
         }
     }
 

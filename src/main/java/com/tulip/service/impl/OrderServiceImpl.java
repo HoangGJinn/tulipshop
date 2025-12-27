@@ -10,8 +10,10 @@ import com.tulip.entity.product.ProductStock;
 import com.tulip.entity.product.ProductVariant;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
+import com.tulip.service.EmailService;
 import com.tulip.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
@@ -32,6 +35,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductStockRepository productStockRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -98,7 +102,39 @@ public class OrderServiceImpl implements OrderService {
             order.getOrderItems().add(orderItem);
         }
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        
+        log.info("📦 Order #{} saved successfully. Preparing to send confirmation email...", savedOrder.getId());
+        
+        // Eager load relationships before async email sending to avoid LazyInitializationException
+        Hibernate.initialize(savedOrder.getUser());
+        if (savedOrder.getUser().getProfile() != null) {
+            Hibernate.initialize(savedOrder.getUser().getProfile());
+        }
+        Hibernate.initialize(savedOrder.getOrderItems());
+        for (OrderItem item : savedOrder.getOrderItems()) {
+            if (item.getProduct() != null) {
+                Hibernate.initialize(item.getProduct());
+            }
+            if (item.getVariant() != null) {
+                Hibernate.initialize(item.getVariant());
+            }
+            if (item.getSize() != null) {
+                Hibernate.initialize(item.getSize());
+            }
+        }
+        
+        log.info("📧 Calling emailService.sendOrderConfirmation for order #{}", savedOrder.getId());
+        
+        // Send order confirmation email asynchronously
+        try {
+            emailService.sendOrderConfirmation(savedOrder);
+            log.info("✅ Email service called successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+
+        return savedOrder;
     }
     
     @Override
@@ -237,7 +273,28 @@ public class OrderServiceImpl implements OrderService {
             // Cập nhật trạng thái đơn hàng
             order.setStatus(OrderStatus.CONFIRMED);
             order.setPaymentStatus(PaymentStatus.SUCCESS);
-            orderRepository.save(order);
+            Order savedOrder = orderRepository.save(order);
+            
+            // Eager load relationships before async email sending
+            Hibernate.initialize(savedOrder.getUser());
+            if (savedOrder.getUser().getProfile() != null) {
+                Hibernate.initialize(savedOrder.getUser().getProfile());
+            }
+            Hibernate.initialize(savedOrder.getOrderItems());
+            for (OrderItem item : savedOrder.getOrderItems()) {
+                if (item.getProduct() != null) {
+                    Hibernate.initialize(item.getProduct());
+                }
+                if (item.getVariant() != null) {
+                    Hibernate.initialize(item.getVariant());
+                }
+                if (item.getSize() != null) {
+                    Hibernate.initialize(item.getSize());
+                }
+            }
+            
+            // Send order confirmation email for online payment
+            emailService.sendOrderConfirmation(savedOrder);
         }
     }
 }
