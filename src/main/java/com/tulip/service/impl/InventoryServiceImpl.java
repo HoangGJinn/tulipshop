@@ -74,11 +74,7 @@ public class InventoryServiceImpl implements InventoryService {
         // Store previous quantity for history
         Integer previousQuantity = stock.getQuantity();
         
-        // Update physical stock
-        stock.setQuantity(newQuantity);
-        productStockRepository.save(stock);
-        
-        // Create stock history record
+        // Create stock history record before any changes
         StockHistory history = StockHistory.builder()
                 .stock(stock)
                 .previousQuantity(previousQuantity)
@@ -89,8 +85,24 @@ public class InventoryServiceImpl implements InventoryService {
                 .build();
         stockHistoryRepository.save(history);
         
-        // Return updated inventory DTO
-        return convertToInventoryDTO(stock);
+        // If new quantity is 0 and no reserved stock, delete the record
+        // Otherwise update it (keep for historical data if there's reserved stock)
+        if (newQuantity == 0 && reservedStock == 0) {
+            productStockRepository.delete(stock);
+            // Return a DTO representing the deleted state
+            InventoryDTO dto = convertToInventoryDTO(stock);
+            dto.setPhysicalStock(0);
+            dto.setAvailableStock(0);
+            dto.setStatus(StockStatus.OUT_OF_STOCK);
+            return dto;
+        } else {
+            // Update physical stock
+            stock.setQuantity(newQuantity);
+            productStockRepository.save(stock);
+            
+            // Return updated inventory DTO
+            return convertToInventoryDTO(stock);
+        }
     }
 
     @Override
@@ -183,6 +195,11 @@ public class InventoryServiceImpl implements InventoryService {
         int initializedCount = 0;
         
         for (StockInitRequest request : requests) {
+            // Skip if initial quantity is 0 or negative
+            if (request.getInitialQuantity() == null || request.getInitialQuantity() <= 0) {
+                continue;
+            }
+            
             // Check if stock already exists for this variant-size combination
             ProductVariant variant = variantRepository.findById(request.getVariantId())
                     .orElseThrow(() -> new RuntimeException("Variant not found: " + request.getVariantId()));
