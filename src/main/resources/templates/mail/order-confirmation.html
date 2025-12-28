@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đơn hàng - Tulipshop</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #FDF7ED;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FDF7ED;">
+        <tr>
+            <td style="padding: 32px 16px;">
+                <table role="presentation" style="max-width: 650px; width: 100%; margin: 0 auto; border-collapse: collapse; background-color: #FDF7ED;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 0 0 32px 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="text-align: left;">
+                                        <span style="font-size: 28px; font-weight: 700; color: #FF6B58; letter-spacing: -0.5px;">Tulipshop</span>
+                                    </td>
+                                    <td style="text-align: right; font-size: 12px; font-weight: 500; color: #2D2D2D;">
+                                        <a href="#" style="color: #2D2D2D; text-decoration: none; margin: 0 12px;">Shop</a>
+                                        <a href="#" style="color: #2D2D2D; text-decoration: none; margin: 0 12px;">Hướng dẫn</a>
+                                        <a href="#" style="color: #2D2D2D; text-decoration: none; margin: 0 12px;">Về chúng tôi</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Main Card -->
+                    <tr>
+                        <td>
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 12px;">
+                                <tr>
+                                    <td style="padding: 48px 40px 16px 40px; text-align: center;">
+                                        <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #2D2D2D; line-height: 1.25; letter-spacing: -0.5px;">
+                                            Hooray! Đơn hàng của bạn<br/>đã được xác nhận.
+                                        </h1>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0 40px 40px 40px; text-align: center;">
+                                        <p style="margin: 0; font-size: 15px; color: #757575; line-height: 1.6; max-width: 480px; margin: 0 auto;">
+                                            Xin chào <span th:text="${order.user.profile != null ? order.user.profile.fullName : order.user.email}" style="font-weight: 600; color: #2D2D2D;">Khách hàng</span>! Chúng tôi đang chuẩn bị đơn hàng của bạn để giao. Bạn sẽ nhận được thông báo qua email khi đơn hàng được vận chuyển.
+                                        </p>
+                                    </td>
+                                </tr>
+                                <!-- Status Tracker -->
+                                <tr>
+                                    <td style="padding: 0 20px 40px 20px;">
+                                        <table role="presentation" style="max-width: 550px; width: 100%; margin: 0 auto; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="width: 48px; text-align: center; vertical-align: top;">
+                                                    <div style="width: 48px; height: 48px; margin: 0 auto 12px; background-color: #FF6B58; border-radius: 50%; line-height: 48px; text-align: center;">
+                                                        <span style="font-size: 24px; color: #FFFFFF;">✓</span>
+                                                    </div>
+                                                </td>
+
+                                                <td style="vertical-align: top; padding-top: 24px;">
+                                                    <div style="height: 1px; background-color: #E0E0E0; width: 100%;"></div>
+                                                </td>
+
+                                                <td style="width: 48px; text-align: center; vertical-align: top;">
+                                                    <div style="width: 48px; height: 48px; margin: 0 auto 12px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 50%; line-height: 48px; text-align: center;">
+                                                        <span style="font-size: 20px;">🚚</span>
+                                                    </div>
+                                                </td>
+
+                                                <td style="vertical-align: top; padding-top: 24px;">
+                                                    <div style="height: 1px; background-color: #E0E0E0; width: 100%;"></div>
+                                                </td>
+
+                                                <td style="width: 48px; text-align: center; vertical-align: top;">
+                                                    <div style="width: 48px; height: 48px; margin: 0 auto 12px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 50%; line-height: 48px; text-align: center;">
+                                                        <span style="font-size: 20px;">📦</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 48px; text-align: center; vertical-align: top;">
+                                                    <p style="margin: 0; font-size: 11px; color: #757575; line-height: 1.3; white-space: nowrap;">Đơn hàng<br/>đã xác nhận</p>
+                                                </td>
+                                                <td></td> <td style="width: 48px; text-align: center; vertical-align: top;">
+                                                <p style="margin: 0; font-size: 11px; color: #757575; line-height: 1.3; white-space: nowrap;">Đang<br/>vận chuyển</p>
+                                            </td>
+                                                <td></td> <td style="width: 48px; text-align: center; vertical-align: top;">
+                                                <p style="margin: 0; font-size: 11px; color: #757575; line-height: 1.3; white-space: nowrap;">Dự kiến<br/>giao hàng</p>
+                                            </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0 40px 32px 40px; text-align: center;">
+                                        <a href="#" style="display: inline-block; padding: 12px 40px; background-color: #FF6B58; color: #FFFFFF; text-decoration: none; border-radius: 24px; font-size: 15px; font-weight: 500;">Xem đơn hàng của bạn</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0 40px 48px 40px; text-align: center;">
+                                        <p style="margin: 0; font-size: 12px; color: #757575; line-height: 1.6; max-width: 480px; margin: 0 auto;">
+                                            Thời gian giao hàng dự kiến. Liên hệ với người bán để biết thêm thông tin về đơn hàng.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Order Details Header -->
+                    <tr>
+                        <td style="padding: 24px 0; text-align: center;">
+                            <h2 style="margin: 0 0 4px 0; font-size: 26px; font-weight: 700; color: #2D2D2D; letter-spacing: -0.5px;">Chi tiết đơn hàng</h2>
+                            <p style="margin: 0; font-size: 14px; font-weight: 500; color: #2D2D2D;">
+                                Mã xác nhận: <span style="color: #FF6B58;" th:text="'#' + ${order.id}">#6200600</span>
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Order Items Card -->
+                    <tr>
+                        <td style="padding: 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border: 1px solid #E0E0E0;">
+                                <tr th:each="item, iterStat : ${order.orderItems}">
+                                    <td th:style="${!iterStat.last ? 'padding: 24px 32px; border-bottom: 1px solid #E0E0E0;' : 'padding: 24px 32px;'}">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="width: 96px; vertical-align: top;">
+                                                    <div style="width: 96px; height: 112px; background-color: #F5F5F5; border-radius: 4px; overflow: hidden;">
+                                                        <img th:src="${item.variant != null and !item.variant.images.isEmpty() ? item.variant.images[0].imageUrl : (item.product != null ? item.product.thumbnail : 'https://via.placeholder.com/96x112')}" 
+                                                             alt="Product" 
+                                                             style="width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply;">
+                                                    </div>
+                                                </td>
+                                                <td style="padding-left: 24px; vertical-align: top;">
+                                                    <p style="margin: 0 0 4px 0; font-size: 12px; color: #757575;">
+                                                        Mã giao dịch: <span th:text="${order.id}">1806790905</span>
+                                                    </p>
+                                                    <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #2D2D2D;" th:text="${item.product != null ? item.product.name : 'Sản phẩm'}">Tên sản phẩm</h3>
+                                                    <p style="margin: 0 0 16px 0; font-size: 14px; color: #2D2D2D;">
+                                                        <span th:if="${item.variant != null}" th:text="'Màu: ' + ${item.variant.colorName}">Màu: Xanh</span>
+                                                    </p>
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="font-size: 14px; color: #2D2D2D;">
+                                                                Số lượng: <span th:text="${item.quantity}">1</span>
+                                                                <span th:if="${item.size != null}" th:text="' | Size: ' + ${item.size.code}"></span>
+                                                            </td>
+                                                            <td style="text-align: right; font-size: 18px; font-weight: 700; color: #2D2D2D;" th:text="${#numbers.formatDecimal(item.priceAtPurchase, 0, 'POINT', 0, 'COMMA')} + ' đ'">16.850 đ</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <!-- Shipping & Payment Info -->
+                                <tr>
+                                    <td style="padding: 0; border-top: 1px solid #E0E0E0;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="width: 50%; padding: 24px 32px; vertical-align: top; border-right: 1px solid #E0E0E0;">
+                                                    <h4 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #2D2D2D;">Địa chỉ giao hàng</h4>
+                                                    <div style="font-size: 14px; color: #757575; line-height: 1.6;" th:utext="${#strings.replace(order.shippingAddress, ', ', '<br/>')}">
+                                                        Smiles Davis<br/>600 Montgomery St<br/>San Francisco, CA 94111
+                                                    </div>
+                                                </td>
+                                                <td style="width: 50%; padding: 24px 32px; vertical-align: top;">
+                                                    <h4 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #2D2D2D;">Thanh toán</h4>
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                                        <tr>
+                                                            <td style="padding: 4px 0; color: #757575;">Tạm tính</td>
+                                                            <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #2D2D2D;" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'COMMA')} + ' đ'">16.850 đ</td>
+                                                        </tr>
+                                                        <tr th:if="${order.voucher != null}">
+                                                            <td style="padding: 4px 0; color: #757575;">Giảm giá</td>
+                                                            <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #2D2D2D;" th:text="'-' + ${#numbers.formatDecimal(order.totalPrice + order.shippingPrice - order.finalPrice, 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; color: #757575;">Phí vận chuyển</td>
+                                                            <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #2D2D2D;" th:text="${#numbers.formatDecimal(order.shippingPrice, 0, 'POINT', 0, 'COMMA')} + ' đ'">8.120 đ</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="2" style="padding: 4px 0; font-size: 12px; color: #757575;">
+                                                                <span th:text="${order.paymentMethod}">COD</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <!-- Total -->
+                                <tr>
+                                    <td style="padding: 24px 32px; background-color: #F9F9F9; border-top: 1px solid #E0E0E0;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="font-size: 18px; font-weight: 700; color: #2D2D2D;">
+                                                    Tổng cộng (<span th:text="${order.orderItems.size()}">1</span> sản phẩm)
+                                                </td>
+                                                <td style="text-align: right; font-size: 24px; font-weight: 700; color: #2D2D2D;" th:text="${#numbers.formatDecimal(order.finalPrice, 0, 'POINT', 0, 'COMMA')} + ' đ'">26.470 đ</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Contact Options -->
+                    <tr>
+                        <td style="padding: 48px 0 0 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="width: 50%; padding: 0 8px 16px 0;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 8px;">
+                                            <tr>
+                                                <td style="padding: 20px 24px;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 28px; height: 28px; color: #FF6B58; font-size: 28px; line-height: 1;">💬</div>
+                                                            </td>
+                                                            <td style="padding-left: 16px; vertical-align: middle;">
+                                                                <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #2D2D2D;">Chat với chúng tôi</h3>
+                                                                <p style="margin: 0; font-size: 12px; color: #757575;">Tulipshop.com</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td style="width: 50%; padding: 0 0 16px 8px;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 8px;">
+                                            <tr>
+                                                <td style="padding: 20px 24px;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 28px; height: 28px; color: #FF6B58; font-size: 28px; line-height: 1;">📞</div>
+                                                            </td>
+                                                            <td style="padding-left: 16px; vertical-align: middle;">
+                                                                <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #2D2D2D;">Gọi cho chúng tôi</h3>
+                                                                <p style="margin: 0; font-size: 12px; color: #757575;">1 (999) 928-2938</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 50%; padding: 0 8px 0 0;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 8px;">
+                                            <tr>
+                                                <td style="padding: 20px 24px;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 28px; height: 28px; color: #FF6B58; font-size: 28px; line-height: 1;">✉️</div>
+                                                            </td>
+                                                            <td style="padding-left: 16px; vertical-align: middle;">
+                                                                <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #2D2D2D;">Email cho chúng tôi</h3>
+                                                                <p style="margin: 0; font-size: 12px; color: #757575;">Tulipshop@gmail.com</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td style="width: 50%; padding: 0 0 0 8px;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 8px;">
+                                            <tr>
+                                                <td style="padding: 20px 24px;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 28px; height: 28px; color: #FF6B58; font-size: 28px; line-height: 1;">📱</div>
+                                                            </td>
+                                                            <td style="padding-left: 16px; vertical-align: middle;">
+                                                                <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #2D2D2D;">Nhắn tin cho chúng tôi</h3>
+                                                                <p style="margin: 0; font-size: 12px; color: #757575;">Gửi "Help" đến (+84) 283-203</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Promotional Banner -->
+                    <tr>
+                        <td style="padding: 32px 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFDAB9; border-radius: 12px;">
+                                <tr>
+                                    <td style="width: 50%; padding: 40px; vertical-align: middle;">
+                                        <h2 style="margin: 0 0 16px 0; font-size: 26px; font-weight: 700; color: #2D2D2D; line-height: 1.3; letter-spacing: -0.5px;">Thắc mắc về kích cỡ túi xách?</h2>
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: rgba(45, 45, 45, 0.8); line-height: 1.6;">
+                                            Chúng tôi đã cập nhật kích cỡ túi xách. Nếu bạn tò mò về số lượng sản phẩm hoặc cách thay đổi này mang lại lợi ích, vui lòng xem FAQ của chúng tôi!
+                                        </p>
+                                        <a href="#" style="display: inline-block; padding: 12px 32px; background-color: #FF6B58; color: #FFFFFF; text-decoration: none; border-radius: 24px; font-size: 14px; font-weight: 500;">Đọc FAQ</a>
+                                    </td>
+                                    <td style="width: 50%; padding: 0; vertical-align: middle;">
+                                        <img src="https://via.placeholder.com/325x300" alt="Clothes rack" style="width: 100%; height: 300px; object-fit: cover; display: block;">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Free Shipping Promo -->
+                    <tr>
+                        <td style="padding: 0 0 40px 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 12px; padding: 40px; text-align: center;">
+                                <tr>
+                                    <td>
+                                        <h2 style="margin: 0 0 12px 0; font-size: 26px; font-weight: 700; color: #2D2D2D; letter-spacing: -0.5px;">Miễn phí vận chuyển? Tuyệt vời!</h2>
+                                        <p style="margin: 0 0 32px 0; font-size: 14px; color: #757575; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto;">
+                                            Thêm một chút nữa thôi? Là phần thưởng, hãy tận hưởng ưu đãi miễn phí vận chuyển cho đơn hàng tiếp theo của bạn.
+                                        </p>
+                                        <a href="#" style="display: inline-block; padding: 12px 40px; background-color: #FF6B58; color: #FFFFFF; text-decoration: none; border-radius: 24px; font-size: 14px; font-weight: 500;">Mua sắm ngay</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Cancellation Notice -->
+                    <tr>
+                        <td style="padding: 0 0 40px 0; text-align: center;">
+                            <p style="margin: 0; font-size: 12px; color: #757575; line-height: 1.6; max-width: 560px; margin: 0 auto;">
+                                Nếu bạn cần hủy đơn hàng, vui lòng gửi email đến tulipshop@gmail.com trong vòng 30 phút tới với số đơn hàng trong tiêu đề và chúng tôi sẽ hủy đơn hàng trước khi giao và hoàn tiền cho bạn.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Questions Card -->
+                    <tr>
+                        <td style="padding: 0 0 64px 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 12px;">
+                                <tr>
+                                    <td style="padding: 24px 28px;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="width: 48px; vertical-align: middle;">
+                                                    <div style="width: 48px; height: 48px; background-color: #FF6B58; border-radius: 50%; display: inline-block; text-align: center; line-height: 48px;">
+                                                        <span style="font-size: 24px; color: #FFFFFF;">✉</span>
+                                                    </div>
+                                                </td>
+                                                <td style="padding-left: 20px; vertical-align: middle;">
+                                                    <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #2D2D2D;">Có câu hỏi nào không?</h3>
+                                                    <p style="margin: 0; font-size: 12px; color: #757575; line-height: 1.5;">
+                                                        Nếu bạn cần bất kỳ trợ giúp nào hoặc chỉ muốn trò chuyện, hãy gửi email cho chúng tôi bất cứ lúc nào 
+                                                        <a href="mailto:tulipshop@gmail.com" style="color: #FF6B58; text-decoration: none;">tulipshop@gmail.com</a>
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <!-- Footer -->
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #1D1F2E; color: #9CA3AF;">
+        <tr>
+            <td style="padding: 64px 16px;">
+                <table role="presentation" style="max-width: 650px; width: 100%; margin: 0 auto; border-collapse: collapse; text-align: center;">
+                    <tr>
+                        <td style="padding-bottom: 32px;">
+                            <table role="presentation" style="margin: 0 auto; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 0 12px;">
+                                        <a href="#" style="display: inline-block; width: 32px; height: 32px; background-color: rgba(255, 255, 255, 0.1); border-radius: 50%; text-align: center; line-height: 32px; color: #FFFFFF; text-decoration: none; font-size: 16px;">f</a>
+                                    </td>
+                                    <td style="padding: 0 12px;">
+                                        <a href="#" style="display: inline-block; color: #FFFFFF; text-decoration: none; font-size: 18px; font-style: italic;">𝕏</a>
+                                    </td>
+                                    <td style="padding: 0 12px;">
+                                        <a href="#" style="display: inline-block; width: 32px; height: 32px; background-color: rgba(255, 255, 255, 0.1); border-radius: 50%; text-align: center; line-height: 32px; color: #FFFFFF; text-decoration: none; font-size: 16px;">📷</a>
+                                    </td>
+                                    <td style="padding: 0 12px;">
+                                        <a href="#" style="display: inline-block; width: 32px; height: 32px; background-color: rgba(255, 255, 255, 0.1); border-radius: 50%; text-align: center; line-height: 32px; color: #FFFFFF; text-decoration: none; font-size: 16px;">📡</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-bottom: 4px;">
+                            <p style="margin: 0; font-size: 12px; color: #9CA3AF;">© Tulipshop Inc. Bảo lưu mọi quyền.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-bottom: 24px;">
+                            <p style="margin: 0; font-size: 12px; color: #9CA3AF;">268 Summer St., 6th Floor, Boston, MA 02210.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p style="margin: 0; font-size: 12px; color: #9CA3AF;">
+                                Không muốn nhận email này nữa? 
+                                <a href="#" style="color: #9CA3AF; text-decoration: underline;">Hủy đăng ký tại đây.</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

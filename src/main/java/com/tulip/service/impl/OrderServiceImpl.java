@@ -9,11 +9,14 @@ import com.tulip.entity.enums.OrderStatus;
 import com.tulip.entity.enums.PaymentMethod;
 import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.entity.product.ProductStock;
+import com.tulip.entity.product.ProductVariant;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
+import com.tulip.service.EmailService;
 import com.tulip.service.OrderService;
 import com.tulip.service.integration.TulipShippingClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
@@ -41,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductStockRepository productStockRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final EmailService emailService;
     private final TulipShippingClient shippingClient;
     private final ShippingOrderRepository shippingOrderRepository;
 
@@ -98,12 +103,12 @@ public class OrderServiceImpl implements OrderService {
 
             ProductStock realStock = cartItemEntity.getStock();
 
-            if (realStock.getQuantity() < itemDTO.getQuantity()) {
-                throw new RuntimeException("Sản phẩm " + itemDTO.getProductName() + " không đủ số lượng!");
-            }
-
-            realStock.setQuantity(realStock.getQuantity() - itemDTO.getQuantity());
-            productStockRepository.save(realStock);
+//            if (realStock.getQuantity() < itemDTO.getQuantity()) {
+//                throw new RuntimeException("Sản phẩm " + itemDTO.getProductName() + " không đủ số lượng!");
+//            }
+//
+//            realStock.setQuantity(realStock.getQuantity() - itemDTO.getQuantity());
+//            productStockRepository.save(realStock);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -119,9 +124,42 @@ public class OrderServiceImpl implements OrderService {
             order.getOrderItems().add(orderItem);
         }
 
-        return orderRepository.save(order);
-    }
+        Order savedOrder = orderRepository.save(order);
 
+        log.info("📦 Order #{} saved successfully. Preparing to send confirmation email...", savedOrder.getId());
+
+        // Eager load relationships before async email sending to avoid LazyInitializationException
+        Hibernate.initialize(savedOrder.getUser());
+        if (savedOrder.getUser().getProfile() != null) {
+            Hibernate.initialize(savedOrder.getUser().getProfile());
+        }
+        Hibernate.initialize(savedOrder.getOrderItems());
+        for (OrderItem item : savedOrder.getOrderItems()) {
+            if (item.getProduct() != null) {
+                Hibernate.initialize(item.getProduct());
+            }
+            if (item.getVariant() != null) {
+                Hibernate.initialize(item.getVariant());
+                Hibernate.initialize(item.getVariant().getImages());
+            }
+            if (item.getSize() != null) {
+                Hibernate.initialize(item.getSize());
+            }
+        }
+
+        log.info("📧 Calling emailService.sendOrderConfirmation for order #{}", savedOrder.getId());
+
+        // Send order confirmation email asynchronously
+        try {
+            emailService.sendOrderConfirmation(savedOrder);
+            log.info("✅ Email service called successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+
+        return savedOrder;
+    }
+    
     @Override
     @Transactional(readOnly = true)
     public List<Order> getUserOrders(Long userId) {
@@ -142,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Page<Order> getOrdersByStatus(Long userId, String status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        
+
         Page<Order> orderPage;
         if ("ALL".equalsIgnoreCase(status)) {
             orderPage = orderRepository.findByUserIdPaginated(userId, pageable);
@@ -155,7 +193,7 @@ public class OrderServiceImpl implements OrderService {
                 orderPage = orderRepository.findByUserIdPaginated(userId, pageable);
             }
         }
-        
+
         // Initialize lazy-loaded relationships
         for (Order order : orderPage.getContent()) {
             if (order.getOrderItems() != null) {
@@ -166,7 +204,7 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
-        
+
         return orderPage;
     }
 
@@ -189,58 +227,63 @@ public class OrderServiceImpl implements OrderService {
         }
         return Optional.empty();
     }
-
+    
     @Override
     @Transactional
     public void reOrderToCart(Long userId, Long orderId) {
+        // 1. Lấy đơn hàng cũ và kiểm tra quyền sở hữu
         Order oldOrder = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
-
+        
         if (!oldOrder.getUser().getId().equals(userId)) {
             throw new RuntimeException("Bạn không có quyền truy cập đơn hàng này");
         }
-
-        if (oldOrder.getStatus() != OrderStatus.CANCELLED ||
-                oldOrder.getPaymentStatus() != PaymentStatus.EXPIRED) {
+        
+        // 2. Chỉ cho phép mua lại đơn hàng đã CANCELLED do hết hạn thanh toán
+        if (oldOrder.getStatus() != OrderStatus.CANCELLED || 
+            oldOrder.getPaymentStatus() != PaymentStatus.EXPIRED) {
             throw new RuntimeException("Chỉ có thể mua lại đơn hàng đã hết hạn thanh toán");
         }
-
+        
+        // 3. Kiểm tra tồn kho và thêm vào giỏ hàng
         if (oldOrder.getOrderItems() == null || oldOrder.getOrderItems().isEmpty()) {
             throw new RuntimeException("Đơn hàng không có sản phẩm nào");
         }
-
+        
         List<String> unavailableItems = new ArrayList<>();
-
+        
         for (OrderItem item : oldOrder.getOrderItems()) {
             if (item.getStock() == null) {
                 unavailableItems.add(item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm không xác định");
                 continue;
             }
-
+            
             ProductStock stock = productStockRepository.findById(item.getStock().getId())
                     .orElse(null);
-
+            
             if (stock == null) {
                 unavailableItems.add(item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm không xác định");
                 continue;
             }
-
+            
             int requestedQuantity = item.getQuantity();
             int availableQuantity = stock.getQuantity();
-
+            
             if (availableQuantity <= 0) {
-                unavailableItems.add((item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm") +
+                unavailableItems.add((item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm") + 
                         " (Size: " + (item.getSize() != null ? item.getSize().getCode() : "N/A") + ") - Hết hàng");
                 continue;
             }
-
+            
+            // Thêm vào giỏ với số lượng tối đa có thể (nếu yêu cầu nhiều hơn có sẵn)
             int quantityToAdd = Math.min(requestedQuantity, availableQuantity);
             try {
                 cartService.addToCart(userId, stock.getId(), quantityToAdd);
-
+                
+                // Thông báo nếu số lượng ít hơn yêu cầu
                 if (quantityToAdd < requestedQuantity) {
-                    unavailableItems.add((item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm") +
-                            " (Size: " + (item.getSize() != null ? item.getSize().getCode() : "N/A") +
+                    unavailableItems.add((item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm") + 
+                            " (Size: " + (item.getSize() != null ? item.getSize().getCode() : "N/A") + 
                             ") - Chỉ còn " + availableQuantity + " sản phẩm (đã thêm " + quantityToAdd + " vào giỏ)");
                 }
             } catch (Exception e) {
@@ -255,9 +298,9 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException(message);
         }
     }
-    
+
     // ===== ADMIN METHODS =====
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<OrderAdminDTO> getAllOrders() {
@@ -271,7 +314,7 @@ public class OrderServiceImpl implements OrderService {
         });
         return orders.stream().map(this::convertToDTO).toList();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<OrderAdminDTO> getOrdersByStatus(OrderStatus status) {
@@ -286,13 +329,13 @@ public class OrderServiceImpl implements OrderService {
             .toList();
         return orders.stream().map(this::convertToDTO).toList();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<OrderAdminDTO> getPendingOrders() {
         return getOrdersByStatus(OrderStatus.PENDING);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<OrderAdminDTO> getOrdersByUser(Long userId) {
@@ -301,87 +344,107 @@ public class OrderServiceImpl implements OrderService {
             .toList();
         return orders.stream().map(this::convertToDTO).toList();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<OrderAdminDTO> getOrdersByDate(LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-        
+
         List<Order> orders = orderRepository.findAll().stream()
-            .filter(o -> o.getCreatedAt() != null && 
-                        !o.getCreatedAt().isBefore(startOfDay) && 
+            .filter(o -> o.getCreatedAt() != null &&
+                        !o.getCreatedAt().isBefore(startOfDay) &&
                         !o.getCreatedAt().isAfter(endOfDay))
             .toList();
-        
+
         return orders.stream().map(this::convertToDTO).toList();
     }
-    
+
     @Override
     @Transactional
     public void confirmOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng #" + orderId));
-        
+
         // Chỉ có thể xác nhận đơn hàng PENDING
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new RuntimeException("Chỉ có thể xác nhận đơn hàng ở trạng thái PENDING");
         }
-        
+
         // Kiểm tra payment cho MOMO và VNPAY
         if (order.getPaymentMethod() == PaymentMethod.MOMO || order.getPaymentMethod() == PaymentMethod.VNPAY) {
             // Kiểm tra payment status
             if (order.getPaymentStatus() != PaymentStatus.SUCCESS) {
                 throw new RuntimeException("Đơn hàng chưa thanh toán thành công. Vui lòng kiểm tra trạng thái thanh toán.");
             }
-            
+
             // Kiểm tra payment expiry
             if (order.getPaymentExpireAt() != null && LocalDateTime.now().isAfter(order.getPaymentExpireAt())) {
                 throw new RuntimeException("Đơn hàng đã hết hạn thanh toán. Không thể xác nhận.");
             }
         }
-        
+
+        // Logic: Nếu là COD thì bây giờ mới trừ kho.
+        // Còn Momo/VNPAY thì đã trừ lúc Callback (confirmOrderPayment) rồi nên bỏ qua.
+        if (order.getPaymentMethod() == PaymentMethod.COD) {
+            for (OrderItem item : order.getOrderItems()) {
+                ProductStock stock = item.getStock();
+
+                // Tính tồn kho mới
+                int newQuantity = stock.getQuantity() - item.getQuantity();
+
+                // Kiểm tra âm kho (Safety check)
+                if (newQuantity < 0) {
+                    throw new RuntimeException("Không đủ tồn kho cho sản phẩm: " + stock.getSku());
+                }
+
+                // Cập nhật và lưu xuống DB
+                stock.setQuantity(newQuantity);
+                productStockRepository.save(stock);
+            }
+        }
+
         // Cập nhật trạng thái đơn hàng
         order.setStatus(OrderStatus.CONFIRMED);
         orderRepository.save(order);
-        
+
         // Cập nhật trạng thái shipping order
         ShippingOrder shippingOrder = shippingOrderRepository.findByOrder_Id(orderId)
                 .orElse(null);
-        
+
         if (shippingOrder != null) {
             shippingOrder.setStatus(OrderStatus.CONFIRMED);
             shippingOrderRepository.save(shippingOrder);
         }
-        
+
         // KHÔNG gọi API shipping ở đây nữa!
         // Chỉ xác nhận đơn hàng, chưa bắt đầu giao
     }
-    
+
     @Override
     @Transactional
     public void startShipping(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng #" + orderId));
-        
+
         // Chỉ có thể bắt đầu giao hàng khi đơn đã CONFIRMED
         if (order.getStatus() != OrderStatus.CONFIRMED) {
             throw new RuntimeException("Chỉ có thể bắt đầu giao hàng cho đơn hàng đã xác nhận");
         }
-        
+
         // Cập nhật trạng thái đơn hàng sang SHIPPING
         order.setStatus(OrderStatus.SHIPPING);
         orderRepository.save(order);
-        
+
         // Cập nhật trạng thái shipping order
         ShippingOrder shippingOrder = shippingOrderRepository.findByOrder_Id(orderId)
                 .orElse(null);
-        
+
         if (shippingOrder != null) {
             shippingOrder.setStatus(OrderStatus.SHIPPING);
             shippingOrderRepository.save(shippingOrder);
         }
-        
+
         // GỌI API SHIPPING SERVICE ĐỂ BẮT ĐẦU GIAO HÀNG
         try {
             shippingClient.startDelivery(order.getOrderCode());
@@ -396,11 +459,11 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Lỗi khi gọi API vận chuyển: " + e.getMessage());
         }
     }
-    
+
     // Helper method to convert Order entity to DTO
     private OrderAdminDTO convertToDTO(Order order) {
         List<OrderAdminDTO.OrderItemDTO> itemDTOs = new ArrayList<>();
-        
+
         if (order.getOrderItems() != null) {
             for (OrderItem item : order.getOrderItems()) {
                 // Lấy ảnh đầu tiên của variant
@@ -408,7 +471,7 @@ public class OrderServiceImpl implements OrderService {
                 if (item.getVariant() != null && item.getVariant().getImages() != null && !item.getVariant().getImages().isEmpty()) {
                     productImage = item.getVariant().getImages().get(0).getImageUrl();
                 }
-                
+
                 OrderAdminDTO.OrderItemDTO itemDTO = OrderAdminDTO.OrderItemDTO.builder()
                     .id(item.getId())
                     .productName(item.getProduct() != null ? item.getProduct().getName() : "N/A")
@@ -422,12 +485,12 @@ public class OrderServiceImpl implements OrderService {
                 itemDTOs.add(itemDTO);
             }
         }
-        
+
         // Lấy thông tin người đặt hàng
         String userName = null;
         String userPhone = null;
         String userEmail = null;
-        
+
         if (order.getUser() != null) {
             userEmail = order.getUser().getEmail();
             Hibernate.initialize(order.getUser().getProfile());
@@ -436,7 +499,7 @@ public class OrderServiceImpl implements OrderService {
                 userPhone = order.getUser().getProfile().getPhone();
             }
         }
-        
+
         return OrderAdminDTO.builder()
             .id(order.getId())
             .orderCode(order.getOrderCode())
@@ -458,5 +521,78 @@ public class OrderServiceImpl implements OrderService {
             .updatedAt(order.getUpdatedAt())
             .orderItems(itemDTOs)
             .build();
+    }
+
+    @Override
+    @Transactional
+    public void confirmOrderPayment(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Chỉ trừ kho nếu đơn hàng chuyển từ trạng thái giữ chỗ (PENDING) sang đã thanh toán
+        if (order.getStatus() == OrderStatus.PENDING) {
+            for (OrderItem item : order.getOrderItems()) {
+                ProductStock stock = item.getStock();
+                // Bây giờ mới thực sự trừ kho vật lý
+                int newQuantity = stock.getQuantity() - item.getQuantity();
+                if (newQuantity < 0) {
+                    throw new RuntimeException("Kho không đủ để hoàn tất đơn hàng này (Lỗi bất thường)");
+                }
+
+                // Gọi service update để đảm bảo có Lock và lưu Lịch sử (History)
+                // Lưu ý: Cần inject InventoryService vào OrderServiceImpl để gọi hàm này
+                // Hoặc update trực tiếp tại đây và tự tạo history:
+                stock.setQuantity(newQuantity);
+                productStockRepository.save(stock);
+
+                // TODO: Lưu StockHistory tại đây nếu muốn lưu vết là "Đơn hàng thành công"
+            }
+
+            // Cập nhật trạng thái đơn hàng
+//            order.setStatus(OrderStatus.CONFIRMED);
+            order.setPaymentStatus(PaymentStatus.SUCCESS);
+            Order savedOrder = orderRepository.save(order);
+
+            // Eager load relationships before async email sending
+            Hibernate.initialize(savedOrder.getUser());
+            if (savedOrder.getUser().getProfile() != null) {
+                Hibernate.initialize(savedOrder.getUser().getProfile());
+            }
+            Hibernate.initialize(savedOrder.getOrderItems());
+            for (OrderItem item : savedOrder.getOrderItems()) {
+                if (item.getProduct() != null) {
+                    Hibernate.initialize(item.getProduct());
+                }
+                if (item.getVariant() != null) {
+                    Hibernate.initialize(item.getVariant());
+                    Hibernate.initialize(item.getVariant().getImages());
+                }
+                if (item.getSize() != null) {
+                    Hibernate.initialize(item.getSize());
+                }
+            }
+
+            // Send order confirmation email for online payment
+            emailService.sendOrderConfirmation(savedOrder);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void handlePaymentFailure(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Nếu đơn hàng đang chờ thanh toán mà bị lỗi, cập nhật trạng thái
+        if (order.getStatus() == OrderStatus.PENDING) {
+            // có thể set là CANCELLED hoặc tạo thêm enum PAYMENT_FAILED tùy logic
+            order.setStatus(OrderStatus.CANCELLED);
+            order.setPaymentStatus(PaymentStatus.FAILED); // Cần đảm bảo enum PaymentStatus có giá trị FAILED
+
+            // Lưu ý: Code cũ chưa trừ kho ở bước PENDING nên không cần cộng lại kho ở đây.
+            // Nếu logic thay đổi (đã trừ kho từ lúc đặt), thì phải cộng lại kho ở đây.
+
+            orderRepository.save(order);
+        }
     }
 }

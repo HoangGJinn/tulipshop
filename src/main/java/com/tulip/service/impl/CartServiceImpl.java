@@ -30,6 +30,7 @@ public class CartServiceImpl implements CartService {
     private final ProductStockRepository productStockRepository;
     private final UserRepository userRepository;
     private final EntityManager entityManager;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     @Transactional
@@ -47,20 +48,53 @@ public class CartServiceImpl implements CartService {
         ProductStock stock = productStockRepository.findById(stockId)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại hoặc đã hết hàng"));
 
-        if (stock.getQuantity() < quantity) {
-            throw new RuntimeException("Số lượng tồn kho không đủ (Còn lại: " + stock.getQuantity() + ")");
+//        if (stock.getQuantity() < quantity) {
+//            throw new RuntimeException("Số lượng tồn kho không đủ (Còn lại: " + stock.getQuantity() + ")");
+//        }
+//
+//        // 3. Kiểm tra xem sản phẩm này đã có trong giỏ chưa
+//        Optional<CartItem> existingItem = cartItemRepository.findByCartIdAndStockId(cart.getId(), stockId);
+//
+//        if (existingItem.isPresent()) {
+//            // Nếu có rồi -> Cộng dồn số lượng
+//            CartItem item = existingItem.get();
+//            item.setQuantity(item.getQuantity() + quantity);
+//            cartItemRepository.save(item);
+//        } else {
+//            // Nếu chưa -> Tạo mới
+//            CartItem newItem = CartItem.builder()
+//                    .cart(cart)
+//                    .stock(stock)
+//                    .quantity(quantity)
+//                    .build();
+//            cartItemRepository.save(newItem);
+//        }
+
+        // Bước 1: Tính hàng đang giữ bởi người khác (Reserved)
+        Integer reservedStock = orderItemRepository.calculateReservedStock(stockId);
+        if (reservedStock == null) reservedStock = 0;
+
+        // Bước 2: Tính hàng thực sự có thể bán (ATS)
+        int availableToSell = stock.getQuantity() - reservedStock;
+
+        // Bước 3: Kiểm tra
+        // Lấy số lượng hiện tại trong giỏ (nếu có) để cộng dồn kiểm tra
+        Optional<CartItem> existingItemOpt = cartItemRepository.findByCartIdAndStockId(cart.getId(), stockId);
+        int currentInCart = existingItemOpt.map(CartItem::getQuantity).orElse(0);
+
+        // Tổng muốn mua = Đang có trong giỏ + Muốn thêm mới
+        int totalDemand = currentInCart + quantity;
+
+        if (totalDemand > availableToSell) {
+            throw new RuntimeException("Sản phẩm này chỉ còn " + availableToSell + " món khả dụng (Kho: " + stock.getQuantity() + ", Đang giao dịch: " + reservedStock + ")");
         }
+        // --- KẾT THÚC SỬA LOGIC ---
 
-        // 3. Kiểm tra xem sản phẩm này đã có trong giỏ chưa
-        Optional<CartItem> existingItem = cartItemRepository.findByCartIdAndStockId(cart.getId(), stockId);
-
-        if (existingItem.isPresent()) {
-            // Nếu có rồi -> Cộng dồn số lượng
-            CartItem item = existingItem.get();
+        if (existingItemOpt.isPresent()) {
+            CartItem item = existingItemOpt.get();
             item.setQuantity(item.getQuantity() + quantity);
             cartItemRepository.save(item);
         } else {
-            // Nếu chưa -> Tạo mới
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .stock(stock)
@@ -68,6 +102,7 @@ public class CartServiceImpl implements CartService {
                     .build();
             cartItemRepository.save(newItem);
         }
+
     }
 
     @Override
@@ -93,10 +128,25 @@ public class CartServiceImpl implements CartService {
         if (quantity <= 0) {
             cartItemRepository.delete(item); // Xóa nếu số lượng = 0
         } else {
-            // Check tồn kho
-            if (quantity > item.getStock().getQuantity()) {
-                throw new RuntimeException("Vượt quá số lượng tồn kho");
+//            // Check tồn kho
+//            if (quantity > item.getStock().getQuantity()) {
+//                throw new RuntimeException("Vượt quá số lượng tồn kho");
+//            }
+//            item.setQuantity(quantity);
+//            cartItemRepository.save(item);
+            // --- SỬA LOGIC CHECK TỒN KHO KHI UPDATE ---
+            ProductStock stock = item.getStock();
+
+            Integer reservedStock = orderItemRepository.calculateReservedStock(stock.getId());
+            if (reservedStock == null) reservedStock = 0;
+
+            int availableToSell = stock.getQuantity() - reservedStock;
+
+            if (quantity > availableToSell) {
+                throw new RuntimeException("Vượt quá số lượng khả dụng (Còn lại: " + availableToSell + ")");
             }
+            // ------------------------------------------
+
             item.setQuantity(quantity);
             cartItemRepository.save(item);
         }

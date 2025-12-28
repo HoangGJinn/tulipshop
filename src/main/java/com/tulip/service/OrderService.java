@@ -24,7 +24,7 @@ public interface OrderService {
      * @return Page chứa danh sách đơn hàng
      */
     Page<Order> getOrdersByStatus(Long userId, String status, int page, int size);
-    
+
     Optional<Order> getUserOrder(Long userId, Long orderId);
     
     /**
@@ -34,7 +34,7 @@ public interface OrderService {
      * @throws RuntimeException nếu đơn hàng không hợp lệ hoặc không đủ tồn kho
      */
     void reOrderToCart(Long userId, Long orderId);
-    
+
     // ===== ADMIN METHODS =====
 
     List<OrderAdminDTO> getAllOrders();
@@ -50,4 +50,8 @@ public interface OrderService {
     void confirmOrder(Long orderId);
 
     void startShipping(Long orderId);
+
+    void confirmOrderPayment(Long orderId);
+
+    void handlePaymentFailure(Long orderId);
 }

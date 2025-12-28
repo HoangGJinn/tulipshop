@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-       
+
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.orderItems oi " +
            "LEFT JOIN FETCH oi.variant v " +
@@ -40,7 +40,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "AND o.paymentExpireAt < :now")
     List<Order> findExpiredPendingOrders(@Param("status") OrderStatus status, 
                                          @Param("now") LocalDateTime now);
-    
+
     // Admin: Lấy tất cả đơn hàng (mới nhất trước)
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.user u " +
@@ -49,7 +49,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH oi.product p " +
            "ORDER BY o.createdAt DESC")
     List<Order> findAllWithDetails();
-    
+
     // Admin: Lấy đơn hàng theo trạng thái
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.user u " +
@@ -57,7 +57,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "WHERE o.status = :status " +
            "ORDER BY o.createdAt DESC")
     List<Order> findByStatus(@Param("status") OrderStatus status);
-    
+
     // Admin: Lấy đơn hàng theo user
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.user u " +
@@ -65,16 +65,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "WHERE o.user.id = :userId " +
            "ORDER BY o.createdAt DESC")
     List<Order> findByUserIdWithDetails(@Param("userId") Long userId);
-    
+
     // Admin: Lấy đơn hàng theo khoảng thời gian
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.user u " +
            "LEFT JOIN FETCH o.orderItems oi " +
            "WHERE o.createdAt BETWEEN :startDate AND :endDate " +
            "ORDER BY o.createdAt DESC")
-    List<Order> findByDateRange(@Param("startDate") LocalDateTime startDate, 
+    List<Order> findByDateRange(@Param("startDate") LocalDateTime startDate,
                                 @Param("endDate") LocalDateTime endDate);
-    
+
     // User: Lấy đơn hàng theo user với phân trang
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.orderItems oi " +
@@ -83,7 +83,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "WHERE o.user.id = :userId " +
            "ORDER BY o.createdAt DESC")
     Page<Order> findByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
-    
+
     // User: Lấy đơn hàng theo user và status với phân trang
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.orderItems oi " +
@@ -91,7 +91,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH oi.product p " +
            "WHERE o.user.id = :userId AND o.status = :status " +
            "ORDER BY o.createdAt DESC")
-    Page<Order> findByUserIdAndStatusPaginated(@Param("userId") Long userId, 
-                                                @Param("status") OrderStatus status, 
+    Page<Order> findByUserIdAndStatusPaginated(@Param("userId") Long userId,
+                                                @Param("status") OrderStatus status,
                                                 Pageable pageable);
 }

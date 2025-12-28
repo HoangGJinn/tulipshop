@@ -7,6 +7,7 @@ import com.tulip.entity.Order;
 import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.repository.OrderRepository;
 import com.tulip.service.MomoService;
+import com.tulip.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -38,6 +39,8 @@ public class MomoServiceImpl implements MomoService {
 
     private static final String MOMO_CREATE_PAYMENT_URL = "https://test-payment.momo.vn/v2/gateway/api/create";
     private static final String MOMO_QUERY_STATUS_URL = "https://test-payment.momo.vn/v2/gateway/api/query";
+    @Autowired
+    private OrderService orderService;
 
     @Override
     public String createPaymentRequest(String amount, String orderId, String orderInfo, String requestType) {
@@ -184,6 +187,7 @@ public class MomoServiceImpl implements MomoService {
                     order.setTransactionId(transactionId);
                 }
                 log.info("Payment successful for order: {}", orderId);
+
             } else {
                 order.setPaymentStatus(PaymentStatus.FAILED);
                 log.warn("Payment failed for order: {}, resultCode: {}", orderId, resultCode);

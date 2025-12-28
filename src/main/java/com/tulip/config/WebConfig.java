@@ -43,4 +43,3 @@ public class WebConfig implements WebMvcConfigurer {
         return mapper;
     }
 }
-

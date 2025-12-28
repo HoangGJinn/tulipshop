@@ -111,35 +111,64 @@
                 </button>
             </div>
 
-            <div class="product-details-container">
-                <details class="detail-bar">
-                    <summary class="d-flex justify-content-between align-items-center py-3 border-top border-bottom cursor-pointer">
-                        <span class="text-uppercase fw-bold small">CHI TIẾT SẢN PHẨM</span>
-                        <i class="fas fa-plus small"></i>
-                    </summary>
-                    <div class="py-3 text-secondary small detail-content">
-                        <div th:utext="${product.description}">Nội dung mô tả sản phẩm...</div>
 
-                        <div class="mt-3 pt-3 border-top">
-                            <p class="mb-1"><strong>Mã sản phẩm:</strong> <span th:text="${product.sku}"></span></p>
-                            <p class="mb-1"><strong>Danh mục:</strong> <span th:text="${product.categoryName}"></span></p>
+
+        </div>
+    </div>
+</div>
+
+<!-- Tabbed Product Info Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="product-tabs-container">
+                <!-- Tab Headers -->
+                <div class="tab-headers">
+                    <button class="tab-header active" data-tab="description" onclick="switchTab('description')">
+                        MÔ TẢ SẢN PHẨM
+                    </button>
+                    <button class="tab-header" data-tab="preservation" onclick="switchTab('preservation')">
+                        HƯỚNG DẪN BẢO QUẢN
+                    </button>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="tab-content-wrapper">
+                    <!-- Description Tab -->
+                    <div id="tab-description" class="tab-panel active">
+                        <div class="tab-content-inner">
+                            <div th:utext="${product.description}">
+                                <p>Nội dung mô tả sản phẩm sẽ được hiển thị ở đây...</p>
+                            </div>
                         </div>
                     </div>
-                </details>
-
-                <details class="detail-bar">
-                    <summary class="d-flex justify-content-between align-items-center py-3 border-bottom cursor-pointer">
-                        <span class="text-uppercase fw-bold small">HƯỚNG DẪN BẢO QUẢN</span>
-                        <i class="fas fa-plus small"></i>
-                    </summary>
-                    <div class="py-3 text-secondary small">
-                        <p>- Giặt tay hoặc giặt máy ở chế độ nhẹ.</p>
-                        <p>- Không sử dụng chất tẩy rửa mạnh.</p>
-                        <p>- Phơi ở nơi thoáng mát, tránh ánh nắng trực tiếp.</p>
+                    
+                    <!-- Preservation Tab -->
+                    <div id="tab-preservation" class="tab-panel">
+                        <div class="tab-content-inner">
+                            <h5 class="mb-3">Cách giặt và bảo quản:</h5>
+                            <ul class="preservation-list">
+                                <li>Giặt tay hoặc giặt máy ở chế độ nhẹ với nước lạnh (dưới 30°C)</li>
+                                <li>Không sử dụng chất tẩy rửa mạnh hoặc chất tẩy trắng</li>
+                                <li>Phơi ở nơi thoáng mát, tránh ánh nắng trực tiếp</li>
+                                <li>Ủi ở nhiệt độ thấp, tránh ủi trực tiếp lên họa tiết</li>
+                                <li>Bảo quản trong tủ khô ráo, có thể treo hoặc gấp gọn</li>
+                            </ul>
+                            
+                            <h5 class="mb-3 mt-4">Lưu ý đặc biệt:</h5>
+                            <div class="special-note">
+                                <strong>Chất liệu cao cấp:</strong> Sản phẩm được làm từ chất liệu tự nhiên, có thể co rút nhẹ sau lần giặt đầu tiên. 
+                                Điều này là bình thường và không ảnh hưởng đến chất lượng sản phẩm.
+                            </div>
+                            
+                            <h5 class="mb-3 mt-4">Bảo hành và đổi trả:</h5>
+                            <p>• Bảo hành 30 ngày đối với lỗi từ nhà sản xuất</p>
+                            <p>• Đổi size miễn phí trong vòng 7 ngày (sản phẩm chưa qua sử dụng)</p>
+                            <p>• Hỗ trợ tư vấn chăm sóc sản phẩm 24/7 qua hotline: 1900-xxxx</p>
+                        </div>
                     </div>
-                </details>
+                </div>
             </div>
-
         </div>
     </div>
 </div>

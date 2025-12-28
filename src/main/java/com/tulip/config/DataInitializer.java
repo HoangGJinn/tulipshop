@@ -82,12 +82,12 @@ public class DataInitializer {
         ProductVariantImage imgWhite2 = ProductVariantImage.builder().variant(whiteVar).imageUrl("https://cdn.hstatic.net/products/1000197303/pro_trang___3__9f09b60c9fe94ce4bac164437049558f_master.jpg").build();
         whiteVar.setImages(Arrays.asList(imgWhite1, imgWhite2));
 
-        // Kho hàng cho màu trắng
+        // Kho hàng cho màu trắng (only create records with quantity > 0)
         ProductStock stockWhiteS = ProductStock.builder().variant(whiteVar).size(s).quantity(23).sku("AK-TRANG-S").build();
         ProductStock stockWhiteM = ProductStock.builder().variant(whiteVar).size(m).quantity(31).sku("AK-TRANG-M").build();
         ProductStock stockWhiteL = ProductStock.builder().variant(whiteVar).size(l).quantity(17).sku("AK-TRANG-L").build();
-        ProductStock stockWhiteXL = ProductStock.builder().variant(whiteVar).size(xl).quantity(0).sku("AK-TRANG-XL").build(); // Hết hàng
-        whiteVar.setStocks(Arrays.asList(stockWhiteS, stockWhiteM, stockWhiteL, stockWhiteXL));
+        // XL is out of stock - no record created
+        whiteVar.setStocks(Arrays.asList(stockWhiteS, stockWhiteM, stockWhiteL));
 
         // --- Variant 2: Màu Đen ---
         ProductVariant blackVar = ProductVariant.builder()
@@ -100,10 +100,10 @@ public class DataInitializer {
         ProductVariantImage imgBlack1 = ProductVariantImage.builder().variant(blackVar).imageUrl("https://cdn.kkfashion.vn/6035-large_default/ao-voan-den-tay-dai-asm05-08.jpg").build();
         blackVar.setImages(Arrays.asList(imgBlack1));
 
-        // Kho hàng cho màu đen
-        ProductStock stockBlackS = ProductStock.builder().variant(blackVar).size(s).quantity(0).sku("AK-DEN-S").build();
+        // Kho hàng cho màu đen (only create records with quantity > 0)
         ProductStock stockBlackM = ProductStock.builder().variant(blackVar).size(m).quantity(10).sku("AK-DEN-M").build();
-        blackVar.setStocks(Arrays.asList(stockBlackS, stockBlackM));
+        // S is out of stock - no record created
+        blackVar.setStocks(Arrays.asList(stockBlackM));
 
         // Lưu Product (Cascade sẽ tự lưu Variants, Images và Stock)
         product.setVariants(Arrays.asList(whiteVar, blackVar));

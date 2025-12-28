@@ -4,6 +4,7 @@ import com.tulip.dto.request.VnpayRequest;
 import com.tulip.dto.response.VnpayResponse;
 import com.tulip.entity.Order;
 import com.tulip.repository.OrderRepository;
+import com.tulip.service.OrderService;
 import com.tulip.service.VnpayService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class VnpayController {
     
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderService orderService;
 
     // 1. Endpoint tạo URL thanh toán (API endpoint - dùng @ResponseBody)
     @PostMapping("/v1/api/vnpay/create-payment")
@@ -66,8 +70,18 @@ public class VnpayController {
             if (order != null && order.getOrderCode() != null) {
                 model.addAttribute("orderCode", order.getOrderCode());
             }
-            model.addAttribute("message", isSuccess ? "Thanh toán thành công!" : "Thanh toán thất bại!");
-            
+
+            if (isSuccess) {
+                // === SỬA LỖI TẠI ĐÂY: Chỉ xác nhận khi thành công ===
+                model.addAttribute("message", "Thanh toán thành công!");
+                orderService.confirmOrderPayment(orderId);
+            } else {
+                // === XỬ LÝ KHI THẤT BẠI ===
+                model.addAttribute("message", "Thanh toán thất bại!");
+                // Gọi hàm xử lý thất bại (cập nhật trạng thái đơn hàng)
+                orderService.handlePaymentFailure(orderId);
+            }
+
             return "payment/payment-result";
         } else {
             // Lỗi: không tìm thấy đơn hàng hoặc signature không hợp lệ

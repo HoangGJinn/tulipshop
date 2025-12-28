@@ -82,15 +82,18 @@ public class ProductServiceImpl implements ProductService {
                         String sizeCode = entry.getKey();
                         Integer quantity = entry.getValue();
 
-                        sizeRepository.findByCode(sizeCode).ifPresent(size -> {
-                            ProductStock stock = ProductStock.builder()
-                                    .variant(variant)
-                                    .size(size)
-                                    .quantity(quantity != null ? quantity : 0)
-                                    .sku(savedProduct.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
-                                    .build();
-                            variant.getStocks().add(stock);
-                        });
+                        // Only create stock record if quantity > 0
+                        if (quantity != null && quantity > 0) {
+                            sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                                ProductStock stock = ProductStock.builder()
+                                        .variant(variant)
+                                        .size(size)
+                                        .quantity(quantity)
+                                        .sku(savedProduct.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
+                                        .build();
+                                variant.getStocks().add(stock);
+                            });
+                        }
                     }
                 }
 
@@ -236,22 +239,11 @@ public class ProductServiceImpl implements ProductService {
                 .product(product)
                 .colorName(colorName)
                 .colorCode(colorCode)
+                .stocks(new ArrayList<>()) // Initialize empty list, no default stocks
                 .build();
 
-        // Tự động tạo kho hàng = 0 cho tất cả các size hiện có
-        List<Size> sizes = sizeRepository.findAll();
-        List<ProductStock> stocks = new ArrayList<>();
-
-        for (Size size : sizes) {
-            ProductStock stock = ProductStock.builder()
-                    .variant(variant)
-                    .size(size)
-                    .quantity(0) // Mặc định 0
-                    .sku(product.getId() + "-" + colorName.toUpperCase() + "-" + size.getCode())
-                    .build();
-            stocks.add(stock);
-        }
-        variant.setStocks(stocks);
+        // Don't create any stock records by default
+        // Admin will add stock through inventory management
         variantRepository.save(variant);
     }
 
@@ -261,10 +253,38 @@ public class ProductServiceImpl implements ProductService {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new RuntimeException("Variant không tồn tại"));
 
-        for (ProductStock stock : variant.getStocks()) {
-            String sizeCode = stock.getSize().getCode();
-            if (stockData.containsKey(sizeCode)) {
-                stock.setQuantity(stockData.get(sizeCode));
+        for (Map.Entry<String, Integer> entry : stockData.entrySet()) {
+            String sizeCode = entry.getKey();
+            Integer newQuantity = entry.getValue();
+
+            // Find existing stock for this size
+            Optional<ProductStock> existingStockOpt = variant.getStocks().stream()
+                    .filter(s -> s.getSize().getCode().equals(sizeCode))
+                    .findFirst();
+
+            if (existingStockOpt.isPresent()) {
+                ProductStock existingStock = existingStockOpt.get();
+                
+                if (newQuantity != null && newQuantity > 0) {
+                    // Update existing stock
+                    existingStock.setQuantity(newQuantity);
+                } else {
+                    // Remove stock record if quantity becomes 0 or null
+                    variant.getStocks().remove(existingStock);
+                }
+            } else {
+                // Create new stock record only if quantity > 0
+                if (newQuantity != null && newQuantity > 0) {
+                    sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                        ProductStock newStock = ProductStock.builder()
+                                .variant(variant)
+                                .size(size)
+                                .quantity(newQuantity)
+                                .sku(variant.getProduct().getId() + "-" + variant.getColorName() + "-" + sizeCode)
+                                .build();
+                        variant.getStocks().add(newStock);
+                    });
+                }
             }
         }
         variantRepository.save(variant);
@@ -428,22 +448,31 @@ public class ProductServiceImpl implements ProductService {
 
                                 // Tìm stock của size này
                                 Optional<ProductStock> stockOpt = existingVariant.getStocks().stream()
-                                        .filter(s -> s.getSize().getCode().equals(sizeCode))
+                                        .filter(s -> s.getSize() != null && s.getSize().getCode().equals(sizeCode))
                                         .findFirst();
 
                                 if (stockOpt.isPresent()) {
-                                    stockOpt.get().setQuantity(qty);
+                                    // Existing stock record
+                                    if (qty != null && qty > 0) {
+                                        // Update quantity
+                                        stockOpt.get().setQuantity(qty);
+                                    } else {
+                                        // Remove stock record if quantity becomes 0 or null
+                                        existingVariant.getStocks().remove(stockOpt.get());
+                                    }
                                 } else {
-                                    // Size mới chưa có trong variant này -> Tạo mới
-                                    sizeRepository.findByCode(sizeCode).ifPresent(size -> {
-                                        ProductStock newStock = ProductStock.builder()
-                                                .variant(existingVariant)
-                                                .size(size)
-                                                .quantity(qty != null ? qty : 0)
-                                                .sku(product.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
-                                                .build();
-                                        existingVariant.getStocks().add(newStock);
-                                    });
+                                    // Size mới chưa có trong variant này -> Tạo mới chỉ khi qty > 0
+                                    if (qty != null && qty > 0) {
+                                        sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                                            ProductStock newStock = ProductStock.builder()
+                                                    .variant(existingVariant)
+                                                    .size(size)
+                                                    .quantity(qty)
+                                                    .sku(product.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
+                                                    .build();
+                                            existingVariant.getStocks().add(newStock);
+                                        });
+                                    }
                                 }
                             }
                         }
@@ -478,15 +507,19 @@ public class ProductServiceImpl implements ProductService {
                         for (Map.Entry<String, Integer> entry : vInput.getStockPerSize().entrySet()) {
                             String sizeCode = entry.getKey();
                             Integer qty = entry.getValue();
-                            sizeRepository.findByCode(sizeCode).ifPresent(size -> {
-                                ProductStock stock = ProductStock.builder()
-                                        .variant(newVariant)
-                                        .size(size)
-                                        .quantity(qty != null ? qty : 0)
-                                        .sku(product.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
-                                        .build();
-                                newVariant.getStocks().add(stock);
-                            });
+                            
+                            // Only create stock record if quantity > 0
+                            if (qty != null && qty > 0) {
+                                sizeRepository.findByCode(sizeCode).ifPresent(size -> {
+                                    ProductStock stock = ProductStock.builder()
+                                            .variant(newVariant)
+                                            .size(size)
+                                            .quantity(qty)
+                                            .sku(product.getId() + "-" + vInput.getColorName() + "-" + sizeCode)
+                                            .build();
+                                    newVariant.getStocks().add(stock);
+                                });
+                            }
                         }
                     }
                     product.getVariants().add(newVariant);
