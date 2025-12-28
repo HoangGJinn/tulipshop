@@ -272,7 +272,7 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // Cập nhật trạng thái đơn hàng
-            order.setStatus(OrderStatus.CONFIRMED);
+//            order.setStatus(OrderStatus.CONFIRMED);
             order.setPaymentStatus(PaymentStatus.SUCCESS);
             Order savedOrder = orderRepository.save(order);
             
@@ -308,11 +308,11 @@ public class OrderServiceImpl implements OrderService {
 
         // Nếu đơn hàng đang chờ thanh toán mà bị lỗi, cập nhật trạng thái
         if (order.getStatus() == OrderStatus.PENDING) {
-            // Bạn có thể set là CANCELLED hoặc tạo thêm enum PAYMENT_FAILED tùy logic
+            // có thể set là CANCELLED hoặc tạo thêm enum PAYMENT_FAILED tùy logic
             order.setStatus(OrderStatus.CANCELLED);
             order.setPaymentStatus(PaymentStatus.FAILED); // Cần đảm bảo enum PaymentStatus có giá trị FAILED
 
-            // Lưu ý: Code cũ của bạn chưa trừ kho ở bước PENDING nên không cần cộng lại kho ở đây.
+            // Lưu ý: Code cũ chưa trừ kho ở bước PENDING nên không cần cộng lại kho ở đây.
             // Nếu logic thay đổi (đã trừ kho từ lúc đặt), thì phải cộng lại kho ở đây.
 
             orderRepository.save(order);

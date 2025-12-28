@@ -14,7 +14,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 @Service
-@Slf4j // automatically creates a logger instance
+@Slf4j
 public class EmailServiceImpl implements EmailService {
 
     @Autowired
@@ -33,8 +33,6 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendOTPToEmail(String toEmail, String otp, String type) {
         try {
-            log.info("🔄 Preparing to send OTP email to: {}", toEmail);
-
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -44,7 +42,6 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = type.equals("verify") ? getHtmlContentForVerifyEmail(otp) : getHtmlContentForForgotPasswordEmail(otp);
             helper.setText(htmlContent, true);
 
-            log.info("📧 Sending OTP email to: {}", toEmail);
             mailSender.send(message);
             log.info("✅ OTP email sent successfully to: {}", toEmail);
         } catch (MessagingException e) {
@@ -56,8 +53,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendOrderConfirmation(Order order) {
         try {
-            log.info("🔄 [EMAIL] Starting sendOrderConfirmation for order #{}", order.getId());
-            
+
             if (order.getUser() == null) {
                 log.error("❌ [EMAIL] Order #{} has no user!", order.getId());
                 return;
@@ -72,7 +68,6 @@ public class EmailServiceImpl implements EmailService {
             String customerName = order.getUser().getProfile() != null ? 
                 order.getUser().getProfile().getFullName() : order.getUser().getEmail();
             
-            log.info("🔄 [EMAIL] Preparing to send order confirmation email to: {} for order #{}", customerEmail, order.getId());
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -80,14 +75,11 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(customerEmail);
             helper.setSubject("Xác nhận đơn hàng #" + order.getId() + " - Tulipshop");
 
-            log.info("🔄 [EMAIL] Creating Thymeleaf context for order #{}", order.getId());
-            
             // Create Thymeleaf context and add order data
             Context context = new Context();
             context.setVariable("order", order);
 
-            log.info("🔄 [EMAIL] Processing template for order #{}", order.getId());
-            
+
             // Process the template
             String htmlContent = templateEngine.process("mail/order-confirmation", context);
             helper.setText(htmlContent, true);

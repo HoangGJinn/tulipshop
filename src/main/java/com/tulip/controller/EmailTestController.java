@@ -20,7 +20,6 @@ public class EmailTestController {
     @GetMapping("/send-order-confirmation/{orderId}")
     public String testOrderConfirmationEmail(@PathVariable Long orderId) {
         try {
-            log.info("🧪 [TEST] Testing email for order #{}", orderId);
             
             Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
@@ -43,14 +42,9 @@ public class EmailTestController {
                     Hibernate.initialize(item.getSize());
                 }
             });
-            
-            log.info("🧪 [TEST] Order loaded. User email: {}", order.getUser().getEmail());
-            log.info("🧪 [TEST] Calling emailService.sendOrderConfirmation...");
-            
+
             emailService.sendOrderConfirmation(order);
-            
-            log.info("🧪 [TEST] Email service called. Check logs for email sending status.");
-            
+
             return String.format(
                 "✅ Email test initiated for order #%d to %s. Check console logs for details.",
                 orderId,

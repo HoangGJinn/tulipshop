@@ -54,14 +54,12 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional
     public InventoryDTO updatePhysicalStock(Long stockId, Integer newQuantity, String reason) {
-        // Acquire pessimistic write lock on the stock record
         ProductStock stock = productStockRepository.findByIdWithLock(stockId)
                 .orElseThrow(() -> new RuntimeException("Stock record with ID " + stockId + " not found"));
         
         // Calculate reserved stock
         Integer reservedStock = orderItemRepository.calculateReservedStock(stockId);
-        
-        // Validate that new quantity doesn't result in negative available stock
+
         Integer newAvailableStock = newQuantity - reservedStock;
         if (newAvailableStock < 0) {
             throw new IllegalArgumentException(
@@ -233,9 +231,7 @@ public class InventoryServiceImpl implements InventoryService {
         return initializedCount;
     }
 
-    /**
-     * Convert ProductStock entity to InventoryDTO with calculated values
-     */
+
     private InventoryDTO convertToInventoryDTO(ProductStock stock) {
         ProductVariant variant = stock.getVariant();
 
@@ -280,9 +276,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .build();
     }
 
-    /**
-     * Determine stock status based on available stock quantity
-     */
+
     private StockStatus determineStockStatus(Integer availableStock) {
         if (availableStock <= 0) {
             return StockStatus.OUT_OF_STOCK;
@@ -293,9 +287,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
-    /**
-     * Apply search and filter criteria to inventory list
-     */
+
     private List<InventoryDTO> applyFilters(List<InventoryDTO> inventoryList, 
                                            String search, 
                                            String status, 
