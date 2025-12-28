@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
@@ -102,12 +103,12 @@ public class OrderServiceImpl implements OrderService {
 
             ProductStock realStock = cartItemEntity.getStock();
 
-            if (realStock.getQuantity() < itemDTO.getQuantity()) {
-                throw new RuntimeException("Sản phẩm " + itemDTO.getProductName() + " không đủ số lượng!");
-            }
-
-            realStock.setQuantity(realStock.getQuantity() - itemDTO.getQuantity());
-            productStockRepository.save(realStock);
+//            if (realStock.getQuantity() < itemDTO.getQuantity()) {
+//                throw new RuntimeException("Sản phẩm " + itemDTO.getProductName() + " không đủ số lượng!");
+//            }
+//
+//            realStock.setQuantity(realStock.getQuantity() - itemDTO.getQuantity());
+//            productStockRepository.save(realStock);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -380,6 +381,26 @@ public class OrderServiceImpl implements OrderService {
             // Kiểm tra payment expiry
             if (order.getPaymentExpireAt() != null && LocalDateTime.now().isAfter(order.getPaymentExpireAt())) {
                 throw new RuntimeException("Đơn hàng đã hết hạn thanh toán. Không thể xác nhận.");
+            }
+        }
+
+        // Logic: Nếu là COD thì bây giờ mới trừ kho.
+        // Còn Momo/VNPAY thì đã trừ lúc Callback (confirmOrderPayment) rồi nên bỏ qua.
+        if (order.getPaymentMethod() == PaymentMethod.COD) {
+            for (OrderItem item : order.getOrderItems()) {
+                ProductStock stock = item.getStock();
+
+                // Tính tồn kho mới
+                int newQuantity = stock.getQuantity() - item.getQuantity();
+
+                // Kiểm tra âm kho (Safety check)
+                if (newQuantity < 0) {
+                    throw new RuntimeException("Không đủ tồn kho cho sản phẩm: " + stock.getSku());
+                }
+
+                // Cập nhật và lưu xuống DB
+                stock.setQuantity(newQuantity);
+                productStockRepository.save(stock);
             }
         }
 

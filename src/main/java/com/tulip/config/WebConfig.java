@@ -33,17 +33,6 @@ public class WebConfig implements WebMvcConfigurer {
         return new RestTemplate(factory);
     }
 
-    @Override
-    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        // Find and configure the existing Jackson converter instead of replacing all converters
-        for (HttpMessageConverter<?> converter : converters) {
-            if (converter instanceof MappingJackson2HttpMessageConverter) {
-                MappingJackson2HttpMessageConverter jacksonConverter = (MappingJackson2HttpMessageConverter) converter;
-                ObjectMapper objectMapper = jacksonConverter.getObjectMapper();
-                objectMapper.registerModule(new JavaTimeModule());
-                objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            }
-        }
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -54,4 +43,3 @@ public class WebConfig implements WebMvcConfigurer {
         return mapper;
     }
 }
-
