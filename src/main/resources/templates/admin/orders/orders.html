@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/layout}"> <head>
+    <title>Quản lý đơn hàng | Tulip Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin/admin-orders-v2.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="admin-container">
+        <div class="stats-row">
+            <div class="stat-card warning" onclick="filterByStatus('PENDING')">
+                <div class="icon"><i class="fas fa-clock"></i></div>
+                <div class="info">
+                    <h3>Chờ xác nhận</h3>
+                    <span class="number" th:text="${countPending}">12</span>
+                </div>
+            </div>
+            <div class="stat-card primary" onclick="filterByStatus('CONFIRMED')">
+                <div class="icon"><i class="fas fa-box"></i></div>
+                <div class="info">
+                    <h3>Đã xác nhận</h3>
+                    <span class="number" th:text="${countConfirmed}">45</span>
+                </div>
+            </div>
+            <div class="stat-card info" onclick="filterByStatus('SHIPPING')">
+                <div class="icon"><i class="fas fa-shipping-fast"></i></div>
+                <div class="info">
+                    <h3>Đang giao</h3>
+                    <span class="number" th:text="${countShipping}">8</span>
+                </div>
+            </div>
+            <div class="stat-card success" onclick="filterByStatus('DELIVERED')">
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="info">
+                    <h3>Hoàn thành</h3>
+                    <span class="number" th:text="${countDelivered}">120</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="card-header">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Tìm mã đơn, tên khách, SĐT...">
+                    </div>
+                    <div class="date-filter">
+                        <input type="date" id="dateFrom" class="form-control">
+                        <span>-</span>
+                        <input type="date" id="dateTo" class="form-control">
+                    </div>
+                    <button class="btn-filter" onclick="applyFilters()">Lọc</button>
+                    <button class="btn-refresh" onclick="resetFilters()"><i class="fas fa-sync-alt"></i></button>
+                </div>
+            </div>
+
+            <div class="status-tabs">
+                <button class="tab-item active" data-status="ALL">Tất cả</button>
+                <button class="tab-item" data-status="PENDING">Chờ xác nhận</button>
+                <button class="tab-item" data-status="CONFIRMED">Đã xác nhận</button>
+                <button class="tab-item" data-status="SHIPPING">Đang giao</button>
+                <button class="tab-item" data-status="DELIVERED">Đã giao</button>
+                <button class="tab-item" data-status="CANCELLED">Đã hủy</button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="order-table">
+                    <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền</th>
+                        <th>Thanh toán</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-wrapper">
+                <span class="page-info">Hiển thị 1-10 trên 50 đơn hàng</span>
+                <div class="pagination-controls">
+                    <button class="page-btn prev"><i class="fas fa-chevron-left"></i></button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="orderModal" class="custom-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Chi tiết đơn hàng <span id="modalOrderCode" class="highlight-text">#ORD-000</span></h4>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body" id="modalBodyContent">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary close-btn">Đóng</button>
+            <div id="modalActions">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/admin/admin-orders-v2.js}"></script>
+</body>
+</html>

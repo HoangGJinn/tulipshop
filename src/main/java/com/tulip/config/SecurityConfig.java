@@ -63,7 +63,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/assets/**", "/favicon.ico").permitAll()
-                .requestMatchers("/register", "/login", "/logout","/api/**" , "/h2-console/**").permitAll()
+
+                // Admin routes - phải đặt trước các rule chung
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/webhook/**").permitAll()
+                .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
                 .requestMatchers("/verify-email", "/resend-otp").permitAll()
                 .requestMatchers("/forgot-password", "/reset-password").permitAll()
                 .requestMatchers("/products/**", "/product/**", "/trending", "/sale", "/about", "/contact").permitAll()
@@ -72,8 +77,6 @@ public class SecurityConfig {
                                  "/v1/api/auth/reset-password", "/v1/api/auth/resend-otp", "/v1/api/auth/verify-email").permitAll()
                 .requestMatchers("/v1/api/auth/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
                 // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
                 .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
                 // MoMo callback URL cho phép truy cập công khai vì không có JWT:

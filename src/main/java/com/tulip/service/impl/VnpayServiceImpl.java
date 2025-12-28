@@ -30,11 +30,11 @@ public class VnpayServiceImpl implements VnpayService {
     @Override
     public String createPayment(VnpayRequest paymentRequest, HttpServletRequest request) throws UnsupportedEncodingException {
         String vnp_TxnRef = VnpayUtil.getRandomNumber(8);
-        return createPaymentWithTxnRef(paymentRequest, vnp_TxnRef, request);
+        return createPaymentWithOrderCode(paymentRequest, vnp_TxnRef, request);
     }
 
     @Override
-    public String createPaymentWithTxnRef(VnpayRequest paymentRequest, String vnpTxnRef, HttpServletRequest request) throws UnsupportedEncodingException {
+    public String createPaymentWithOrderCode(VnpayRequest paymentRequest, String orderCode, HttpServletRequest request) throws UnsupportedEncodingException {
         
         // Lấy giá trị trực tiếp trong hàm để đảm bảo Config đã được load
         String vnp_Version = vnpayConfig.getVnp_Version();
@@ -59,8 +59,8 @@ public class VnpayServiceImpl implements VnpayService {
         vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
         // vnp_Params.put("vnp_BankCode", "NCB");
-        vnp_Params.put("vnp_TxnRef", vnpTxnRef);
-        vnp_Params.put("vnp_OrderInfo", paymentRequest.getOrderInfo() != null ? paymentRequest.getOrderInfo() : "Thanh toan don hang:" + vnpTxnRef);
+        vnp_Params.put("vnp_TxnRef", orderCode); // Gửi orderCode nhưng key vẫn là vnp_TxnRef
+        vnp_Params.put("vnp_OrderInfo", paymentRequest.getOrderInfo() != null ? paymentRequest.getOrderInfo() : "Thanh toan don hang:" + orderCode);
         vnp_Params.put("vnp_OrderType", vnp_OrderType);
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
@@ -135,10 +135,10 @@ public class VnpayServiceImpl implements VnpayService {
                 return null; // Signature không hợp lệ
             }
 
-            // Trích xuất Order ID từ vnp_TxnRef
-            Long orderId = com.tulip.util.VnpayUtil.extractOrderIdFromVnpTxnRef(vnp_TxnRef);
+            // Trích xuất Order ID từ order code (vnp_TxnRef từ VNPay)
+            Long orderId = com.tulip.util.VnpayUtil.extractOrderIdFromOrderCode(vnp_TxnRef);
             if (orderId == null) {
-                Order order = orderRepository.findByVnpTxnRef(vnp_TxnRef);
+                Order order = orderRepository.findByOrderCode(vnp_TxnRef);
                 if (order == null) {
                     return null;
                 }
