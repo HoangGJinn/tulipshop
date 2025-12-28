@@ -57,7 +57,7 @@ public class VnpayController {
         Long orderId = vnpayService.handlePaymentCallback(request);
         
         if (orderId != null) {
-            // Lấy Order để lấy vnp_txn_ref
+            // Lấy Order để lấy orderCode
             Order order = orderRepository.findById(orderId).orElse(null);
             
             // Lấy response code để hiển thị thông báo
@@ -66,9 +66,9 @@ public class VnpayController {
             
             model.addAttribute("success", isSuccess);
             model.addAttribute("orderId", orderId);
-            // Hiển thị vnp_txn_ref (mã đơn hàng) cho khách hàng
-            if (order != null && order.getVnpTxnRef() != null) {
-                model.addAttribute("orderCode", order.getVnpTxnRef());
+            // Hiển thị orderCode (mã đơn hàng) cho khách hàng
+            if (order != null && order.getOrderCode() != null) {
+                model.addAttribute("orderCode", order.getOrderCode());
             }
 
             if (isSuccess) {

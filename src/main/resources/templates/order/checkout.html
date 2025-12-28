@@ -11,10 +11,10 @@
         <div class="col-md-7">
             <h4 class="mb-4">Thông tin giao hàng</h4>
 
-            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}" id="errorMessage" style="display: none;"></div>
-            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}" id="successMessage" style="display: none;"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-            <form th:action="@{/checkout/place-order}" method="post" th:object="${orderRequest}">
+            <form th:action="@{/checkout/place-order}" method="post" th:object="${orderRequest}" id="checkoutForm">
 
                 <div class="card mb-4">
                     <div class="card-header bg-white fw-bold">1. Chọn địa chỉ nhận hàng</div>
@@ -25,7 +25,7 @@
                         </div>
 
                         <div th:each="addr : ${addresses}" class="form-check mb-3 border-bottom pb-2">
-                            <input class="form-check-input" type="radio"
+                            <input class="form-check-input js-address-option" type="radio"
                                    th:name="addressId"
                                    th:value="${addr.id}"
                                    th:id="'addr-' + ${addr.id}"
@@ -35,13 +35,35 @@
                             <label class="form-check-label" th:for="'addr-' + ${addr.id}">
                                 <strong th:text="${addr.recipientName}"></strong> -
                                 <span th:text="${addr.recipientPhone}"></span><br>
+                                <span class="text-muted small" th:text="${addr.fullAddress}"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-                                <span class="text-muted small">
-                                    <span th:text="${addr.addressLine}"></span>,
-                                    <span th:if="${addr.village != null}" th:text="${addr.village + ', '}"></span>
-                                    <span th:if="${addr.district != null}" th:text="${addr.district + ', '}"></span>
-                                    <span th:text="${addr.province}"></span>
+                <div class="card mb-4">
+                    <div class="card-header bg-white fw-bold">2. Phương thức vận chuyển</div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input js-delivery-option" type="radio" 
+                                   th:field="*{deliveryType}" value="STANDARD" id="ship-std" checked>
+                            <label class="form-check-label d-flex justify-content-between align-items-center" for="ship-std" style="width: 100%; cursor: pointer;">
+                                <span>
+                                    <strong>Giao Tiết Kiệm (Standard)</strong><br>
+                                    <small class="text-muted">Dự kiến: <span id="time-std">3-5 ngày</span></small>
                                 </span>
+                                <span class="badge bg-success bg-opacity-10 text-success">Giá tốt</span>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input js-delivery-option" type="radio" 
+                                   th:field="*{deliveryType}" value="FAST" id="ship-fast">
+                            <label class="form-check-label d-flex justify-content-between align-items-center" for="ship-fast" style="width: 100%; cursor: pointer;">
+                                <span>
+                                    <strong>Giao Hỏa Tốc (Fast)</strong><br>
+                                    <small class="text-muted">Dự kiến: <span id="time-fast">1-2 ngày</span></small>
+                                </span>
+                                <span class="badge bg-danger bg-opacity-10 text-danger">Nhanh hơn</span>
                             </label>
                         </div>
                     </div>
@@ -53,7 +75,7 @@
                 </div>
 
                 <div class="card mb-4">
-                    <div class="card-header bg-white fw-bold">2. Phương thức thanh toán</div>
+                    <div class="card-header bg-white fw-bold">3. Phương thức thanh toán</div>
                     <div class="card-body">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="COD" id="pay-cod" checked required>
@@ -86,7 +108,7 @@
         </div>
 
         <div class="col-md-5">
-            <div class="card bg-light border-0">
+            <div class="card bg-light border-0 sticky-top" style="top: 80px; z-index: 1;">
                 <div class="card-body p-4">
                     <h5 class="card-title mb-4">Đơn hàng của bạn</h5>
 
@@ -113,14 +135,21 @@
                         <span class="text-muted">Tạm tính:</span>
                         <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                     </div>
+                    
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Phí vận chuyển:</span>
-                        <span th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        <span class="text-muted">Phí vận chuyển (<span id="shipping-method-label">Standard</span>):</span>
+                        <span id="shipping-fee-display" th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                     </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted fst-italic">Thời gian dự kiến:</small>
+                        <small class="text-muted fst-italic" id="estimated-time-display" th:text="${estimatedTime}"></small>
+                    </div>
+
                     <hr>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-bold h5">Tổng cộng:</span>
-                        <span class="fw-bold h4 text-danger"
+                        <span class="fw-bold h4 text-danger" id="final-price-display"
                               th:text="${#numbers.formatDecimal(finalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                     </div>
                 </div>
@@ -133,20 +162,58 @@
 
 <script th:src="@{/js/notification.js}"></script>
 <script>
-    // Hiển thị thông báo từ flash attributes
-    const successMessage = /*[[${successMessage}]]*/ null;
-    const errorMessage = /*[[${errorMessage}]]*/ null;
-    
-    if (successMessage) {
-        showSuccess('Thành công', successMessage);
-        const el = document.getElementById('successMessage');
-        if (el) el.remove();
-    }
-    if (errorMessage) {
-        showError('Lỗi', errorMessage);
-        const el = document.getElementById('errorMessage');
-        if (el) el.remove();
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+        const addressRadios = document.querySelectorAll('.js-address-option');
+        const deliveryRadios = document.querySelectorAll('.js-delivery-option');
+        
+        const shippingFeeEl = document.getElementById('shipping-fee-display');
+        const finalPriceEl = document.getElementById('final-price-display');
+        const estimatedTimeEl = document.getElementById('estimated-time-display');
+        const shipLabelEl = document.getElementById('shipping-method-label');
+
+        function updatePricing() {
+            // 1. Lấy giá trị đang chọn
+            let addressId = null;
+            addressRadios.forEach(r => { if(r.checked) addressId = r.value; });
+            
+            let deliveryType = "STANDARD";
+            deliveryRadios.forEach(r => { if(r.checked) deliveryType = r.value; });
+
+            if (!addressId) return;
+
+            // UI Loading...
+            shipLabelEl.innerText = (deliveryType === 'FAST') ? 'Hỏa Tốc' : 'Tiết Kiệm';
+            shippingFeeEl.innerHTML = '<span class="spinner-border spinner-border-sm text-secondary"></span>';
+
+            // 2. Gọi API
+            fetch(`/checkout/api/calculate-fee?addressId=${addressId}&deliveryType=${deliveryType}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Err');
+                    return response.json();
+                })
+                .then(data => {
+                    // 3. Format tiền tệ VNĐ
+                    const formatter = new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                    });
+
+                    // Cập nhật UI
+                    // replace('₫', 'đ') để khớp với format của Thymeleaf bạn đang dùng
+                    shippingFeeEl.innerText = formatter.format(data.shippingFee).replace('₫', 'đ');
+                    finalPriceEl.innerText = formatter.format(data.finalPrice).replace('₫', 'đ');
+                    estimatedTimeEl.innerText = data.estimatedTime;
+                })
+                .catch(error => {
+                    console.error(error);
+                    shippingFeeEl.innerText = '---';
+                });
+        }
+
+        // Gắn sự kiện change
+        addressRadios.forEach(el => el.addEventListener('change', updatePricing));
+        deliveryRadios.forEach(el => el.addEventListener('change', updatePricing));
+    });
 </script>
 
 </body>

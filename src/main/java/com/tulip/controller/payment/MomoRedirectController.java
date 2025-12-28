@@ -37,10 +37,10 @@ public class MomoRedirectController {
         
         if (orderId != null) {
             try {
-                order = orderRepository.findByVnpTxnRef(orderId);
+                order = orderRepository.findByOrderCode(orderId);
                 
                 if (order == null) {
-                    Long extractedOrderId = com.tulip.util.VnpayUtil.extractOrderIdFromVnpTxnRef(orderId);
+                    Long extractedOrderId = com.tulip.util.VnpayUtil.extractOrderIdFromOrderCode(orderId);
                     if (extractedOrderId != null) {
                         order = orderRepository.findById(extractedOrderId).orElse(null);
                     }
@@ -70,8 +70,8 @@ public class MomoRedirectController {
             orderRepository.save(order);
             
             model.addAttribute("orderId", order.getId());
-            if (order.getVnpTxnRef() != null) {
-                model.addAttribute("orderCode", order.getVnpTxnRef());
+            if (order.getOrderCode() != null) {
+                model.addAttribute("orderCode", order.getOrderCode());
             }
         } else {
             log.error("Order not found for orderId: {}", orderId);

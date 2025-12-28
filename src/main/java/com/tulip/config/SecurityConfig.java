@@ -63,6 +63,11 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/assets/**", "/favicon.ico").permitAll()
+
+                // Admin routes - phải đặt trước các rule chung
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/webhook/**").permitAll()
                 .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
                 .requestMatchers("/verify-email", "/resend-otp").permitAll()
                 .requestMatchers("/forgot-password", "/reset-password").permitAll()
@@ -73,7 +78,6 @@ public class SecurityConfig {
                 .requestMatchers("/v1/api/auth/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
                 // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
                 .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
