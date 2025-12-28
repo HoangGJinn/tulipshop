@@ -128,5 +128,13 @@ public class AddressServiceImpl implements AddressService {
         address.setIsDefault(true);
         addressRepository.save(address);
     }
+
+    @Override
+    public UserAddressDTO getUserAddressById(Long addressId) {
+        UserAddress address = addressRepository.findById(addressId)
+                .orElse(null);
+
+        return addressMapper.toDTO(address);
+    }
 }
 

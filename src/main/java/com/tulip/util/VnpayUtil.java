@@ -46,7 +46,7 @@ public class VnpayUtil {
         return ipAddress;
     }
 
-    // Hàm tạo số ngẫu nhiên (Dùng cho vnp_TxnRef)
+    // Hàm tạo số ngẫu nhiên
     public static String getRandomNumber(int len) {
         Random rnd = new Random();
         String chars = "0123456789";
@@ -58,10 +58,10 @@ public class VnpayUtil {
     }
 
     /**
-     * Tạo vnp_txn_ref với format: TULIP-DDMMYYYY-Orderid-XXXX
+     * Tạo mã đơn hàng với format: TULIP-DDMMYYYY-Orderid-XXXX
      * Ví dụ: TULIP-15012025-12345-5678
      */
-    public static String generateVnpTxnRef(Long orderId) {
+    public static String generateOrderCode(Long orderId) {
         LocalDate today = LocalDate.now();
         String dateStr = today.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
         
@@ -70,13 +70,13 @@ public class VnpayUtil {
         return String.format("TULIP-%s-%d-%s", dateStr, orderId, randomSuffix);
     }
 
-    public static Long extractOrderIdFromVnpTxnRef(String vnpTxnRef) {
-        if (vnpTxnRef == null || vnpTxnRef.isEmpty()) {
+    public static Long extractOrderIdFromOrderCode(String orderCode) {
+        if (orderCode == null || orderCode.isEmpty()) {
             return null;
         }
         
         try {
-            String[] parts = vnpTxnRef.split("-");
+            String[] parts = orderCode.split("-");
             
             if (parts.length == 4 && "TULIP".equals(parts[0])) {
                 // Order ID là phần thứ 3 (index 2)

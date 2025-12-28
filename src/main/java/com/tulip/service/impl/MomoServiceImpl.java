@@ -155,13 +155,13 @@ public class MomoServiceImpl implements MomoService {
             }
 
             Order order = null;
-            Long extractedOrderId = com.tulip.util.VnpayUtil.extractOrderIdFromVnpTxnRef(orderId);
+            Long extractedOrderId = com.tulip.util.VnpayUtil.extractOrderIdFromOrderCode(orderId);
             if (extractedOrderId != null) {
                 order = orderRepository.findById(extractedOrderId).orElse(null);
             }
             
             if (order == null) {
-                order = orderRepository.findByVnpTxnRef(orderId);
+                order = orderRepository.findByOrderCode(orderId);
             }
             
             if (order == null) {
@@ -169,7 +169,7 @@ public class MomoServiceImpl implements MomoService {
                     Long orderIdLong = Long.parseLong(orderId);
                     order = orderRepository.findById(orderIdLong).orElse(null);
                 } catch (NumberFormatException e) {
-                    log.warn("OrderId is not a number and not found by vnpTxnRef: {}", orderId);
+                    log.warn("OrderId is not a number and not found by orderCode: {}", orderId);
                 }
             }
 

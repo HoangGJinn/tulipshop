@@ -100,13 +100,12 @@
         <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
 
         <div th:if="${order != null}">
-            <!-- Header -->
             <div class="detail-card">
                 <div class="detail-header">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <h3 class="fw-bold mb-2">Mã đơn hàng: 
-                                <span th:text="${order.vnpTxnRef != null ? order.vnpTxnRef : '#' + order.id}"></span>
+                                <span th:text="${order.orderCode != null ? order.orderCode : '#' + order.id}"></span>
                             </h3>
                             <div class="small text-muted mb-2">
                                 <i class="far fa-calendar me-1"></i>
@@ -115,6 +114,14 @@
                             <div th:if="${order.updatedAt != null}" class="small text-muted">
                                 <i class="far fa-edit me-1"></i>
                                 Cập nhật lúc: <span th:text="${#temporals.format(order.updatedAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span>
+                            </div>
+                            <div th:if="${order.paymentExpireAt != null}" class="small mt-2">
+                                <span th:if="${order.paymentExpireAt.isAfter(T(java.time.LocalDateTime).now())}" class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>Hết hạn thanh toán: <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </span>
+                                <span th:unless="${order.paymentExpireAt.isAfter(T(java.time.LocalDateTime).now())}" class="badge bg-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Đã hết hạn thanh toán lúc: <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </span>
                             </div>
                         </div>
                         <div class="text-end">
@@ -126,7 +133,6 @@
                     </div>
                 </div>
 
-                <!-- Order Items -->
                 <h5 class="fw-bold mb-3">Sản phẩm đã đặt</h5>
                 <div th:each="item : ${order.orderItems}" class="order-item-row">
                     <div class="row align-items-center">
@@ -172,10 +178,9 @@
                 </div>
             </div>
 
-            <!-- Order Information -->
             <div class="row">
                 <div class="col-md-6 mb-4">
-                    <div class="detail-card">
+                    <div class="detail-card h-100">
                         <h5 class="fw-bold mb-3">Thông tin đơn hàng</h5>
                         <div class="info-row d-flex">
                             <span class="info-label">Trạng thái:</span>
@@ -186,17 +191,19 @@
                         </div>
                         <div class="info-row d-flex">
                             <span class="info-label">Phương thức thanh toán:</span>
-                            <span th:text="${order.paymentMethod == T(com.tulip.entity.enums.PaymentMethod).COD ? 'Thanh toán khi nhận hàng (COD)' : (order.paymentMethod == T(com.tulip.entity.enums.PaymentMethod).VNPAY ? 'Thanh toán qua VNPAY' : 'Thanh toán qua MOMO')}">
-                                COD
+                            <span>
+                                <span th:if="${order.paymentMethod.toString() == 'COD'}">Thanh toán khi nhận hàng (COD)</span>
+                                <span th:if="${order.paymentMethod.toString() == 'VNPAY'}">Thanh toán qua VNPAY</span>
+                                <span th:if="${order.paymentMethod.toString() == 'MOMO'}">Thanh toán qua MOMO</span>
                             </span>
                         </div>
                         <div class="info-row d-flex">
                             <span class="info-label">Trạng thái thanh toán:</span>
                             <span th:classappend="'payment-badge payment-' + ${#strings.toLowerCase(order.paymentStatus.toString())}">
-                                <span th:if="${order.paymentStatus == T(com.tulip.entity.enums.PaymentStatus).SUCCESS}">Đã thanh toán</span>
-                                <span th:if="${order.paymentStatus == T(com.tulip.entity.enums.PaymentStatus).PENDING}">Chờ thanh toán</span>
-                                <span th:if="${order.paymentStatus == T(com.tulip.entity.enums.PaymentStatus).FAILED}">Thanh toán thất bại</span>
-                                <span th:if="${order.paymentStatus == T(com.tulip.entity.enums.PaymentStatus).EXPIRED}">Hết hạn thanh toán</span>
+                                <span th:if="${order.paymentStatus.toString() == 'SUCCESS'}">Đã thanh toán</span>
+                                <span th:if="${order.paymentStatus.toString() == 'PENDING'}">Chờ thanh toán</span>
+                                <span th:if="${order.paymentStatus.toString() == 'FAILED'}">Thanh toán thất bại</span>
+                                <span th:if="${order.paymentStatus.toString() == 'EXPIRED'}">Hết hạn thanh toán</span>
                             </span>
                         </div>
                         <div th:if="${order.transactionId != null}" class="info-row d-flex">
@@ -207,16 +214,30 @@
                 </div>
 
                 <div class="col-md-6 mb-4">
-                    <div class="detail-card">
-                        <h5 class="fw-bold mb-3">Địa chỉ giao hàng</h5>
-                        <div class="text-muted" th:text="${order.shippingAddress}">
-                            Địa chỉ giao hàng
+                    <div class="detail-card h-100">
+                        <h5 class="fw-bold mb-3">Thông tin vận chuyển</h5>
+                        <div class="mb-3 border-bottom pb-2">
+                            <strong>Người nhận:</strong> <br>
+                            <span th:text="${order.recipientName} + ' - ' + ${order.recipientPhone}">Tên người nhận</span>
+                        </div>
+                        <div class="mb-3 border-bottom pb-2">
+                            <strong>Địa chỉ:</strong> <br>
+                            <span class="text-muted" th:text="${order.shippingAddress}">Địa chỉ giao hàng</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Đơn vị vận chuyển:</strong> <br>
+                            <span class="badge bg-info text-dark">
+                                <i class="fas fa-truck"></i> Tulip Express
+                            </span>
+                            <span class="ms-2 badge bg-warning text-dark" 
+                                  th:text="${order.deliveryType != null ? order.deliveryType : 'STANDARD'}">
+                                STANDARD
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Order Summary -->
             <div class="detail-card">
                 <h5 class="fw-bold mb-3">Tổng kết đơn hàng</h5>
                 <div class="summary-box">
@@ -238,9 +259,9 @@
                     </div>
                 </div>
                 
-                <!-- Nút Tiếp tục thanh toán -->
-                <div th:if="${order.status == T(com.tulip.entity.enums.OrderStatus).PENDING 
-                             and order.paymentStatus == T(com.tulip.entity.enums.PaymentStatus).PENDING 
+                <!-- Nút thanh toán cho đơn chưa thanh toán -->
+                <div th:if="${order.status.toString() == 'PENDING' 
+                             and order.paymentStatus.toString() == 'PENDING' 
                              and order.paymentUrl != null 
                              and order.paymentExpireAt != null 
                              and order.paymentExpireAt.isAfter(T(java.time.LocalDateTime).now())}" 
@@ -250,26 +271,55 @@
                         <i class="fas fa-credit-card me-2"></i>Tiếp tục thanh toán
                     </a>
                     <p class="text-muted small mt-2 mb-0">
-                        Link thanh toán còn hiệu lực đến: 
+                        <i class="fas fa-clock me-1"></i>Link thanh toán còn hiệu lực đến: 
                         <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
                     </p>
                 </div>
                 
-                <!-- Nút Mua lại cho đơn hàng đã hết hạn thanh toán -->
-                <div th:if="${order.status == T(com.tulip.entity.enums.OrderStatus).CANCELLED 
-                             and order.paymentStatus == T(com.tulip.entity.enums.PaymentStatus).EXPIRED}" 
+                <!-- Nút mua lại cho đơn đã hủy/hết hạn -->
+                <div th:if="${order.status.toString() == 'CANCELLED' 
+                             and order.paymentStatus.toString() == 'EXPIRED'}" 
                      class="mt-4 text-center">
                     <form th:action="@{/orders/{orderId}/re-order(orderId=${order.id})}" 
                           method="post" 
                           style="display: inline-block;">
                         <button type="submit" class="btn btn-success btn-lg px-5">
-                            <i class="fas fa-shopping-cart me-2"></i>Mua lại đơn hàng này
+                            <i class="fas fa-redo-alt me-2"></i>Mua lại đơn hàng này
                         </button>
                     </form>
                     <p class="text-muted small mt-2 mb-0">
                         <i class="fas fa-info-circle me-1"></i>
                         Sản phẩm sẽ được thêm vào giỏ hàng. Vui lòng kiểm tra tồn kho trước khi thanh toán.
                     </p>
+                </div>
+                
+                <!-- Nút mua lại cho đơn đã hoàn thành -->
+                <div th:if="${order.status.toString() == 'DELIVERED'}" 
+                     class="mt-4 text-center">
+                    <form th:action="@{/orders/{orderId}/re-order(orderId=${order.id})}" 
+                          method="post" 
+                          style="display: inline-block;">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="fas fa-redo-alt me-2"></i>Mua lại đơn hàng này
+                        </button>
+                    </form>
+                    <p class="text-success small mt-2 mb-0">
+                        <i class="fas fa-check-circle me-1"></i>
+                        Đơn hàng đã được giao thành công. Bạn có thể đặt lại đơn hàng này!
+                    </p>
+                </div>
+                
+                <!-- Thông báo cho đơn đang xử lý -->
+                <div th:if="${order.status.toString() == 'CONFIRMED' 
+                             or order.status.toString() == 'SHIPPING'}" 
+                     class="mt-4 alert alert-info text-center">
+                    <i class="fas fa-truck me-2"></i>
+                    <span th:if="${order.status.toString() == 'CONFIRMED'}">
+                        Đơn hàng đã được xác nhận và đang chuẩn bị giao hàng
+                    </span>
+                    <span th:if="${order.status.toString() == 'SHIPPING'}">
+                        Đơn hàng đang được vận chuyển đến bạn
+                    </span>
                 </div>
             </div>
         </div>
@@ -294,4 +344,3 @@
 
 </body>
 </html>
-
