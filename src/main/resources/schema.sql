@@ -38,3 +38,10 @@ CREATE INDEX IF NOT EXISTS idx_order_items_stock_id ON order_items(stock_id);
 -- Index on orders.status for filtering pending orders
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
+-- Sample Vouchers for Testing
+INSERT IGNORE INTO vouchers (code, type, discount_value, min_order_value, quantity, used_count, start_at, expire_at, status, created_at) VALUES
+('WELCOME10', 'PERCENT', 10.00, 100000.00, 1000, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW()),
+('SAVE50K', 'AMOUNT', 50000.00, 200000.00, 500, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW()),
+('FREESHIP', 'AMOUNT', 30000.00, 50000.00, 2000, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW()),
+('SALE20', 'PERCENT', 20.00, 500000.00, 100, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW());
+
