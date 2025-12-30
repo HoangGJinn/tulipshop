@@ -51,9 +51,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Async
     @Override
-    public void sendOrderConfirmation(Order order) {
+    public void sendOrderUpdateEmail(Order order) {
         try {
-
             if (order.getUser() == null) {
                 log.error("❌ [EMAIL] Order #{} has no user!", order.getId());
                 return;
@@ -65,33 +64,56 @@ public class EmailServiceImpl implements EmailService {
                 return;
             }
             
-            String customerName = order.getUser().getProfile() != null ? 
-                order.getUser().getProfile().getFullName() : order.getUser().getEmail();
+            // Generate dynamic subject based on order status
+            String subject = getEmailSubject(order);
             
-
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(customerEmail);
-            helper.setSubject("Xác nhận đơn hàng #" + order.getId() + " - Tulipshop");
+            helper.setSubject(subject);
 
             // Create Thymeleaf context and add order data
             Context context = new Context();
             context.setVariable("order", order);
 
-
             // Process the template
             String htmlContent = templateEngine.process("mail/order-confirmation", context);
             helper.setText(htmlContent, true);
 
-            log.info("📧 [EMAIL] Sending order confirmation email to: {} for order #{}", customerEmail, order.getId());
+            log.info("📧 [EMAIL] Sending order {} email to: {} for order #{}", 
+                    order.getStatus(), customerEmail, order.getId());
             mailSender.send(message);
-            log.info("✅ [EMAIL] Order confirmation email sent successfully to: {} for order #{}", customerEmail, order.getId());
+            log.info("✅ [EMAIL] Order {} email sent successfully to: {} for order #{}", 
+                    order.getStatus(), customerEmail, order.getId());
         } catch (MessagingException e) {
             log.error("❌ [EMAIL] MessagingException for order #{}. Error: {}", order.getId(), e.getMessage(), e);
         } catch (Exception e) {
-            log.error("❌ [EMAIL] Unexpected error while sending order confirmation email for order #{}. Error: {}", order.getId(), e.getMessage(), e);
+            log.error("❌ [EMAIL] Unexpected error while sending order email for order #{}. Error: {}", 
+                    order.getId(), e.getMessage(), e);
         }
+    }
+
+    @Async
+    @Override
+    @Deprecated
+    public void sendOrderConfirmation(Order order) {
+        // Delegate to the new method for backward compatibility
+        sendOrderUpdateEmail(order);
+    }
+
+    /**
+     * Generate email subject based on order status
+     */
+    private String getEmailSubject(Order order) {
+        String orderId = order.getId() != null ? order.getId().toString() : "N/A";
+        
+        return switch (order.getStatus()) {
+            case CONFIRMED -> "Tulipshop - Đơn hàng #" + orderId + " đã được xác nhận";
+            case SHIPPING -> "Tulipshop - Đơn hàng #" + orderId + " đang trên đường giao đến bạn";
+            case DELIVERED -> "Tulipshop - Đơn hàng #" + orderId + " đã giao thành công";
+            default -> "Tulipshop - Cập nhật đơn hàng #" + orderId;
+        };
     }
 
     private String getHtmlContentForVerifyEmail(String otp) {

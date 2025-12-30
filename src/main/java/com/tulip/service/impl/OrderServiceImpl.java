@@ -13,6 +13,7 @@ import com.tulip.entity.product.ProductVariant;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
 import com.tulip.service.EmailService;
+import com.tulip.service.NotificationService;
 import com.tulip.service.OrderService;
 import com.tulip.service.integration.TulipShippingClient;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
     private final EmailService emailService;
     private final TulipShippingClient shippingClient;
     private final ShippingOrderRepository shippingOrderRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -147,14 +149,30 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        log.info("📧 Calling emailService.sendOrderConfirmation for order #{}", savedOrder.getId());
+        log.info("📧 Calling emailService.sendOrderUpdateEmail for order #{}", savedOrder.getId());
 
         // Send order confirmation email asynchronously
         try {
-            emailService.sendOrderConfirmation(savedOrder);
+            emailService.sendOrderUpdateEmail(savedOrder);
             log.info("✅ Email service called successfully for order #{}", savedOrder.getId());
         } catch (Exception e) {
             log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đặt hàng thành công")
+                .content("Đơn hàng #" + savedOrder.getId() + " đã được đặt thành công. Tổng giá trị: " + 
+                        String.format("%,.0f", savedOrder.getFinalPrice()) + " VNĐ")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(user.getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
         }
 
         return savedOrder;
@@ -406,7 +424,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Cập nhật trạng thái đơn hàng
         order.setStatus(OrderStatus.CONFIRMED);
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
 
         // Cập nhật trạng thái shipping order
         ShippingOrder shippingOrder = shippingOrderRepository.findByOrder_Id(orderId)
@@ -417,8 +435,48 @@ public class OrderServiceImpl implements OrderService {
             shippingOrderRepository.save(shippingOrder);
         }
 
-        // KHÔNG gọi API shipping ở đây nữa!
-        // Chỉ xác nhận đơn hàng, chưa bắt đầu giao
+        // Eager load relationships before async email sending
+        Hibernate.initialize(savedOrder.getUser());
+        if (savedOrder.getUser().getProfile() != null) {
+            Hibernate.initialize(savedOrder.getUser().getProfile());
+        }
+        Hibernate.initialize(savedOrder.getOrderItems());
+        for (OrderItem item : savedOrder.getOrderItems()) {
+            if (item.getProduct() != null) {
+                Hibernate.initialize(item.getProduct());
+            }
+            if (item.getVariant() != null) {
+                Hibernate.initialize(item.getVariant());
+                Hibernate.initialize(item.getVariant().getImages());
+            }
+            if (item.getSize() != null) {
+                Hibernate.initialize(item.getSize());
+            }
+        }
+
+        // Send CONFIRMED email
+        log.info("📧 Sending CONFIRMED email for order #{}", savedOrder.getId());
+        try {
+            emailService.sendOrderUpdateEmail(savedOrder);
+            log.info("✅ CONFIRMED email service called successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+        
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đơn hàng đã được xác nhận")
+                .content("Đơn hàng #" + savedOrder.getId() + " đã được xác nhận và đang được chuẩn bị.")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{} confirmation", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
     }
 
     @Override
@@ -434,7 +492,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Cập nhật trạng thái đơn hàng sang SHIPPING
         order.setStatus(OrderStatus.SHIPPING);
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
 
         // Cập nhật trạng thái shipping order
         ShippingOrder shippingOrder = shippingOrderRepository.findByOrder_Id(orderId)
@@ -457,6 +515,117 @@ public class OrderServiceImpl implements OrderService {
                 shippingOrderRepository.save(shippingOrder);
             }
             throw new RuntimeException("Lỗi khi gọi API vận chuyển: " + e.getMessage());
+        }
+
+        // Eager load relationships before async email sending
+        Hibernate.initialize(savedOrder.getUser());
+        if (savedOrder.getUser().getProfile() != null) {
+            Hibernate.initialize(savedOrder.getUser().getProfile());
+        }
+        Hibernate.initialize(savedOrder.getOrderItems());
+        for (OrderItem item : savedOrder.getOrderItems()) {
+            if (item.getProduct() != null) {
+                Hibernate.initialize(item.getProduct());
+            }
+            if (item.getVariant() != null) {
+                Hibernate.initialize(item.getVariant());
+                Hibernate.initialize(item.getVariant().getImages());
+            }
+            if (item.getSize() != null) {
+                Hibernate.initialize(item.getSize());
+            }
+        }
+
+        // Send SHIPPING email
+        log.info("📧 Sending SHIPPING email for order #{}", savedOrder.getId());
+        try {
+            emailService.sendOrderUpdateEmail(savedOrder);
+            log.info("✅ SHIPPING email service called successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+        
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đơn hàng đang được giao")
+                .content("Đơn hàng #" + savedOrder.getId() + " đang trên đường giao đến bạn.")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{} shipping", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void completeOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng #" + orderId));
+
+        // Chỉ có thể hoàn thành đơn hàng khi đang SHIPPING
+        if (order.getStatus() != OrderStatus.SHIPPING) {
+            throw new RuntimeException("Chỉ có thể hoàn thành đơn hàng đang vận chuyển");
+        }
+
+        // Cập nhật trạng thái đơn hàng sang DELIVERED
+        order.setStatus(OrderStatus.DELIVERED);
+        Order savedOrder = orderRepository.save(order);
+
+        // Cập nhật trạng thái shipping order
+        ShippingOrder shippingOrder = shippingOrderRepository.findByOrder_Id(orderId)
+                .orElse(null);
+
+        if (shippingOrder != null) {
+            shippingOrder.setStatus(OrderStatus.DELIVERED);
+            shippingOrderRepository.save(shippingOrder);
+        }
+
+        // Eager load relationships before async email sending
+        Hibernate.initialize(savedOrder.getUser());
+        if (savedOrder.getUser().getProfile() != null) {
+            Hibernate.initialize(savedOrder.getUser().getProfile());
+        }
+        Hibernate.initialize(savedOrder.getOrderItems());
+        for (OrderItem item : savedOrder.getOrderItems()) {
+            if (item.getProduct() != null) {
+                Hibernate.initialize(item.getProduct());
+            }
+            if (item.getVariant() != null) {
+                Hibernate.initialize(item.getVariant());
+                Hibernate.initialize(item.getVariant().getImages());
+            }
+            if (item.getSize() != null) {
+                Hibernate.initialize(item.getSize());
+            }
+        }
+
+        // Send DELIVERED email
+        log.info("📧 Sending DELIVERED email for order #{}", savedOrder.getId());
+        try {
+            emailService.sendOrderUpdateEmail(savedOrder);
+            log.info("✅ DELIVERED email service called successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+        
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đơn hàng đã được giao")
+                .content("Đơn hàng #" + savedOrder.getId() + " đã được giao thành công. Cảm ơn bạn đã mua hàng!")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{} delivery", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
         }
     }
 
@@ -573,7 +742,7 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // Send order confirmation email for online payment
-            emailService.sendOrderConfirmation(savedOrder);
+            emailService.sendOrderUpdateEmail(savedOrder);
         }
     }
 

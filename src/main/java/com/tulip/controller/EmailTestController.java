@@ -43,11 +43,51 @@ public class EmailTestController {
                 }
             });
 
-            emailService.sendOrderConfirmation(order);
+            emailService.sendOrderUpdateEmail(order);
 
             return String.format(
-                "✅ Email test initiated for order #%d to %s. Check console logs for details.",
+                "✅ Email test initiated for order #%d (Status: %s) to %s. Check console logs for details.",
                 orderId,
+                order.getStatus(),
+                order.getUser().getEmail()
+            );
+        } catch (Exception e) {
+            log.error("🧪 [TEST] Error testing email: {}", e.getMessage(), e);
+            return "❌ Error: " + e.getMessage();
+        }
+    }
+    
+    @GetMapping("/send-order-update/{orderId}")
+    public String testOrderUpdateEmail(@PathVariable Long orderId) {
+        try {
+            Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+            
+            // Eager load relationships
+            Hibernate.initialize(order.getUser());
+            if (order.getUser().getProfile() != null) {
+                Hibernate.initialize(order.getUser().getProfile());
+            }
+            Hibernate.initialize(order.getOrderItems());
+            order.getOrderItems().forEach(item -> {
+                if (item.getProduct() != null) {
+                    Hibernate.initialize(item.getProduct());
+                }
+                if (item.getVariant() != null) {
+                    Hibernate.initialize(item.getVariant());
+                    Hibernate.initialize(item.getVariant().getImages());
+                }
+                if (item.getSize() != null) {
+                    Hibernate.initialize(item.getSize());
+                }
+            });
+
+            emailService.sendOrderUpdateEmail(order);
+
+            return String.format(
+                "✅ Order update email sent for order #%d (Status: %s) to %s. Check console logs for details.",
+                orderId,
+                order.getStatus(),
                 order.getUser().getEmail()
             );
         } catch (Exception e) {
