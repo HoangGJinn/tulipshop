@@ -43,7 +43,7 @@
 <div th:fragment="header">
     <!-- Toast Notification Container -->
     <div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000;"></div>
-    
+
     <!-- Header Main -->
     <header id="site-header" class="header-main">
         <div class="header-main__height">
@@ -279,15 +279,19 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Toast Notification Script - Load FIRST for toast messages -->
     <script th:src="@{/js/toast-notification.js}"></script>
-    
+
     <!-- Notification Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <script th:src="@{/js/notification.js}"></script>
+
+    <script th:src="@{/js/header.js}" defer></script>
 </div>
+
+<script th:fragment="notification-script" th:src="@{/js/notification.js}"></script>
 
 <!-- Header Scripts Fragment -->
 <script th:fragment="header-scripts">
@@ -295,7 +299,7 @@
     document.getElementById('menu-toggle')?.addEventListener('click', function() {
         document.getElementById('mobile-menu').classList.add('active');
     });
-    
+
     document.getElementById('close-menu')?.addEventListener('click', function() {
         document.getElementById('mobile-menu').classList.remove('active');
     });
@@ -303,7 +307,7 @@
     // User dropdown menu toggle
     const userMenuToggle = document.getElementById('user-menu-toggle');
     const userDropdownMenu = document.getElementById('user-dropdown-menu');
-    
+
     if (userMenuToggle && userDropdownMenu) {
         userMenuToggle.addEventListener('click', function(e) {
             if (!e.target.closest('.user-name-link') && !e.target.classList.contains('user-name')) {

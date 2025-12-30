@@ -36,6 +36,11 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
 
     @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+    
+    @Override
     @Transactional
     public User register(String email, String rawPassword, String fullName, String phone) {
         if (userRepository.existsByEmail(email)) {

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/header :: head('403 - Không có quyền truy cập')}"></head>
 <body>
     <!-- Header -->
@@ -29,16 +30,13 @@
     <!-- Footer -->
     <div th:replace="~{fragments/footer :: footer}"></div>
 
-    <!-- Header Scripts -->
-    <th:block th:replace="~{fragments/header :: header-scripts}"></th:block>
-
     <style>
         .error-container {
-            min-height: 60vh;
+            min-height: calc(100vh - 200px);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
         }
 
         .error-content {
