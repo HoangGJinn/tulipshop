@@ -90,7 +90,34 @@
 
     <!-- Notification System -->
     <link rel="stylesheet" th:href="@{/css/notification.css}">
+    <!-- Toast Notification Script - Load FIRST -->
+    <script th:src="@{/js/toast-notification.js}"></script>
     <script th:src="@{/js/notification.js}"></script>
+
+    <!-- Animation styles for toast -->
+    <script>
+        // Add animation styles if not exists
+        if (!document.getElementById('toast-animation-styles')) {
+            const style = document.createElement('style');
+            style.id = 'toast-animation-styles';
+            style.textContent = `
+                @keyframes slide-in-right {
+                    from {
+                        opacity: 0;
+                        transform: translateX(100%);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+                .animate-slide-in-right {
+                    animation: slide-in-right 0.3s ease-out;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    </script>
 
     <!-- Confirm Modal Scripts -->
     <script>

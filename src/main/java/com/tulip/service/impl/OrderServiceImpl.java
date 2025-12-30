@@ -13,6 +13,7 @@ import com.tulip.entity.product.ProductVariant;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
 import com.tulip.service.EmailService;
+import com.tulip.service.NotificationService;
 import com.tulip.service.OrderService;
 import com.tulip.service.integration.TulipShippingClient;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
     private final EmailService emailService;
     private final TulipShippingClient shippingClient;
     private final ShippingOrderRepository shippingOrderRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -155,6 +157,22 @@ public class OrderServiceImpl implements OrderService {
             log.info("✅ Email service called successfully for order #{}", savedOrder.getId());
         } catch (Exception e) {
             log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đặt hàng thành công")
+                .content("Đơn hàng #" + savedOrder.getId() + " đã được đặt thành công. Tổng giá trị: " + 
+                        String.format("%,.0f", savedOrder.getFinalPrice()) + " VNĐ")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(user.getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
         }
 
         return savedOrder;
@@ -444,6 +462,21 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
         }
+        
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đơn hàng đã được xác nhận")
+                .content("Đơn hàng #" + savedOrder.getId() + " đã được xác nhận và đang được chuẩn bị.")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{} confirmation", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
     }
 
     @Override
@@ -511,6 +544,21 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
         }
+        
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đơn hàng đang được giao")
+                .content("Đơn hàng #" + savedOrder.getId() + " đang trên đường giao đến bạn.")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{} shipping", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
     }
 
     @Override
@@ -563,6 +611,21 @@ public class OrderServiceImpl implements OrderService {
             log.info("✅ DELIVERED email service called successfully for order #{}", savedOrder.getId());
         } catch (Exception e) {
             log.error("❌ Error calling email service for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+        
+        // Gửi thông báo real-time qua WebSocket
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đơn hàng đã được giao")
+                .content("Đơn hàng #" + savedOrder.getId() + " đã được giao thành công. Cảm ơn bạn đã mua hàng!")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), notificationRequest);
+            log.info("🔔 Notification sent successfully for order #{} delivery", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
         }
     }
 

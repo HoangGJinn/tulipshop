@@ -64,6 +64,9 @@ public class SecurityConfig {
 
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/assets/**", "/favicon.ico").permitAll()
 
+                // WebSocket endpoints - cho phép kết nối (authentication sẽ được xử lý bởi JwtChannelInterceptor)
+                .requestMatchers("/ws/**").permitAll()
+
                 // Admin routes - phải đặt trước các rule chung
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
@@ -88,6 +91,8 @@ public class SecurityConfig {
                 // Các endpoint giỏ hàng và thanh toán yêu cầu authentication:
                 .requestMatchers("/v1/api/cart/**").authenticated()
                 .requestMatchers("/cart", "/checkout", "/checkout/**", "/order-success", "/orders", "/orders/**").authenticated()
+                // Notification API yêu cầu authentication:
+                .requestMatchers("/v1/api/notifications/**").authenticated()
                 .anyRequest().authenticated()
             )
             // Xử lý exception: Nếu đã authenticated nhưng không có quyền hoặc URL không tồn tại
