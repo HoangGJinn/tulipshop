@@ -1,128 +1,131 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <body>
 
-<footer th:fragment="footer" class="site-footer">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 col-sm-6">
-                <h3 class="footer-title">Về Tulip Shop</h3>
-                <p>Chúng tôi mang đến những sản phẩm thời trang chất lượng cao với giá cả hợp lý.</p>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <h3 class="footer-title">Liên kết nhanh</h3>
-                <ul class="footer-links">
-                    <li><a th:href="@{/about}">Về chúng tôi</a></li>
-                    <li><a th:href="@{/contact}">Liên hệ</a></li>
-                    <li><a th:href="@{/policy}">Chính sách</a></li>
-                    <li><a th:href="@{/terms}">Điều khoản</a></li>
-                </ul>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <h3 class="footer-title">Kết nối với chúng tôi</h3>
-                <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+    <footer th:fragment="footer" class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-sm-6">
+                    <h3 class="footer-title">Về Tulip Shop</h3>
+                    <p>Chúng tôi mang đến những sản phẩm thời trang chất lượng cao với giá cả hợp lý.</p>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <h3 class="footer-title">Liên kết nhanh</h3>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/about}">Về chúng tôi</a></li>
+                        <li><a th:href="@{/contact}">Liên hệ</a></li>
+                        <li><a th:href="@{/policy}">Chính sách</a></li>
+                        <li><a th:href="@{/terms}">Điều khoản</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <h3 class="footer-title">Kết nối với chúng tôi</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Tulip Shop. All rights reserved. By Group 3</p>
-        </div>
-    </div>
-
-    <div id="searchOverlay" class="search-overlay">
-        <div class="container">
-            <div class="text-end pt-3">
-                <button class="btn-close-search" onclick="toggleSearchPanel()">
-                    <i class="fas fa-times"></i> ĐÓNG
-                </button>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Tulip Shop. All rights reserved. By Group 3</p>
             </div>
+        </div>
 
-            <div class="search-box-wrapper text-center mt-3">
-                <form action="/products" method="get" class="position-relative">
-                    <input type="text" id="searchInput" name="search" class="form-control search-input"
-                           placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
-                    <button type="submit" class="btn-search-submit"><i class="fas fa-search"></i></button>
-                </form>
-            </div>
+        <div id="searchOverlay" class="search-overlay">
+            <div class="container">
+                <div class="text-end pt-3">
+                    <button class="btn-close-search" onclick="toggleSearchPanel()">
+                        <i class="fas fa-times"></i> ĐÓNG
+                    </button>
+                </div>
 
-            <div id="searchResults" class="search-results mt-4">
-                <div class="default-suggestions text-center">
-                    <p class="text-muted small text-uppercase mb-3">Gợi ý cho bạn</p>
-                    <div class="d-flex justify-content-center gap-3 flex-wrap">
-                        <a href="/products?category=dam" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Đầm dạo phố</a>
-                        <a href="/products?category=ao-kieu" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Áo kiểu</a>
+                <div class="search-box-wrapper text-center mt-3">
+                    <form action="/products" method="get" class="position-relative">
+                        <input type="text" id="searchInput" name="search" class="form-control search-input"
+                            placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+                        <button type="submit" class="btn-search-submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
+                <div id="searchResults" class="search-results mt-4">
+                    <div class="default-suggestions text-center">
+                        <p class="text-muted small text-uppercase mb-3">Gợi ý cho bạn</p>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="/products?category=dam"
+                                class="btn btn-outline-light text-dark border rounded-pill btn-sm">Đầm dạo phố</a>
+                            <a href="/products?category=ao-kieu"
+                                class="btn btn-outline-light text-dark border rounded-pill btn-sm">Áo kiểu</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleSearchPanel() {
-            const panel = document.getElementById('searchOverlay');
-            const input = document.getElementById('searchInput');
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            function toggleSearchPanel() {
+                const panel = document.getElementById('searchOverlay');
+                const input = document.getElementById('searchInput');
 
-            if (panel.classList.contains('open')) {
-                panel.classList.remove('open');
-                document.body.style.overflow = 'auto';
-            } else {
-                panel.classList.add('open');
-                document.body.style.overflow = 'hidden';
-                setTimeout(() => input.focus(), 300);
-            }
-        }
-
-        let typingTimer;
-        const doneTypingInterval = 400;
-        const input = document.getElementById('searchInput');
-        const resultDiv = document.getElementById('searchResults');
-        // Lưu nội dung gợi ý mặc định
-        const defaultContent = resultDiv ? resultDiv.innerHTML : '';
-
-        if(input){
-            input.addEventListener('keyup', () => {
-                clearTimeout(typingTimer);
-                if (input.value.trim().length > 0) {
-                    typingTimer = setTimeout(performSearch, doneTypingInterval);
+                if (panel.classList.contains('open')) {
+                    panel.classList.remove('open');
+                    document.body.style.overflow = 'auto';
                 } else {
-                    resultDiv.innerHTML = defaultContent;
+                    panel.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                    setTimeout(() => input.focus(), 300);
                 }
-            });
-        }
-
-        function performSearch() {
-            const query = input.value;
-            // Sử dụng API base URL từ configuration
-            fetch(`${window.API_BASE_URL}/store/search?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    renderResults(data);
-                })
-                .catch(error => console.error('Lỗi tìm kiếm:', error));
-        }
-
-        function renderResults(products) {
-            if (products.length === 0) {
-                resultDiv.innerHTML = '<div class="text-center text-muted mt-5">Không tìm thấy sản phẩm nào phù hợp.</div>';
-                return;
             }
 
-            let html = '<div class="row justify-content-center"><div class="col-md-8 list-group list-group-flush">';
+            let typingTimer;
+            const doneTypingInterval = 400;
+            const input = document.getElementById('searchInput');
+            const resultDiv = document.getElementById('searchResults');
+            // Lưu nội dung gợi ý mặc định
+            const defaultContent = resultDiv ? resultDiv.innerHTML : '';
 
-            products.forEach(p => {
-                let priceHtml = `<span class="search-item-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price)}</span>`;
-                if (p.originalPrice) {
-                    priceHtml += `<span class="search-item-old-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.originalPrice)}</span>`;
+            if (input) {
+                input.addEventListener('keyup', () => {
+                    clearTimeout(typingTimer);
+                    if (input.value.trim().length > 0) {
+                        typingTimer = setTimeout(performSearch, doneTypingInterval);
+                    } else {
+                        resultDiv.innerHTML = defaultContent;
+                    }
+                });
+            }
+
+            function performSearch() {
+                const query = input.value;
+                // Sử dụng API base URL từ configuration
+                fetch(`${window.API_BASE_URL}/store/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        renderResults(data);
+                    })
+                    .catch(error => console.error('Lỗi tìm kiếm:', error));
+            }
+
+            function renderResults(products) {
+                if (products.length === 0) {
+                    resultDiv.innerHTML = '<div class="text-center text-muted mt-5">Không tìm thấy sản phẩm nào phù hợp.</div>';
+                    return;
                 }
 
-                html += `
+                let html = '<div class="row justify-content-center"><div class="col-md-8 list-group list-group-flush">';
+
+                products.forEach(p => {
+                    let priceHtml = `<span class="search-item-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price)}</span>`;
+                    if (p.originalPrice) {
+                        priceHtml += `<span class="search-item-old-price">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.originalPrice)}</span>`;
+                    }
+
+                    html += `
                 <a href="${p.url}" class="list-group-item list-group-item-action search-item d-flex align-items-center gap-3">
                     <img src="${p.thumbnail}" alt="${p.name}">
                     <div>
@@ -131,15 +134,17 @@
                     </div>
                 </a>
             `;
-            });
+                });
 
-            html += `<div class="text-center mt-3"><a href="/products?search=${input.value}" class="btn btn-sm btn-link text-dark">Xem tất cả kết quả</a></div>`;
-            html += '</div></div>';
+                html += `<div class="text-center mt-3"><a href="/products?search=${input.value}" class="btn btn-sm btn-link text-dark">Xem tất cả kết quả</a></div>`;
+                html += '</div></div>';
 
-            resultDiv.innerHTML = html;
-        }
-    </script>
-</footer>
+                resultDiv.innerHTML = html;
+            }
+        </script>
+        <div th:replace="~{fragments/chat :: chat-widget}"></div>
+    </footer>
 
 </body>
+
 </html>

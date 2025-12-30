@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Waiting Rooms -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock"></i> Phòng đang chờ 
+                            <span class="badge bg-dark" th:text="${waitingRooms.size()}">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${waitingRooms.isEmpty()}" class="text-center py-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Không có phòng nào đang chờ</p>
+                        </div>
+                        <div th:unless="${waitingRooms.isEmpty()}" class="list-group">
+                            <div th:each="room : ${waitingRooms}" class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1" th:text="${room.customerName}">Khách hàng</h6>
+                                        <small class="text-muted" th:text="${'Đã chờ: ' + #temporals.format(room.createdAt, 'HH:mm dd/MM/yyyy')}"></small>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary" 
+                                            th:onclick="'assignRoom(' + ${room.id} + ')'">
+                                        Nhận
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assigned Rooms -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comments"></i> Phòng đã nhận
+                            <span class="badge bg-light text-dark" th:text="${assignedRooms.size()}">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${assignedRooms.isEmpty()}" class="text-center py-4">
+                            <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Chưa có phòng nào được nhận</p>
+                        </div>
+                        <div th:unless="${assignedRooms.isEmpty()}" class="list-group">
+                            <div th:each="room : ${assignedRooms}" class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1" th:text="${room.customerName}">Khách hàng</h6>
+                                        <small class="text-muted" th:text="${room.unreadCount > 0 ? room.unreadCount + ' tin nhắn chưa đọc' : 'Đã đọc hết'}"></small>
+                                    </div>
+                                    <div>
+                                        <a th:href="@{'/admin/chat/rooms/' + ${room.id}}" 
+                                           class="btn btn-sm btn-success me-1">
+                                            Mở
+                                        </a>
+                                        <button class="btn btn-sm btn-secondary" 
+                                                th:onclick="'closeRoom(' + ${room.id} + ')'">
+                                            Đóng
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function assignRoom(roomId) {
+            fetch(`/admin/chat/rooms/${roomId}/assign`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert('Đã nhận phòng chat thành công!');
+                location.reload();
+            })
+            .catch(err => {
+                alert('Lỗi: ' + err.message);
+            });
+        }
+
+        function closeRoom(roomId) {
+            if (!confirm('Bạn có chắc muốn đóng phòng chat này?')) return;
+            
+            fetch(`/admin/chat/rooms/${roomId}/close`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert('Đã đóng phòng chat!');
+                location.reload();
+            })
+            .catch(err => {
+                alert('Lỗi: ' + err.message);
+            });
+        }
+    </script>
+</body>
+</html>
+

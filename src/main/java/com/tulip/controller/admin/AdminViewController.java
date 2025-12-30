@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminViewController {
-    
+
     private final OrderService orderService;
 
     // Xử lý route /admin - redirect đến dashboard
@@ -27,9 +27,8 @@ public class AdminViewController {
     public String dashboard(Model model) {
         model.addAttribute("pageTitle", "DASHBOARD");
         model.addAttribute("currentPage", "dashboard");
-        model.addAttribute("contentTemplate", "admin/dashboard/dashboard");
         model.addAttribute("showSearch", false);
-        return "admin/layouts/layout";
+        return "admin/dashboard/dashboard";
     }
 
     @GetMapping("/orders")
@@ -39,38 +38,34 @@ public class AdminViewController {
         model.addAttribute("countConfirmed", orderService.getOrdersByStatus(OrderStatus.CONFIRMED).size());
         model.addAttribute("countShipping", orderService.getOrdersByStatus(OrderStatus.SHIPPING).size());
         model.addAttribute("countDelivered", orderService.getOrdersByStatus(OrderStatus.DELIVERED).size());
-        
+
         model.addAttribute("pageTitle", "ORDERS");
         model.addAttribute("currentPage", "orders");
-        model.addAttribute("contentTemplate", "admin/orders/orders");
         model.addAttribute("showSearch", true);
-        return "admin/layouts/layout";
+        return "admin/orders/orders";
     }
 
     @GetMapping("/customers")
     public String customers(Model model) {
         model.addAttribute("pageTitle", "CUSTOMERS");
         model.addAttribute("currentPage", "customers");
-        model.addAttribute("contentTemplate", "admin/customers/customers");
         model.addAttribute("showSearch", true);
-        return "admin/layouts/layout";
+        return "admin/customers/customers";
     }
 
     @GetMapping("/categories")
     public String categories(Model model) {
         model.addAttribute("pageTitle", "CATEGORIES");
         model.addAttribute("currentPage", "categories");
-        model.addAttribute("contentTemplate", "admin/categories/categories");
         model.addAttribute("showSearch", true);
-        return "admin/layouts/layout";
+        return "admin/categories/categories";
     }
 
     @GetMapping("/settings")
     public String settings(Model model) {
         model.addAttribute("pageTitle", "SETTINGS");
         model.addAttribute("currentPage", "settings");
-        model.addAttribute("contentTemplate", "admin/settings/settings");
         model.addAttribute("showSearch", false);
-        return "admin/layouts/layout";
+        return "admin/settings/settings";
     }
 }

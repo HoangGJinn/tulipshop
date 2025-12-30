@@ -38,6 +38,10 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
     
+    public String extractEmail(String token) {
+        return extractUsername(token); // Email được dùng làm username
+    }
+    
     // Do userId là cái ta tự định nghĩa trong JWT
     // Nên ta cần lấy nó ra từ Claims
     public Long extractUserId(String token) {
@@ -200,6 +204,27 @@ public class JwtUtil {
         }
         
         return null;
+    }
+    
+    /**
+     * Validate token và trả về true nếu hợp lệ
+     */
+    public Boolean validateToken(String token) {
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Lấy User entity từ token
+     * Cần inject UserRepository để sử dụng
+     */
+    public com.tulip.entity.User getUserFromToken(String token) {
+        // Method này sẽ được implement trong WebSocketAuthInterceptor
+        // vì cần UserRepository để load user
+        throw new UnsupportedOperationException("Use UserRepository to load user by email");
     }
 }
 

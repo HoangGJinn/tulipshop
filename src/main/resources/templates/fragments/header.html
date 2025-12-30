@@ -12,6 +12,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/notification.css}">
+    <link rel="stylesheet" th:href="@{/css/chat-widget.css}">
     <style>
         .active-color {
             border: 2px solid #000 !important;
@@ -361,6 +362,19 @@
 
 <!-- Notification Script Fragment (for backward compatibility) -->
 <script th:fragment="notification-script" th:src="@{/js/notification.js}"></script>
+
+<!-- WebSocket Libraries for Chat Widget -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2/lib/stomp.min.js"></script>
+
+<!-- Chat Widget Script -->
+<script th:src="@{/js/chat-widget.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Set current user ID for chat widget (only if authenticated)
+    window.currentUserId = /*[[${#authentication != null ? #authentication.principal.userId : null}]]*/ null;
+    /*]]>*/
+</script>
 
 </body>
 </html>

@@ -101,7 +101,7 @@
                     (progress) => {
                         // Loading progress
                         if (progress.lengthComputable) {
-                            console.log(`Container ${index + 1} - Loading model:`, (progress.loaded / progress.total * 100).toFixed(0) + '%');
+                            // console.log(`Container ${index + 1} - Loading model:`, (progress.loaded / progress.total * 100).toFixed(0) + '%');
                         }
                     },
                     (error) => {
@@ -135,7 +135,7 @@
                     camera: camera,
                     controls: controls,
                     resizeObserver: resizeObserver,
-                    dispose: function() {
+                    dispose: function () {
                         // Cancel animation
                         if (this.container._animationId) {
                             cancelAnimationFrame(this.container._animationId);
@@ -186,7 +186,7 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const slider = document.getElementById('sale-slider');
             const prevBtn = document.getElementById('btn-sale-prev');
             const nextBtn = document.getElementById('btn-sale-next');
@@ -205,7 +205,7 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // --- Xử lý cho Slider Danh mục nổi bật ---
             const catSlider = document.getElementById('category-slider');
             const catPrevBtn = document.getElementById('btn-cat-prev');
@@ -237,7 +237,7 @@
                 btn.className = 'tab-btn tw-text-gray-500 hover:tw-text-black tw-pb-4 -tw-mb-4 tw-border-b-2 tw-border-transparent hover:tw-border-gray-300 tw-transition-colors';
             });
             // Set nút đang bấm thành màu đỏ (Active)
-            if(btnElement) {
+            if (btnElement) {
                 btnElement.className = 'tab-btn tw-font-bold tw-text-primary tw-border-b-2 tw-border-primary tw-pb-4 -tw-mb-4 tw-transition-colors';
             }
 
@@ -339,7 +339,7 @@
         }
 
         // Click ra ngoài thì đóng hết popup
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const isClickInsideHotspot = event.target.closest('.hotspot-point');
             const isClickInsideCard = event.target.closest('.hotspot-card');
 
@@ -357,7 +357,7 @@
             document.querySelectorAll('.occasion-btn').forEach(btn => {
                 btn.className = 'occasion-btn tw-text-gray-500 hover:tw-text-black tw-transition-colors tw-border-b-2 tw-border-transparent hover:tw-border-gray-300';
             });
-            if(btnElement) {
+            if (btnElement) {
                 btnElement.className = 'occasion-btn tw-font-bold tw-text-black tw-border-b-2 tw-border-black tw-pb-1 tw-transition-colors';
             }
 
@@ -408,7 +408,7 @@
             loadOccasion('di-lam', firstBtn);
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Cấu hình thời gian đếm ngược (tính bằng giây)
             // 24 giờ = 24 * 60 * 60 = 86400 giây
             const CYCLE_SECONDS = 24 * 60 * 60;

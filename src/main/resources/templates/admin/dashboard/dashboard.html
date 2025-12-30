@@ -1,76 +1,87 @@
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-    <div class="space-y-8">
-        <!-- Welcome Section -->
-        <div class="border border-black p-8 bg-white">
-            <h1 class="text-4xl font-black italic tracking-tighter mb-2">Chào mừng đến Admin Dashboard</h1>
-            <p class="text-sm text-gray-500 uppercase tracking-widest">Quản lý cửa hàng TulipShop</p>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layouts/layout}">
+
+<head>
+    <title>Dashboard | Tulip Admin</title>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="space-y-8">
+            <!-- Welcome Section -->
+            <div class="border border-black p-8 bg-white">
+                <h1 class="text-4xl font-black italic tracking-tighter mb-2">Chào mừng đến Admin Dashboard</h1>
+                <p class="text-sm text-gray-500 uppercase tracking-widest">Quản lý cửa hàng TulipShop</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div id="stats-container" class="grid gap-4 md:grid-cols-4">
+                <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Tổng sản phẩm</span>
+                        <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
+                    </div>
+                </div>
+                <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Đơn hàng</span>
+                        <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
+                    </div>
+                </div>
+                <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Khách hàng</span>
+                        <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
+                    </div>
+                </div>
+                <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Doanh thu</span>
+                        <span class="text-3xl font-black italic tracking-tighter text-green-600">0₫</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="border border-black p-6 bg-white">
+                <h3 class="font-black italic uppercase tracking-[0.2em] text-sm mb-6">Thao tác nhanh</h3>
+                <div class="grid gap-4 md:grid-cols-3">
+                    <a href="/admin/products" class="border border-black p-4 hover:bg-gray-50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="shirt" class="h-6 w-6"></i>
+                            <div>
+                                <div class="font-black uppercase text-xs tracking-wider">Quản lý sản phẩm</div>
+                                <div class="text-[9px] text-gray-400 uppercase mt-1">Thêm, sửa, xóa sản phẩm</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/admin/orders" class="border border-black p-4 hover:bg-gray-50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="shopping-bag" class="h-6 w-6"></i>
+                            <div>
+                                <div class="font-black uppercase text-xs tracking-wider">Quản lý đơn hàng</div>
+                                <div class="text-[9px] text-gray-400 uppercase mt-1">Xem và xử lý đơn hàng</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/admin/customers" class="border border-black p-4 hover:bg-gray-50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="user-round" class="h-6 w-6"></i>
+                            <div>
+                                <div class="font-black uppercase text-xs tracking-wider">Quản lý khách hàng</div>
+                                <div class="text-[9px] text-gray-400 uppercase mt-1">Xem danh sách khách hàng</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div id="stats-container" class="grid gap-4 md:grid-cols-4">
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Tổng sản phẩm</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
-                </div>
-            </div>
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Đơn hàng</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
-                </div>
-            </div>
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Khách hàng</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
-                </div>
-            </div>
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Doanh thu</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-green-600">0₫</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="border border-black p-6 bg-white">
-            <h3 class="font-black italic uppercase tracking-[0.2em] text-sm mb-6">Thao tác nhanh</h3>
-            <div class="grid gap-4 md:grid-cols-3">
-                <a href="/admin/products" class="border border-black p-4 hover:bg-gray-50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="shirt" class="h-6 w-6"></i>
-                        <div>
-                            <div class="font-black uppercase text-xs tracking-wider">Quản lý sản phẩm</div>
-                            <div class="text-[9px] text-gray-400 uppercase mt-1">Thêm, sửa, xóa sản phẩm</div>
-                        </div>
-                    </div>
-                </a>
-                <a href="/admin/orders" class="border border-black p-4 hover:bg-gray-50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="shopping-bag" class="h-6 w-6"></i>
-                        <div>
-                            <div class="font-black uppercase text-xs tracking-wider">Quản lý đơn hàng</div>
-                            <div class="text-[9px] text-gray-400 uppercase mt-1">Xem và xử lý đơn hàng</div>
-                        </div>
-                    </div>
-                </a>
-                <a href="/admin/customers" class="border border-black p-4 hover:bg-gray-50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="user-round" class="h-6 w-6"></i>
-                        <div>
-                            <div class="font-black uppercase text-xs tracking-wider">Quản lý khách hàng</div>
-                            <div class="text-[9px] text-gray-400 uppercase mt-1">Xem danh sách khách hàng</div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
+        <script>
+            lucide.createIcons();
+        </script>
     </div>
+</body>
 
-    <script>
-        lucide.createIcons();
-    </script>
-</div>
-
+</html>

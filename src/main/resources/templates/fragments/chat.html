@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div th:fragment="chat-widget">
+        <!-- Chat Widget - Always visible for easy communication -->
+        <link rel="stylesheet" th:href="@{/css/chat-widget.css}">
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/stompjs@2/lib/stomp.min.js"></script>
+        <script th:src="@{/js/chat-widget.js}"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            window.currentUserId = /*[[${#authorization.expression('isAuthenticated()') ? #authentication.principal.userId : null}]]*/ null;
+            /*]]>*/
+        </script>
+    </div>
+</body>
+
+</html>
