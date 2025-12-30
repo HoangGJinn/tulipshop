@@ -73,4 +73,13 @@ public class AdminViewController {
         model.addAttribute("showSearch", false);
         return "admin/layouts/layout";
     }
+    
+    @GetMapping("/notifications")
+    public String notifications(Model model) {
+        model.addAttribute("pageTitle", "QUẢN LÝ THÔNG BÁO");
+        model.addAttribute("currentPage", "notifications");
+        model.addAttribute("contentTemplate", "admin/notifications/index");
+        model.addAttribute("showSearch", false);
+        return "admin/layouts/layout";
+    }
 }

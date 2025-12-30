@@ -7,6 +7,7 @@ import com.tulip.service.UserService;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -91,10 +92,29 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@Valid @ModelAttribute("form") RegisterForm form, BindingResult br, Model model, RedirectAttributes redirectAttributes) {
+    public String register(@Valid @ModelAttribute("form") RegisterForm form, 
+                           BindingResult br, 
+                           Model model, 
+                           RedirectAttributes redirectAttributes) {
+        
+        // 1. Validate thủ công: Mật khẩu xác nhận
+        if (form.getPassword() != null && form.getConfirmPassword() != null 
+                && !form.getPassword().equals(form.getConfirmPassword())) {
+            br.rejectValue("confirmPassword", "error.form", "Mật khẩu xác nhận không khớp");
+        }
+    
+        // 2. Validate thủ công: Check Email tồn tại
+        if (form.getEmail() != null && !form.getEmail().trim().isEmpty()) {
+            if (userService.existsByEmail(form.getEmail())) {
+                br.rejectValue("email", "error.form", "Email này đã được sử dụng");
+            }
+        }
+    
+        // 3. Kiểm tra lỗi validate (Bao gồm @NotBlank và lỗi thủ công ở trên)
         if (br.hasErrors()) {
             return "auth/register";
         }
+    
         try {
             userService.register(
                     form.getEmail(),
@@ -104,7 +124,9 @@ public class AuthController {
             );
             redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã OTP.");
             return "redirect:/verify-email?email=" + form.getEmail();
-        } catch (Exception ex){
+            
+        } catch (Exception ex) {
+            // Lỗi từ service (VD: Lỗi DB, lỗi gửi mail)
             model.addAttribute("error", ex.getMessage());
             return "auth/register";
         }
@@ -141,23 +163,21 @@ public class AuthController {
         private String email;
         
         @NotBlank(message = "Mật khẩu không được để trống")
+        @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
         private String password;
-
+    
         @NotBlank(message = "Xác nhận mật khẩu không được để trống")
         private String confirmPassword;
-
+    
         @NotBlank(message = "Họ và tên không được để trống")
         private String fullName;
-
+    
+        // Validate số điện thoại VN (10 số, bắt đầu bằng 0) - chỉ validate nếu không rỗng
+        @jakarta.validation.constraints.Pattern(
+            regexp = "^$|^(0[3|5|7|8|9])[0-9]{8}$",
+            message = "Số điện thoại phải có 10 chữ số và bắt đầu bằng 03, 05, 07, 08 hoặc 09"
+        )
         private String phone;
-
-        @AssertTrue(message = "Mật khẩu và xác nhận mật khẩu không khớp")
-        public boolean isPasswordMatch() {
-            if (password == null || confirmPassword == null) {
-                return false;
-            }
-            return password.equals(confirmPassword);
-        }
 
     }
     

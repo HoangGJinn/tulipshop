@@ -8,7 +8,19 @@
     <title>Tulip Shop - Performance Collection</title>
     
     <!-- CSS -->
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/supply-style.css}">
+    <!-- Notification CSS -->
+    <link rel="stylesheet" th:href="@{/css/notification.css}">
+    <link rel="stylesheet" th:href="@{/css/notification-fix.css}">
+    <!-- Bootstrap Icons cho notification -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Header Fix CSS -->
+    <link rel="stylesheet" th:href="@{/css/header-fix.css}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts - Condensed Sans-serif for Impact-style typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,9 +123,7 @@
         .site-footer img,
         .search-overlay img {
             display: block;       /* Sửa lỗi ảnh bị dính dòng text */
-            vertical-align: middle;
             max-width: 100%;      /* Sửa lỗi ảnh bị tràn khung */
-
         }
 
         /* 2. Reset Button & Input: Khôi phục style cơ bản */
@@ -136,6 +146,7 @@
         .vertical-content button,
         .site-footer button,
         .search-overlay button {
+            appearance: button;
             -webkit-appearance: button; /* Hành vi nút bấm chuẩn */
             cursor: pointer;
             background-color: transparent; /* Để các class Tailwind bg-* hoạt động */
@@ -168,26 +179,21 @@
             animation: fadeInUp 0.3s ease-out forwards;
         }
 
+        .list-unstyled {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .header-main.scrolled {
+            opacity: 0.80;
+        }
+
     </style>
 
 </head>
 <body>
-    <!-- Header Navigation -->
-    <header class="main-header">
-        <nav class="header-nav">
-            <div class="logo">
-                <a href="/">TULIP SHOP</a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="/products">Shop</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-            <div class="header-actions">
-                <a href="/cart" class="cart-link">Cart <span class="cart-count">0</span></a>
-            </div>
-        </nav>
-    </header>
+    <!-- Header -->
+    <div th:replace="~{fragments/home/header :: header}"></div>
 
     <!-- Main Horizontal Container -->
     <main class="main-content">
@@ -221,8 +227,8 @@
 
 
 
-    <footer th:replace="~{fragments/home/home-footer :: footer}"></footer>
-
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    
     <!-- JavaScript -->
     <script th:src="@{/js/supply-script.js}"></script>
 

@@ -51,6 +51,8 @@ public interface OrderService {
 
     void startShipping(Long orderId);
 
+    void completeOrder(Long orderId);
+
     void confirmOrderPayment(Long orderId);
 
     void handlePaymentFailure(Long orderId);

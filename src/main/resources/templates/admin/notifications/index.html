@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/css/admin-notifications.css}">
+</head>
+<body>
+
+<div th:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="flex justify-between items-end">
+            <div>
+                <h1 class="text-4xl font-black italic tracking-tighter mb-2 font-condensed">QUẢN LÝ THÔNG BÁO</h1>
+                <p class="text-sm text-gray-500 uppercase tracking-widest">Notification Management</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="openCreateModal()" 
+                        class="flex items-center gap-2 border border-black px-6 py-3 text-sm font-bold uppercase tracking-wider bg-black text-white hover:bg-gray-800 transition-all rounded-lg shadow-lg">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Tạo thông báo mới</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider text-gray-500 font-bold">Tổng đã gửi</p>
+                        <p class="text-3xl font-black mt-2" id="stat-total">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <i data-lucide="send" class="w-6 h-6 text-gray-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white border border-yellow-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider text-yellow-600 font-bold">Khuyến mãi</p>
+                        <p class="text-3xl font-black mt-2 text-yellow-600" id="stat-promotion">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i data-lucide="gift" class="w-6 h-6 text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white border border-blue-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider text-blue-600 font-bold">Hệ thống</p>
+                        <p class="text-3xl font-black mt-2 text-blue-600" id="stat-system">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i data-lucide="info" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-[200px]">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        <input type="text" 
+                               id="search-input" 
+                               placeholder="Tìm theo tiêu đề hoặc nội dung..."
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <select id="type-filter" 
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-black">
+                        <option value="">Tất cả loại</option>
+                        <option value="PROMOTION">Khuyến mãi</option>
+                        <option value="SYSTEM">Hệ thống</option>
+                    </select>
+                    <select id="target-filter" 
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-black">
+                        <option value="">Tất cả đối tượng</option>
+                        <option value="ALL">Gửi tất cả</option>
+                        <option value="SPECIFIC">Gửi cụ thể</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Table -->
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Loại</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Tiêu đề</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Nội dung</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Người nhận</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Ngày tạo</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Trạng thái</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="notifications-table-body">
+                    <tr>
+                        <td colspan="7" class="p-20 text-center">
+                            <div class="text-gray-400">
+                                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                                <p class="text-sm font-medium">Chưa có thông báo nào</p>
+                                <p class="text-xs mt-1">Nhấn "Tạo thông báo mới" để bắt đầu</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create Notification Modal -->
+    <div id="create-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-3xl">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title font-condensed">TẠO THÔNG BÁO MỚI</h3>
+                    <p class="modal-subtitle">Gửi thông báo đến người dùng</p>
+                </div>
+                <button onclick="closeCreateModal()" class="modal-close">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="notification-form" class="modal-body space-y-6">
+                <!-- Notification Type -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i data-lucide="tag" class="w-4 h-4"></i>
+                        Loại thông báo
+                    </label>
+                    <select id="notification-type" name="type" required 
+                            class="form-input">
+                        <option value="">-- Chọn loại --</option>
+                        <option value="PROMOTION">🎁 Khuyến mãi</option>
+                        <option value="SYSTEM">⚙️ Hệ thống</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Chỉ có thể tạo thông báo Khuyến mãi và Hệ thống</p>
+                </div>
+
+                <!-- Target Type -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                        Đối tượng nhận
+                    </label>
+                    <div class="flex gap-4">
+                        <label class="radio-label">
+                            <input type="radio" name="targetType" value="ALL" checked 
+                                   onchange="toggleRecipientEmail()">
+                            <span>Tất cả người dùng</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="targetType" value="SPECIFIC" 
+                                   onchange="toggleRecipientEmail()">
+                            <span>Người dùng cụ thể</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Recipient Email (Hidden by default) -->
+                <div id="recipient-email-group" class="form-group hidden">
+                    <label class="form-label">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                        Email người nhận
+                    </label>
+                    <input type="email" id="recipient-email" name="recipientEmail" 
+                           placeholder="user@example.com"
+                           class="form-input">
+                </div>
+
+                <!-- Title -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i data-lucide="type" class="w-4 h-4"></i>
+                        Tiêu đề
+                    </label>
+                    <input type="text" id="notification-title" name="title" required 
+                           placeholder="VD: Đơn hàng của bạn đã được xác nhận"
+                           class="form-input"
+                           maxlength="200">
+                    <p class="text-xs text-gray-500 mt-1">Tối đa 200 ký tự</p>
+                </div>
+
+                <!-- Content -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        Nội dung
+                    </label>
+                    <textarea id="notification-content" name="content" required 
+                              placeholder="Nhập nội dung thông báo..."
+                              rows="4"
+                              class="form-input resize-none"></textarea>
+                </div>
+
+                <!-- Target URL -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i data-lucide="link" class="w-4 h-4"></i>
+                        Link điều hướng (Tùy chọn)
+                    </label>
+                    <input type="text" id="target-url" name="targetUrl" 
+                           placeholder="/orders/123 hoặc /products?sale=true"
+                           class="form-input">
+                    <p class="text-xs text-gray-500 mt-1">Link sẽ mở khi người dùng click vào thông báo</p>
+                </div>
+
+                <!-- Image Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i data-lucide="image" class="w-4 h-4"></i>
+                        Ảnh minh họa (Tùy chọn)
+                    </label>
+                    <input type="file" id="image-file" name="imageFile" 
+                           accept="image/*"
+                           class="form-input"
+                           onchange="previewImage(this)">
+                    <p class="text-xs text-gray-500 mt-1">Upload ảnh từ máy tính (JPG, PNG, GIF)</p>
+                    
+                    <!-- Image Preview -->
+                    <div id="image-preview" class="hidden mt-3">
+                        <img id="preview-img" src="" alt="Preview" class="max-w-xs rounded-lg border border-gray-200">
+                        <button type="button" onclick="removeImage()" class="text-xs text-red-600 hover:underline mt-2">
+                            Xóa ảnh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                        Xem trước
+                    </label>
+                    <div id="notification-preview" class="preview-box">
+                        <div class="preview-notification">
+                            <div class="preview-icon">
+                                <i data-lucide="bell" class="w-5 h-5"></i>
+                            </div>
+                            <div class="preview-content">
+                                <div class="preview-title">Tiêu đề thông báo</div>
+                                <div class="preview-text">Nội dung thông báo sẽ hiển thị ở đây...</div>
+                                <div class="preview-time">Vừa xong</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="modal-footer">
+                <button type="button" onclick="closeCreateModal()" 
+                        class="btn-secondary">
+                    Hủy
+                </button>
+                <button type="button" onclick="submitNotification()" 
+                        class="btn-primary">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    Gửi thông báo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript -->
+    <script th:src="@{/js/admin-notifications.js}"></script>
+    <script>
+        // Initialize icons after page load
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</div>
+
+</body>
+</html>
