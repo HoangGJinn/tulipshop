@@ -1,0 +1,179 @@
+/**
+ * Header Fix - Giải quyết vấn đề tràn và spacing
+ */
+
+/* Đảm bảo header không bị tràn */
+.header-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+}
+
+/* Logo section - Giảm kích thước tối thiểu */
+.header-logo-section {
+    flex-shrink: 0 !important;
+    min-width: 140px !important;
+    max-width: 180px !important;
+}
+
+/* Navigation - Cho phép co giãn */
+.header-nav-section {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+/* Actions section - Đảm bảo không bị tràn */
+.header-actions-section {
+    flex-shrink: 0 !important;
+    min-width: 180px !important;
+    max-width: 220px !important;
+}
+
+.header-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    flex-wrap: nowrap !important;
+}
+
+.header-actions > li {
+    flex-shrink: 0 !important;
+}
+
+/* Responsive - Tablet */
+@media (max-width: 991px) {
+    .header-logo-section {
+        min-width: 120px !important;
+        max-width: 150px !important;
+    }
+    
+    .header-actions-section {
+        min-width: auto !important;
+        max-width: none !important;
+    }
+    
+    .header-actions {
+        gap: 12px !important;
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .header-wrapper {
+        padding: 0 10px !important;
+        gap: 10px !important;
+    }
+    
+    .header-logo-section {
+        min-width: 100px !important;
+        max-width: 130px !important;
+        gap: 10px !important;
+    }
+    
+    .logo-image {
+        height: 42px !important;
+        max-width: 130px !important;
+    }
+    
+    .header-actions-section {
+        max-width: 45% !important;
+    }
+    
+    .header-actions {
+        gap: 8px !important;
+    }
+    
+    /* Ẩn text user name trên mobile */
+    .user-name {
+        display: none !important;
+    }
+}
+
+/* Responsive - Small Mobile */
+@media (max-width: 576px) {
+    .header-wrapper {
+        padding: 0 8px !important;
+        gap: 8px !important;
+    }
+    
+    .header-logo-section {
+        min-width: 90px !important;
+        max-width: 110px !important;
+        gap: 8px !important;
+    }
+    
+    .logo-image {
+        height: 38px !important;
+        max-width: 110px !important;
+    }
+    
+    .header-actions {
+        gap: 6px !important;
+    }
+    
+    .header-actions-section {
+        max-width: 48% !important;
+    }
+}
+
+/* Responsive - Extra Small */
+@media (max-width: 480px) {
+    .header-wrapper {
+        padding: 0 6px !important;
+        gap: 6px !important;
+    }
+    
+    .header-logo-section {
+        min-width: 80px !important;
+        max-width: 100px !important;
+        gap: 6px !important;
+    }
+    
+    .logo-image {
+        height: 35px !important;
+        max-width: 100px !important;
+    }
+    
+    .header-actions {
+        gap: 4px !important;
+    }
+    
+    .header-actions-section {
+        max-width: 50% !important;
+    }
+    
+    .hamburger-menu {
+        font-size: 15px !important;
+        padding: 2px !important;
+    }
+}
+
+/* Đảm bảo các icon có kích thước đồng nhất */
+.header-action-btn,
+.header-cart-wrapper,
+.notification-bell,
+.header-account-wrapper {
+    flex-shrink: 0 !important;
+}
+
+
+/* Fix cho notification dropdown - Đảm bảo không bị ẩn */
+.header-main,
+.header-main__height,
+.header-container,
+.header-wrapper {
+    overflow: visible !important;
+}
+
+.header-actions-section {
+    overflow: visible !important;
+}
+
+.header-actions {
+    overflow: visible !important;
+}
+
+.header-actions > li {
+    overflow: visible !important;
+}
