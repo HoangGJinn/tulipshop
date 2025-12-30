@@ -1,63 +1,86 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Đăng ký - Tulip Shop')}"></head>
+<body class="login-page-body">
+    <!-- Additional CSS for login page -->
     <link rel="stylesheet" th:href="@{/css/login.css}">
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-box">
-            <h2 class="login-title">Đăng ký</h2>
-            <div th:if="${error}" class="error-message" th:text="${error}"></div>
-            <form th:action="@{/register}" th:object="${form}" method="post">
-                <div class="form-group">
-                    <label for="email">Email <span class="required">*</span></label>
-                    <input type="email" id="email" name="email" placeholder="Email" required autofocus th:field="*{email}">
-                    <div th:if="${#fields.hasErrors('email')}" class="error-message" th:errors="*{email}"></div>
-                </div>
+    <style>
+        .login-page-body {
+            display: block !important;
+        }
+        .login-page-wrapper {
+            min-height: calc(100vh - 160px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+    </style>
+    
+    <!-- Header -->
+    <div th:replace="~{fragments/header :: header}"></div>
 
-                <div class="form-group">
-                    <label for="fullName">Họ và tên <span class="required">*</span></label>
-                    <input type="text" id="fullName" name="fullName" placeholder="Họ và tên" required th:field="*{fullName}">
-                    <div th:if="${#fields.hasErrors('fullName')}" class="error-message" th:errors="*{fullName}"></div>
-                </div>
+    <div class="login-page-wrapper">
+        <div class="login-container">
+            <div class="login-card register-card">
+                <div class="login-form-section">
+                    <div class="form-header">
+                        <h2 class="login-title">Đăng ký</h2>
+                    </div>
 
-                <div class="form-group">
-                    <label for="phone">Số điện thoại</label>
-                    <input type="tel" id="phone" name="phone" placeholder="Số điện thoại (tùy chọn)" th:field="*{phone}">
-                    <div th:if="${#fields.hasErrors('phone')}" class="error-message" th:errors="*{phone}"></div>
-                </div>
+                    <div th:if="${error}" class="alert error" th:text="${error}"></div>
 
-                <div class="form-group">
-                    <label for="password">Mật khẩu <span class="required">*</span></label>
-                    <input type="password" id="password" name="password" placeholder="Mật khẩu" required th:field="*{password}">
-                    <div th:if="${#fields.hasErrors('password')}" class="error-message" th:errors="*{password}"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword">Xác nhận mật khẩu <span class="required">*</span></label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu" required th:field="*{confirmPassword}">
-                    <div th:if="${#fields.hasErrors('confirmPassword')}" class="error-message" th:errors="*{confirmPassword}"></div>
-                </div>
-
-                <div>
-                    <button type="submit" class="login-button">Đăng ký</button>
-                </div>
-                <div class="form-group text-center">
-                    <a href="/oauth2/authorization/google" class="btn-google">
-                        <div class="icon-wrapper">
-                            <img class="google-icon" th:src="@{/images/google.png}" alt="Google Logo"/>
+                    <form th:action="@{/register}" th:object="${form}" method="post">
+                        <div class="input-group">
+                            <label for="email">Email <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required autofocus th:field="*{email}">
+                            <div th:if="${#fields.hasErrors('email')}" class="field-error" th:errors="*{email}"></div>
                         </div>
-                        <span class="btn-text">Đăng nhập bằng Google</span>
-                    </a>
+
+                        <div class="input-group">
+                            <label for="fullName">Họ và tên <span class="required">*</span></label>
+                            <input type="text" id="fullName" name="fullName" placeholder="Nhập họ và tên" required th:field="*{fullName}">
+                            <div th:if="${#fields.hasErrors('fullName')}" class="field-error" th:errors="*{fullName}"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="phone">Số điện thoại</label>
+                            <input type="tel" id="phone" name="phone" placeholder="Số điện thoại (tùy chọn)" th:field="*{phone}">
+                            <div th:if="${#fields.hasErrors('phone')}" class="field-error" th:errors="*{phone}"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="password">Mật khẩu <span class="required">*</span></label>
+                            <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required th:field="*{password}">
+                            <div th:if="${#fields.hasErrors('password')}" class="field-error" th:errors="*{password}"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="confirmPassword">Xác nhận mật khẩu <span class="required">*</span></label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" required th:field="*{confirmPassword}">
+                            <div th:if="${#fields.hasErrors('confirmPassword')}" class="field-error" th:errors="*{confirmPassword}"></div>
+                        </div>
+
+                        <button type="submit" class="login-button">ĐĂNG KÝ</button>
+
+                        <div class="social-login-wrapper">
+                            <p>Hoặc tiếp tục với</p>
+                            <a href="/oauth2/authorization/google" class="social-btn google">
+                                <i class="fab fa-google"></i> Google
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="login-footer">
+                        Đã có tài khoản? <a th:href="@{/login}">Đăng nhập ngay</a>
+                    </div>
                 </div>
-            </form>
-            <div class="back-link">
-                <p><a th:href="@{/login}">Quay lại trang đăng nhập</a></p>
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>
