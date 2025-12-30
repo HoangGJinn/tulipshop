@@ -1,220 +1,391 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/header :: head('Thanh toán | Tulip Shop')}">
 </head>
+
 <body>
 
-<div th:replace="~{fragments/header :: header}"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
-<div class="container py-5">
-    <div class="row">
-        <div class="col-md-7">
-            <h4 class="mb-4">Thông tin giao hàng</h4>
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-7">
+                <h4 class="mb-4">Thông tin giao hàng</h4>
 
-            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-            <form th:action="@{/checkout/place-order}" method="post" th:object="${orderRequest}" id="checkoutForm">
+                <form th:action="@{/checkout/place-order}" method="post" th:object="${orderRequest}" id="checkoutForm">
+                    <!-- Persist selected items -->
+                    <th:block th:if="*{checkoutItems != null}">
+                        <input type="hidden" th:each="itemId, iter : *{checkoutItems}"
+                            th:name="'checkoutItems[' + ${iter.index} + ']'" th:value="${itemId}" />
+                    </th:block>
 
-                <div class="card mb-4">
-                    <div class="card-header bg-white fw-bold">1. Chọn địa chỉ nhận hàng</div>
-                    <div class="card-body">
-                        <div th:if="${addresses == null or addresses.isEmpty()}" class="text-center py-3">
-                            <p class="text-danger">Bạn chưa có địa chỉ nào.</p>
-                            <a href="/account" class="btn btn-sm btn-outline-primary">+ Thêm địa chỉ mới</a>
-                        </div>
-
-                        <div th:each="addr : ${addresses}" class="form-check mb-3 border-bottom pb-2">
-                            <input class="form-check-input js-address-option" type="radio"
-                                   th:name="addressId"
-                                   th:value="${addr.id}"
-                                   th:id="'addr-' + ${addr.id}"
-                                   th:checked="${addr.isDefault}"
-                                   required>
-
-                            <label class="form-check-label" th:for="'addr-' + ${addr.id}">
-                                <strong th:text="${addr.recipientName}"></strong> -
-                                <span th:text="${addr.recipientPhone}"></span><br>
-                                <span class="text-muted small" th:text="${addr.fullAddress}"></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-white fw-bold">2. Phương thức vận chuyển</div>
-                    <div class="card-body">
-                        <div class="form-check mb-3">
-                            <input class="form-check-input js-delivery-option" type="radio" 
-                                   th:field="*{deliveryType}" value="STANDARD" id="ship-std" checked>
-                            <label class="form-check-label d-flex justify-content-between align-items-center" for="ship-std" style="width: 100%; cursor: pointer;">
-                                <span>
-                                    <strong>Giao Tiết Kiệm (Standard)</strong><br>
-                                    <small class="text-muted">Dự kiến: <span id="time-std">3-5 ngày</span></small>
-                                </span>
-                                <span class="badge bg-success bg-opacity-10 text-success">Giá tốt</span>
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input js-delivery-option" type="radio" 
-                                   th:field="*{deliveryType}" value="FAST" id="ship-fast">
-                            <label class="form-check-label d-flex justify-content-between align-items-center" for="ship-fast" style="width: 100%; cursor: pointer;">
-                                <span>
-                                    <strong>Giao Hỏa Tốc (Fast)</strong><br>
-                                    <small class="text-muted">Dự kiến: <span id="time-fast">1-2 ngày</span></small>
-                                </span>
-                                <span class="badge bg-danger bg-opacity-10 text-danger">Nhanh hơn</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label">Ghi chú đơn hàng (Tùy chọn)</label>
-                    <textarea class="form-control" th:field="*{note}" rows="2" placeholder="Ví dụ: Giao giờ hành chính..."></textarea>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-white fw-bold">3. Phương thức thanh toán</div>
-                    <div class="card-body">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="COD" id="pay-cod" checked required>
-                            <label class="form-check-label d-flex align-items-center" for="pay-cod" style="cursor: pointer;">
-                                <img th:src="@{/images/cod-logo.png}" alt="COD" style="height: 30px; margin-right: 10px;">
-                                <span>Thanh toán khi nhận hàng (COD)</span>
-                            </label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="VNPAY" id="pay-vnpay" required>
-                            <label class="form-check-label d-flex align-items-center" for="pay-vnpay" style="cursor: pointer;">
-                                <img th:src="@{/images/vnpay-logo.png}" alt="VNPAY" style="height: 30px; margin-right: 10px;">
-                                <span>VNPAY (Thanh toán online)</span>
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="MOMO" id="pay-momo" required>
-                            <label class="form-check-label d-flex align-items-center" for="pay-momo" style="cursor: pointer;">
-                                <img th:src="@{/images/momo-logo.png}" alt="MoMo" style="height: 30px; margin-right: 10px;">
-                                <span>MoMo (Thanh toán online)</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold text-uppercase">
-                    Đặt hàng ngay
-                </button>
-            </form>
-        </div>
-
-        <div class="col-md-5">
-            <div class="card bg-light border-0 sticky-top" style="top: 80px; z-index: 1;">
-                <div class="card-body p-4">
-                    <h5 class="card-title mb-4">Đơn hàng của bạn</h5>
-
-                    <div class="order-items mb-3" style="max-height: 300px; overflow-y: auto;">
-                        <div th:each="item : ${cartItems}" class="d-flex align-items-center mb-3">
-                            <div class="me-3 position-relative">
-                                <img th:src="${item.productImage}" width="60" class="rounded border">
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
-                                      th:text="${item.quantity}">1</span>
+                    <div class="card mb-4">
+                        <div class="card-header bg-white fw-bold">1. Chọn địa chỉ nhận hàng</div>
+                        <div class="card-body">
+                            <div th:if="${addresses == null or addresses.isEmpty()}" class="text-center py-3">
+                                <p class="text-danger">Bạn chưa có địa chỉ nào.</p>
+                                <a href="/account" class="btn btn-sm btn-outline-primary">+ Thêm địa chỉ mới</a>
                             </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-0 small fw-bold" th:text="${item.productName}">Tên SP</h6>
-                                <small class="text-muted" th:text="${'Size: ' + item.sizeCode + ' | Màu: ' + item.colorName}"></small>
-                            </div>
-                            <div class="text-end">
-                                <small class="fw-bold text-dark"
-                                       th:text="${#numbers.formatDecimal(item.subTotal, 0, 'COMMA', 0, 'POINT') + ' đ'}"></small>
+
+                            <div th:each="addr : ${addresses}" class="form-check mb-3 border-bottom pb-2">
+                                <input class="form-check-input js-address-option" type="radio" th:name="addressId"
+                                    th:value="${addr.id}" th:id="'addr-' + ${addr.id}" th:checked="${addr.isDefault}"
+                                    required>
+
+                                <label class="form-check-label" th:for="'addr-' + ${addr.id}">
+                                    <strong th:text="${addr.recipientName}"></strong> -
+                                    <span th:text="${addr.recipientPhone}"></span><br>
+                                    <span class="text-muted small" th:text="${addr.fullAddress}"></span>
+                                </label>
                             </div>
                         </div>
                     </div>
 
-                    <hr>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Tạm tính:</span>
-                        <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Phí vận chuyển (<span id="shipping-method-label">Standard</span>):</span>
-                        <span id="shipping-fee-display" th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                    <div class="card mb-4">
+                        <div class="card-header bg-white fw-bold">2. Phương thức vận chuyển</div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input js-delivery-option" type="radio"
+                                    th:field="*{deliveryType}" value="STANDARD" id="ship-std" checked>
+                                <label class="form-check-label d-flex justify-content-between align-items-center"
+                                    for="ship-std" style="width: 100%; cursor: pointer;">
+                                    <span>
+                                        <strong>Giao Tiết Kiệm (Standard)</strong><br>
+                                        <small class="text-muted">Dự kiến: <span id="time-std">3-5 ngày</span></small>
+                                    </span>
+                                    <span class="badge bg-success bg-opacity-10 text-success">Giá tốt</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input js-delivery-option" type="radio"
+                                    th:field="*{deliveryType}" value="FAST" id="ship-fast">
+                                <label class="form-check-label d-flex justify-content-between align-items-center"
+                                    for="ship-fast" style="width: 100%; cursor: pointer;">
+                                    <span>
+                                        <strong>Giao Hỏa Tốc (Fast)</strong><br>
+                                        <small class="text-muted">Dự kiến: <span id="time-fast">1-2 ngày</span></small>
+                                    </span>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger">Nhanh hơn</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="d-flex justify-content-between mb-2">
-                        <small class="text-muted fst-italic">Thời gian dự kiến:</small>
-                        <small class="text-muted fst-italic" id="estimated-time-display" th:text="${estimatedTime}"></small>
+                    <div class="card mb-4">
+                        <div class="card-header bg-white fw-bold">3. Mã giảm giá</div>
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="voucher-code-input"
+                                    placeholder="Nhập mã giảm giá" th:field="*{voucherCode}">
+                                <button class="btn btn-outline-secondary" type="button" id="apply-voucher-btn"
+                                    onclick="applyVoucher()">
+                                    Áp dụng
+                                </button>
+                            </div>
+                            <div id="voucher-message" class="small mb-2"></div>
+
+                            <!-- Danh sách voucher có thể áp dụng -->
+                            <div th:if="${applicableVouchers != null and !applicableVouchers.isEmpty()}" class="mt-3">
+                                <small class="text-muted d-block mb-2">Mã giảm giá có thể áp dụng:</small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" th:each="v : ${applicableVouchers}" th:if="${v != null}"
+                                        th:onclick="'selectVoucher(\'' + ${v.code} + '\')'"
+                                        class="btn btn-sm btn-outline-primary voucher-option" th:data-code="${v.code}">
+                                        <i class="fas fa-ticket-alt me-1"></i>
+                                        <strong th:text="${v.code}"></strong>
+                                        <span
+                                            th:if="${v.type != null and v.type.name() == 'PERCENT' and v.discountValue != null}"
+                                            th:text="'-' + ${v.discountValue} + '%'"></span>
+                                        <span
+                                            th:if="${v.type != null and v.type.name() == 'AMOUNT' and v.discountValue != null}"
+                                            th:text="'-' + ${#numbers.formatDecimal(v.discountValue, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <hr>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold h5">Tổng cộng:</span>
-                        <span class="fw-bold h4 text-danger" id="final-price-display"
-                              th:text="${#numbers.formatDecimal(finalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                    <div class="mb-4">
+                        <label class="form-label">Ghi chú đơn hàng (Tùy chọn)</label>
+                        <textarea class="form-control" th:field="*{note}" rows="2"
+                            placeholder="Ví dụ: Giao giờ hành chính..."></textarea>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-white fw-bold">4. Phương thức thanh toán</div>
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="COD"
+                                    id="pay-cod" checked required>
+                                <label class="form-check-label d-flex align-items-center" for="pay-cod"
+                                    style="cursor: pointer;">
+                                    <img th:src="@{/images/cod-logo.png}" alt="COD"
+                                        style="height: 30px; margin-right: 10px;">
+                                    <span>Thanh toán khi nhận hàng (COD)</span>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="VNPAY"
+                                    id="pay-vnpay" required>
+                                <label class="form-check-label d-flex align-items-center" for="pay-vnpay"
+                                    style="cursor: pointer;">
+                                    <img th:src="@{/images/vnpay-logo.png}" alt="VNPAY"
+                                        style="height: 30px; margin-right: 10px;">
+                                    <span>VNPAY (Thanh toán online)</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="MOMO"
+                                    id="pay-momo" required>
+                                <label class="form-check-label d-flex align-items-center" for="pay-momo"
+                                    style="cursor: pointer;">
+                                    <img th:src="@{/images/momo-logo.png}" alt="MoMo"
+                                        style="height: 30px; margin-right: 10px;">
+                                    <span>MoMo (Thanh toán online)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold text-uppercase">
+                        Đặt hàng ngay
+                    </button>
+                </form>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card bg-light border-0 sticky-top" style="top: 80px; z-index: 1;">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-4">Đơn hàng của bạn</h5>
+
+                        <div class="order-items mb-3" style="max-height: 300px; overflow-y: auto;">
+                            <div th:each="item : ${cartItems}" class="d-flex align-items-center mb-3">
+                                <div class="me-3 position-relative">
+                                    <img th:src="${item.productImage}" width="60" class="rounded border">
+                                    <span
+                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
+                                        th:text="${item.quantity}">1</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 small fw-bold" th:text="${item.productName}">Tên SP</h6>
+                                    <small class="text-muted"
+                                        th:text="${'Size: ' + item.sizeCode + ' | Màu: ' + item.colorName}"></small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="fw-bold text-dark"
+                                        th:text="${#numbers.formatDecimal(item.subTotal, 0, 'COMMA', 0, 'POINT') + ' đ'}"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tạm tính:</span>
+                            <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí vận chuyển (<span
+                                    id="shipping-method-label">Standard</span>):</span>
+                            <span id="shipping-fee-display"
+                                th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2" id="discount-row" style="display: none;">
+                            <span class="text-muted">Giảm giá:</span>
+                            <span class="text-success fw-bold" id="discount-amount-display">-0 đ</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted fst-italic">Thời gian dự kiến:</small>
+                            <small class="text-muted fst-italic" id="estimated-time-display"
+                                th:text="${estimatedTime}"></small>
+                        </div>
+
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold h5">Tổng cộng:</span>
+                            <span class="fw-bold h4 text-danger" id="final-price-display"
+                                th:text="${#numbers.formatDecimal(finalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
-<script th:src="@{/js/notification.js}"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const addressRadios = document.querySelectorAll('.js-address-option');
-        const deliveryRadios = document.querySelectorAll('.js-delivery-option');
-        
-        const shippingFeeEl = document.getElementById('shipping-fee-display');
-        const finalPriceEl = document.getElementById('final-price-display');
-        const estimatedTimeEl = document.getElementById('estimated-time-display');
-        const shipLabelEl = document.getElementById('shipping-method-label');
+    <script th:src="@{/js/notification.js}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const addressRadios = document.querySelectorAll('.js-address-option');
+            const deliveryRadios = document.querySelectorAll('.js-delivery-option');
 
-        function updatePricing() {
-            // 1. Lấy giá trị đang chọn
-            let addressId = null;
-            addressRadios.forEach(r => { if(r.checked) addressId = r.value; });
-            
-            let deliveryType = "STANDARD";
-            deliveryRadios.forEach(r => { if(r.checked) deliveryType = r.value; });
+            const shippingFeeEl = document.getElementById('shipping-fee-display');
+            const finalPriceEl = document.getElementById('final-price-display');
+            const estimatedTimeEl = document.getElementById('estimated-time-display');
+            const shipLabelEl = document.getElementById('shipping-method-label');
+            const discountRow = document.getElementById('discount-row');
+            const discountAmountEl = document.getElementById('discount-amount-display');
+            const voucherCodeInput = document.getElementById('voucher-code-input');
+            const voucherMessage = document.getElementById('voucher-message');
 
-            if (!addressId) return;
+            let appliedVoucher = null;
+            let baseTotalPrice = /*[[${totalPrice}]]*/ 0;
+            let currentShippingFee = /*[[${shippingFee}]]*/ 0;
+            let currentDiscount = 0;
 
-            // UI Loading...
-            shipLabelEl.innerText = (deliveryType === 'FAST') ? 'Hỏa Tốc' : 'Tiết Kiệm';
-            shippingFeeEl.innerHTML = '<span class="spinner-border spinner-border-sm text-secondary"></span>';
+            function formatPrice(price) {
+                return new Intl.NumberFormat('vi-VN').format(price) + ' đ';
+            }
 
-            // 2. Gọi API
-            fetch(`/checkout/api/calculate-fee?addressId=${addressId}&deliveryType=${deliveryType}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Err');
-                    return response.json();
+            function updateFinalPrice() {
+                const finalPrice = baseTotalPrice - currentDiscount + currentShippingFee;
+                finalPriceEl.textContent = formatPrice(finalPrice);
+            }
+
+            function selectVoucher(code) {
+                voucherCodeInput.value = code;
+                applyVoucher();
+            }
+
+            function applyVoucher() {
+                const code = voucherCodeInput.value.trim();
+                if (!code) {
+                    voucherMessage.innerHTML = '<span class="text-danger">Vui lòng nhập mã giảm giá</span>';
+                    return;
+                }
+
+                const applyBtn = document.getElementById('apply-voucher-btn');
+                applyBtn.disabled = true;
+                applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                fetch('/v1/api/vouchers/apply', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        orderTotal: baseTotalPrice
+                    })
                 })
-                .then(data => {
-                    // 3. Format tiền tệ VNĐ
-                    const formatter = new Intl.NumberFormat('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND'
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            appliedVoucher = data.voucher;
+                            currentDiscount = data.discountAmount;
+
+                            discountRow.style.display = 'flex';
+                            discountAmountEl.textContent = '-' + formatPrice(currentDiscount);
+                            discountAmountEl.className = 'text-success fw-bold';
+                            voucherMessage.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> ' + data.message + '</span>';
+
+                            // Highlight voucher button
+                            document.querySelectorAll('.voucher-option').forEach(btn => {
+                                btn.classList.remove('btn-primary', 'active');
+                                btn.classList.add('btn-outline-primary');
+                                if (btn.dataset.code === code) {
+                                    btn.classList.remove('btn-outline-primary');
+                                    btn.classList.add('btn-primary', 'active');
+                                }
+                            });
+                        } else {
+                            appliedVoucher = null;
+                            currentDiscount = 0;
+                            discountRow.style.display = 'none';
+                            voucherMessage.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle"></i> ' + data.message + '</span>';
+
+                            // Remove highlight
+                            document.querySelectorAll('.voucher-option').forEach(btn => {
+                                btn.classList.remove('btn-primary', 'active');
+                                btn.classList.add('btn-outline-primary');
+                            });
+                        }
+                        updateFinalPrice();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        voucherMessage.innerHTML = '<span class="text-danger">Có lỗi xảy ra khi áp dụng mã giảm giá</span>';
+                    })
+                    .finally(() => {
+                        applyBtn.disabled = false;
+                        applyBtn.innerHTML = 'Áp dụng';
                     });
+            }
 
-                    // Cập nhật UI
-                    // replace('₫', 'đ') để khớp với format của Thymeleaf bạn đang dùng
-                    shippingFeeEl.innerText = formatter.format(data.shippingFee).replace('₫', 'đ');
-                    finalPriceEl.innerText = formatter.format(data.finalPrice).replace('₫', 'đ');
-                    estimatedTimeEl.innerText = data.estimatedTime;
-                })
-                .catch(error => {
-                    console.error(error);
-                    shippingFeeEl.innerText = '---';
-                });
-        }
+            function updatePricing() {
+                // 1. Lấy giá trị đang chọn
+                let addressId = null;
+                addressRadios.forEach(r => { if (r.checked) addressId = r.value; });
 
-        // Gắn sự kiện change
-        addressRadios.forEach(el => el.addEventListener('change', updatePricing));
-        deliveryRadios.forEach(el => el.addEventListener('change', updatePricing));
-    });
-</script>
+                let deliveryType = "STANDARD";
+                deliveryRadios.forEach(r => { if (r.checked) deliveryType = r.value; });
+
+                if (!addressId) return;
+
+                // UI Loading...
+                shipLabelEl.innerText = (deliveryType === 'FAST') ? 'Hỏa Tốc' : 'Tiết Kiệm';
+                shippingFeeEl.innerHTML = '<span class="spinner-border spinner-border-sm text-secondary"></span>';
+
+                // 2. Gọi API
+                fetch(`/checkout/api/calculate-fee?addressId=${addressId}&deliveryType=${deliveryType}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Err');
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 3. Format tiền tệ VNĐ
+                        const formatter = new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND'
+                        });
+
+                        // Cập nhật UI
+                        // replace('₫', 'đ') để khớp với format của Thymeleaf bạn đang dùng
+                        currentShippingFee = data.shippingFee;
+                        shippingFeeEl.innerText = formatter.format(data.shippingFee).replace('₫', 'đ');
+                        estimatedTimeEl.innerText = data.estimatedTime;
+
+                        // Nếu có voucher đã áp dụng, tính lại discount với tổng mới
+                        if (appliedVoucher) {
+                            fetch('/v1/api/vouchers/apply', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    code: appliedVoucher.code,
+                                    orderTotal: baseTotalPrice
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(voucherData => {
+                                    if (voucherData.success) {
+                                        currentDiscount = voucherData.discountAmount;
+                                        discountAmountEl.textContent = '-' + formatPrice(currentDiscount);
+                                    }
+                                    updateFinalPrice();
+                                });
+                        } else {
+                            updateFinalPrice();
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        shippingFeeEl.innerText = '---';
+                    });
+            }
+
+            // Gắn sự kiện change
+            addressRadios.forEach(el => el.addEventListener('change', updatePricing));
+            deliveryRadios.forEach(el => el.addEventListener('change', updatePricing));
+        });
+    </script>
 
 </body>
+
 </html>

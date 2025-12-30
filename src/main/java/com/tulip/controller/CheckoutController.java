@@ -50,22 +50,28 @@ public class CheckoutController {
     private final ShippingOrderRepository shippingOrderRepository;
     private final JwtUtil jwtUtil;
     private final TulipShippingClient shippingClient;
+    private final com.tulip.service.VoucherService voucherService;
 
     // 1. Hiển thị trang Checkout
     @GetMapping("/checkout")
     public String viewCheckout(Model model,
-                               @AuthenticationPrincipal CustomUserDetails userDetails,
-                               HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) List<Long> items,
+            HttpServletRequest request) {
         if (userDetails == null || !jwtUtil.validateJwtToken(request, userDetails)) {
             return "redirect:/login";
         }
 
         Long userId = userDetails.getUserId();
-        List<CartItemDTO> cartItems = cartService.getCartItems(userId);
-        if (cartItems.isEmpty()) return "redirect:/cart";
+        // Nếu client truyền items, load partial. Nếu không, load all.
+        List<CartItemDTO> cartItems = cartService.getCartItems(userId, items);
+
+        if (cartItems.isEmpty()) {
+            return "redirect:/cart";
+        }
 
         List<UserAddressDTO> addresses = addressService.getUserAddresses(userId);
-        BigDecimal totalPrice = cartService.getTotalPrice(userId);
+        BigDecimal totalPrice = cartService.getTotalPrice(userId, items);
 
         // Mặc định Standard
         BigDecimal shippingFee = new BigDecimal("30000");
@@ -85,20 +91,36 @@ public class CheckoutController {
                 }
 
                 ShippingRateResponse rate = shippingClient.getShippingFee(fullAddr, "STANDARD");
-                shippingFee = rate.getShippingFee();
-                estimatedTime = rate.getEstimatedTime();
+                if (rate != null) {
+                    shippingFee = rate.getShippingFee();
+                    estimatedTime = rate.getEstimatedTime();
+                }
             } catch (Exception e) {
+                // Log lỗi nhưng không crash trang checkout
                 System.err.println("Lỗi kết nối shipping service: " + e.getMessage());
+                // Giữ giá mặc định, không cần làm gì
             }
         }
+
+        // Lấy danh sách voucher có thể áp dụng
+        List<com.tulip.entity.Voucher> applicableVouchers = voucherService.getApplicableVouchers(totalPrice);
+        if (applicableVouchers == null)
+            applicableVouchers = new java.util.ArrayList<>();
 
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalPrice", totalPrice);
         model.addAttribute("shippingFee", shippingFee);
         model.addAttribute("estimatedTime", estimatedTime);
         model.addAttribute("finalPrice", totalPrice.add(shippingFee));
+        if (addresses == null)
+            addresses = new java.util.ArrayList<>();
         model.addAttribute("addresses", addresses);
-        model.addAttribute("orderRequest", new OrderCreationDTO());
+
+        OrderCreationDTO orderRequest = new OrderCreationDTO();
+        orderRequest.setCheckoutItems(items); // Set danh sách item đã chọn để submit lại khi đặt hàng
+        model.addAttribute("orderRequest", orderRequest);
+
+        model.addAttribute("applicableVouchers", applicableVouchers);
 
         return "order/checkout";
     }
@@ -107,11 +129,12 @@ public class CheckoutController {
     @GetMapping("/checkout/api/calculate-fee")
     @ResponseBody
     public ResponseEntity<?> calculateShippingFee(@RequestParam Long addressId,
-                                                  @RequestParam(defaultValue = "STANDARD") String deliveryType,
-                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @RequestParam(defaultValue = "STANDARD") String deliveryType,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
             UserAddressDTO addr = addressService.getUserAddressById(addressId);
-            if (addr == null) return ResponseEntity.badRequest().body("Địa chỉ không tồn tại");
+            if (addr == null)
+                return ResponseEntity.badRequest().body("Địa chỉ không tồn tại");
 
             // Gọi API với loại vận chuyển khách chọn
             String fullAddr = addr.getFullAddress();
@@ -135,10 +158,11 @@ public class CheckoutController {
     // 3. Xử lý đặt hàng
     @PostMapping("/checkout/place-order")
     public String placeOrder(@ModelAttribute OrderCreationDTO orderRequest,
-                             @AuthenticationPrincipal CustomUserDetails userDetails,
-                             HttpServletRequest httpRequest,
-                             RedirectAttributes redirectAttributes) {
-        if (userDetails == null) return "redirect:/login";
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest httpRequest,
+            RedirectAttributes redirectAttributes) {
+        if (userDetails == null)
+            return "redirect:/login";
 
         try {
             // Service đã tự tính toán phí ship dựa trên orderRequest.getDeliveryType()
@@ -147,7 +171,8 @@ public class CheckoutController {
             // --- Xử lý thanh toán ---
             PaymentMethod paymentMethod = PaymentMethod.fromString(orderRequest.getPaymentMethod());
 
-            cartService.clearCart(userDetails.getUserId());
+            // cartService.clearCart(userId); // Đã xử lý bên trong placeOrder để hỗ trợ
+            // partial checkout
             String orderCode = com.tulip.util.VnpayUtil.generateOrderCode(order.getId());
             order.setOrderCode(orderCode);
             orderRepository.save(order);
@@ -172,7 +197,8 @@ public class CheckoutController {
             } else if (paymentMethod == PaymentMethod.MOMO) {
                 String amountString = order.getFinalPrice().setScale(0, RoundingMode.HALF_UP).toPlainString();
                 try {
-                    String paymentUrl = momoService.createPaymentRequest(amountString, orderCode, "Thanh toan don hang " + orderCode, "payWithMethod");
+                    String paymentUrl = momoService.createPaymentRequest(amountString, orderCode,
+                            "Thanh toan don hang " + orderCode, "payWithMethod");
                     order.setPaymentUrl(paymentUrl);
                     order.setPaymentExpireAt(LocalDateTime.now().plusMinutes(15));
                     orderRepository.save(order);
@@ -205,10 +231,10 @@ public class CheckoutController {
                     .carrier("Tulip Shipping")
                     .codAmount(codAmount)
                     .build();
-            
+
             // Lưu vào database local
             shippingOrderRepository.save(shippingOrder);
-            
+
             // 2. Gọi API shipping service bên ngoài (nếu có)
             ShippingOrderRequest shipRequest = ShippingOrderRequest.builder()
                     .orderCode(order.getOrderCode())
@@ -227,8 +253,8 @@ public class CheckoutController {
 
     @GetMapping("/order-success")
     public String orderSuccess(@RequestParam(required = false) Long orderId,
-                               @RequestParam(required = false) String orderCode,
-                               Model model) {
+            @RequestParam(required = false) String orderCode,
+            Model model) {
         model.addAttribute("success", true);
         model.addAttribute("orderId", orderId);
         model.addAttribute("orderCode", orderCode);

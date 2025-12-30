@@ -4,8 +4,10 @@ import lombok.Data;
 
 @Data
 public class OrderCreationDTO {
-    private Long addressId;         // ID địa chỉ người dùng chọn
-    private String paymentMethod;   // "COD", "VNPAY", "MOMO"
-    private String note;            // Ghi chú đơn hàng (nếu có)
-    private String deliveryType;    // "STANDARD" hoặc "FAST"
+    private Long addressId; // ID địa chỉ người dùng chọn
+    private String paymentMethod; // "COD", "VNPAY", "MOMO"
+    private String note; // Ghi chú đơn hàng (nếu có)
+    private String deliveryType; // "STANDARD" hoặc "FAST"
+    private String voucherCode; // Mã voucher nếu có
+    private java.util.List<Long> checkoutItems; // Danh sách ID các item được chọn để thanh toán
 }

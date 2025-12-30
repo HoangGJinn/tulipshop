@@ -2,7 +2,7 @@
 let selectedVariantIndex = 0;
 let selectedSize = null;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 1. Khởi tạo: Chọn màu đầu tiên
     const firstColorOption = document.querySelector('.color-swatch');
     if (firstColorOption) {
@@ -32,7 +32,7 @@ function initImageZoom() {
 
     if (!container || !img) return;
 
-    container.addEventListener('mousemove', function(e) {
+    container.addEventListener('mousemove', function (e) {
         const { left, top, width, height } = container.getBoundingClientRect();
         const x = e.clientX - left;
         const y = e.clientY - top;
@@ -45,7 +45,7 @@ function initImageZoom() {
         img.style.transform = 'scale(2)'; // Phóng to 2x
     });
 
-    container.addEventListener('mouseleave', function() {
+    container.addEventListener('mouseleave', function () {
         img.style.transformOrigin = 'center center';
         img.style.transform = 'scale(1)';
     });
@@ -79,11 +79,11 @@ function updateGallery(images) {
     const mainImg = document.getElementById('mainImage');
     const container = document.querySelector('.thumbnail-list');
 
-    if(images && images.length > 0) {
+    if (images && images.length > 0) {
         mainImg.src = images[0];
     }
 
-    if(container) {
+    if (container) {
         container.innerHTML = '';
         images.forEach((img, index) => {
             const thumb = document.createElement('img');
@@ -238,7 +238,7 @@ function addToCart() {
             // Kiểm tra content-type để đảm bảo là JSON
             const contentType = response.headers.get('content-type');
             const isJson = contentType && contentType.includes('application/json');
-            
+
             // Xử lý response 401 (chưa đăng nhập)
             if (response.status === 401) {
                 let errorMessage = 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng';
@@ -254,7 +254,7 @@ function addToCart() {
                 }
                 throw new Error('LOGIN_REQUIRED:' + errorMessage);
             }
-            
+
             if (!response.ok) {
                 let errorMessage = 'Có lỗi xảy ra';
                 if (isJson) {
@@ -273,11 +273,11 @@ function addToCart() {
                 }
                 throw new Error(errorMessage);
             }
-            
+
             if (!isJson) {
                 throw new Error('LOGIN_REQUIRED:Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
             }
-            
+
             return response.json();
         })
         .then(data => {
@@ -296,6 +296,108 @@ function addToCart() {
                     icon: 'info',
                     title: 'Yêu cầu đăng nhập',
                     text: message || 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
+                    confirmButtonText: 'Đăng nhập ngay'
+                }).then((result) => {
+                    if (result.isConfirmed) window.location.href = '/login';
+                });
+            } else {
+                showError('Lỗi', error.message || 'Có lỗi xảy ra');
+            }
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+}
+
+function buyNow() {
+    if (!selectedSize) {
+        showWarning('Chưa chọn kích thước', 'Vui lòng chọn size bạn muốn mua!');
+        return;
+    }
+
+    const variant = productData.variants[selectedVariantIndex];
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const stockInfo = variant.stockBySize[selectedSize];
+
+    // Lấy Stock ID
+    let stockId = null;
+    if (typeof stockInfo === 'object' && stockInfo !== null) {
+        stockId = stockInfo.id;
+    } else {
+        console.error("Thiếu Stock ID", stockInfo);
+        showError('Lỗi', 'Không tìm thấy thông tin sản phẩm trong kho');
+        return;
+    }
+
+    // UI Loading
+    // const btn = event.target; // Cần pass event hoặc query selector
+    // Tạm thời query button Mua Ngay (chúng ta sẽ add ID cho nó sau)
+    const btn = document.getElementById('buyNowBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG XỬ LÝ...';
+
+    const formData = new FormData();
+    formData.append('stockId', stockId);
+    formData.append('quantity', quantity);
+
+    fetch(window.API_BASE_URL + '/buy-now', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+        .then(async response => {
+            // Kiểm tra content-type để đảm bảo là JSON
+            const contentType = response.headers.get('content-type');
+            const isJson = contentType && contentType.includes('application/json');
+
+            // Xử lý response 401 (chưa đăng nhập)
+            if (response.status === 401) {
+                let errorMessage = 'Vui lòng đăng nhập để mua hàng';
+                if (isJson) {
+                    try {
+                        const data = await response.json();
+                        if (data.message) {
+                            errorMessage = data.message;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                    }
+                }
+                throw new Error('LOGIN_REQUIRED:' + errorMessage);
+            }
+
+            if (!response.ok) {
+                let errorMessage = 'Có lỗi xảy ra';
+                if (isJson) {
+                    try {
+                        const data = await response.json();
+                        if (data.message) {
+                            errorMessage = data.message;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                    }
+                }
+                throw new Error(errorMessage);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.redirectUrl) {
+                window.location.href = data.redirectUrl;
+            } else {
+                showError('Lỗi', 'Không nhận được địa chỉ chuyển hướng');
+            }
+        })
+        .catch(error => {
+            if (error.message && error.message.startsWith('LOGIN_REQUIRED:')) {
+                const message = error.message.replace('LOGIN_REQUIRED:', '');
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Yêu cầu đăng nhập',
+                    text: message || 'Vui lòng đăng nhập để mua hàng',
                     confirmButtonText: 'Đăng nhập ngay'
                 }).then((result) => {
                     if (result.isConfirmed) window.location.href = '/login';
@@ -412,27 +514,27 @@ class ExpandableContentManager {
         const content = section.querySelector('.expandable-content');
         const button = section.querySelector('.toggle-btn');
         const maxHeight = parseInt(content.dataset.maxHeight) || 400;
-        
+
         if (!content || !button) {
             console.warn('Expandable section missing required elements:', section.id);
             return;
         }
-        
+
         // Check if content needs truncation
         const actualHeight = content.scrollHeight;
         const needsTruncation = actualHeight > maxHeight;
-        
+
         if (needsTruncation) {
             content.classList.add('collapsed');
             content.style.maxHeight = maxHeight + 'px';
             button.style.display = 'flex';
-            
+
             // Add click event listener
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.toggleSection(section);
             });
-            
+
             // Add keyboard support
             button.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -448,7 +550,7 @@ class ExpandableContentManager {
                 overlay.style.display = 'none';
             }
         }
-        
+
         // Store section data
         this.sections.set(section.id, {
             content,
@@ -462,13 +564,13 @@ class ExpandableContentManager {
     toggleSection(section) {
         const sectionData = this.sections.get(section.id);
         if (!sectionData || !sectionData.needsTruncation) return;
-        
+
         const { content, button, maxHeight } = sectionData;
         const isExpanded = sectionData.isExpanded;
-        
+
         // Add expanding animation class
         content.classList.add('expanding');
-        
+
         if (isExpanded) {
             // Collapse
             this.collapseSection(section, sectionData);
@@ -476,7 +578,7 @@ class ExpandableContentManager {
             // Expand
             this.expandSection(section, sectionData);
         }
-        
+
         // Remove animation class after transition
         setTimeout(() => {
             content.classList.remove('expanding');
@@ -485,28 +587,28 @@ class ExpandableContentManager {
 
     expandSection(section, sectionData) {
         const { content, button } = sectionData;
-        
+
         // Set max-height to actual content height for smooth animation
         content.style.maxHeight = content.scrollHeight + 'px';
         content.classList.remove('collapsed');
         content.classList.add('expanded');
-        
+
         // Update button
         button.classList.add('expanded');
         button.querySelector('.btn-text').textContent = 'Thu gọn';
-        
+
         // Update state
         sectionData.isExpanded = true;
-        
+
         // Smooth scroll to ensure button visibility after expansion
         setTimeout(() => {
             const buttonRect = button.getBoundingClientRect();
             const windowHeight = window.innerHeight;
-            
+
             // If button is not visible, scroll to it
             if (buttonRect.bottom > windowHeight || buttonRect.top < 0) {
-                button.scrollIntoView({ 
-                    behavior: 'smooth', 
+                button.scrollIntoView({
+                    behavior: 'smooth',
                     block: 'nearest',
                     inline: 'nearest'
                 });
@@ -516,33 +618,33 @@ class ExpandableContentManager {
 
     collapseSection(section, sectionData) {
         const { content, button, maxHeight } = sectionData;
-        
+
         // First set to actual height, then to collapsed height for smooth animation
         content.style.maxHeight = content.scrollHeight + 'px';
-        
+
         // Force reflow
         content.offsetHeight;
-        
+
         // Then collapse
         setTimeout(() => {
             content.style.maxHeight = maxHeight + 'px';
             content.classList.remove('expanded');
             content.classList.add('collapsed');
         }, 10);
-        
+
         // Update button
         button.classList.remove('expanded');
         button.querySelector('.btn-text').textContent = 'Xem thêm';
-        
+
         // Update state
         sectionData.isExpanded = false;
-        
+
         // Scroll to section title if it's out of view
         setTimeout(() => {
             const sectionRect = section.getBoundingClientRect();
             if (sectionRect.top < 0) {
-                section.scrollIntoView({ 
-                    behavior: 'smooth', 
+                section.scrollIntoView({
+                    behavior: 'smooth',
                     block: 'start',
                     inline: 'nearest'
                 });
@@ -583,7 +685,7 @@ class ExpandableContentManager {
 let expandableManager;
 
 // Update the existing DOMContentLoaded event listener
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 1. Khởi tạo: Chọn màu đầu tiên
     const firstColorOption = document.querySelector('.color-swatch');
     if (firstColorOption) {
@@ -599,7 +701,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Utility function to handle window resize
 let resizeTimeout;
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
         if (expandableManager) {
@@ -610,14 +712,14 @@ window.addEventListener('resize', function() {
                     const content = sectionData.content;
                     const actualHeight = content.scrollHeight;
                     const maxHeight = sectionData.maxHeight;
-                    
+
                     // Update truncation status
                     const needsTruncation = actualHeight > maxHeight;
                     sectionData.needsTruncation = needsTruncation;
-                    
+
                     const button = sectionData.button;
                     const overlay = section.querySelector('.gradient-overlay');
-                    
+
                     if (needsTruncation) {
                         button.style.display = 'flex';
                         if (overlay) overlay.style.display = 'block';
@@ -641,18 +743,18 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-header').forEach(header => {
         header.classList.remove('active');
     });
-    
+
     // Hide all tab panels
     document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.remove('active');
     });
-    
+
     // Add active class to clicked tab header
     const activeHeader = document.querySelector(`[data-tab="${tabName}"]`);
     if (activeHeader) {
         activeHeader.classList.add('active');
     }
-    
+
     // Show corresponding tab panel
     const activePanel = document.getElementById(`tab-${tabName}`);
     if (activePanel) {
@@ -661,19 +763,19 @@ function switchTab(tabName) {
 }
 
 // Initialize tabs on page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Ensure the first tab is active by default
     const firstTab = document.querySelector('.tab-header[data-tab="description"]');
     const firstPanel = document.getElementById('tab-description');
-    
+
     if (firstTab && firstPanel) {
         firstTab.classList.add('active');
         firstPanel.classList.add('active');
     }
-    
+
     // Add keyboard support for tabs
     document.querySelectorAll('.tab-header').forEach(header => {
-        header.addEventListener('keydown', function(e) {
+        header.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 const tabName = this.getAttribute('data-tab');
@@ -684,7 +786,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Update the existing DOMContentLoaded event listener
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 1. Khởi tạo: Chọn màu đầu tiên
     const firstColorOption = document.querySelector('.color-swatch');
     if (firstColorOption) {
@@ -702,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Handle window resize for legacy expandable content
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
         // Legacy expandable manager resize handling
@@ -713,13 +815,13 @@ window.addEventListener('resize', function() {
                     const content = sectionData.content;
                     const actualHeight = content.scrollHeight;
                     const maxHeight = sectionData.maxHeight;
-                    
+
                     const needsTruncation = actualHeight > maxHeight;
                     sectionData.needsTruncation = needsTruncation;
-                    
+
                     const button = sectionData.button;
                     const overlay = section.querySelector('.gradient-overlay');
-                    
+
                     if (needsTruncation) {
                         button.style.display = 'flex';
                         if (overlay) overlay.style.display = 'block';
