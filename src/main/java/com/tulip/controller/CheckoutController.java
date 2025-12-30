@@ -134,6 +134,7 @@ public class CheckoutController {
             result.put("shippingFee", response.getShippingFee());
             result.put("estimatedTime", response.getEstimatedTime());
             result.put("finalPrice", newFinalPrice);
+            result.put("cartTotal", cartTotal.doubleValue()); // Include cart total for voucher loading
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
