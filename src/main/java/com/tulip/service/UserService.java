@@ -8,6 +8,9 @@ import java.util.Map;
 
 public interface UserService {
     User register(String email, String rawPassword, String fullName, String phone);
+    
+    // Kiểm tra email đã tồn tại
+    boolean existsByEmail(String email);
 
     // Lấy thông tin profile dưới dạng DTO
     UserProfileDTO getProfileByEmail(String email);

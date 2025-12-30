@@ -47,7 +47,7 @@ public class GlobalControllerAdvice {
 
         // Giá trị mặc định nếu không xác định được
         if (userName == null || userName.isEmpty()) {
-            userName = "Admin";
+            userName = "User";
         }
 
         return userName;

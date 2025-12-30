@@ -9,12 +9,14 @@
     
     <!-- CSS -->
     <link rel="stylesheet" th:href="@{/css/supply-style.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts - Condensed Sans-serif for Impact-style typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined|Material+Icons" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <!-- GSAP & ScrollTrigger -->
@@ -168,26 +170,21 @@
             animation: fadeInUp 0.3s ease-out forwards;
         }
 
+        .list-unstyled {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .header-main.scrolled {
+            opacity: 0.80;
+        }
+
     </style>
 
 </head>
 <body>
-    <!-- Header Navigation -->
-    <header class="main-header">
-        <nav class="header-nav">
-            <div class="logo">
-                <a href="/">TULIP SHOP</a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="/products">Shop</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-            <div class="header-actions">
-                <a href="/cart" class="cart-link">Cart <span class="cart-count">0</span></a>
-            </div>
-        </nav>
-    </header>
+    <!-- Header -->
+    <div th:replace="~{fragments/home/header :: header}"></div>
 
     <!-- Main Horizontal Container -->
     <main class="main-content">
@@ -221,10 +218,11 @@
 
 
 
-    <footer th:replace="~{fragments/home/home-footer :: footer}"></footer>
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
     <!-- JavaScript -->
     <script th:src="@{/js/supply-script.js}"></script>
+    <script th:src="@{/js/header.js}" defer></script>
 
     <div th:replace="~{fragments/home/scripts :: scripts}"></div>
 </body>

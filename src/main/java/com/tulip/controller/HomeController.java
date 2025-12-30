@@ -42,4 +42,16 @@ public class HomeController {
 
         return "index";
     }
+
+    @GetMapping("/about")
+    public String about(Model model) {
+        model.addAttribute("title", "Về chúng tôi - Tulip Shop");
+        return "about";
+    }
+
+    @GetMapping("/contact")
+    public String contact(Model model) {
+        model.addAttribute("title", "Liên hệ - Tulip Shop");
+        return "contact";
+    }
 }
