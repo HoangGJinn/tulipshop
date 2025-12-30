@@ -67,7 +67,7 @@ public class CheckoutController {
             return "redirect:/cart";
 
         List<UserAddressDTO> addresses = addressService.getUserAddresses(userId);
-        BigDecimal totalPrice = cartService.getTotalPrice(userId);
+        BigDecimal totalPrice = cartService.getTotalPrice(userId, items);
 
         // Mặc định Standard
         BigDecimal shippingFee = new BigDecimal("30000");
@@ -87,20 +87,36 @@ public class CheckoutController {
                 }
 
                 ShippingRateResponse rate = shippingClient.getShippingFee(fullAddr, "STANDARD");
-                shippingFee = rate.getShippingFee();
-                estimatedTime = rate.getEstimatedTime();
+                if (rate != null) {
+                    shippingFee = rate.getShippingFee();
+                    estimatedTime = rate.getEstimatedTime();
+                }
             } catch (Exception e) {
+                // Log lỗi nhưng không crash trang checkout
                 System.err.println("Lỗi kết nối shipping service: " + e.getMessage());
+                // Giữ giá mặc định, không cần làm gì
             }
         }
+
+        // Lấy danh sách voucher có thể áp dụng
+        List<com.tulip.entity.Voucher> applicableVouchers = voucherService.getApplicableVouchers(totalPrice);
+        if (applicableVouchers == null)
+            applicableVouchers = new java.util.ArrayList<>();
 
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalPrice", totalPrice);
         model.addAttribute("shippingFee", shippingFee);
         model.addAttribute("estimatedTime", estimatedTime);
         model.addAttribute("finalPrice", totalPrice.add(shippingFee));
+        if (addresses == null)
+            addresses = new java.util.ArrayList<>();
         model.addAttribute("addresses", addresses);
-        model.addAttribute("orderRequest", new OrderCreationDTO());
+
+        OrderCreationDTO orderRequest = new OrderCreationDTO();
+        orderRequest.setCheckoutItems(items); // Set danh sách item đã chọn để submit lại khi đặt hàng
+        model.addAttribute("orderRequest", orderRequest);
+
+        model.addAttribute("applicableVouchers", applicableVouchers);
 
         return "order/checkout";
     }
@@ -178,7 +194,8 @@ public class CheckoutController {
             // --- Xử lý thanh toán ---
             PaymentMethod paymentMethod = PaymentMethod.fromString(orderRequest.getPaymentMethod());
 
-            cartService.clearCart(userDetails.getUserId());
+            // cartService.clearCart(userId); // Đã xử lý bên trong placeOrder để hỗ trợ
+            // partial checkout
             String orderCode = com.tulip.util.VnpayUtil.generateOrderCode(order.getId());
             order.setOrderCode(orderCode);
             orderRepository.save(order);

@@ -2,6 +2,8 @@ package com.tulip.service.impl;
 
 import com.tulip.dto.CartItemDTO;
 import com.tulip.dto.OrderCreationDTO;
+import com.tulip.dto.VoucherApplyRequestDTO;
+import com.tulip.dto.VoucherApplyResponseDTO;
 import com.tulip.dto.response.OrderAdminDTO;
 import com.tulip.dto.response.ShippingRateResponse;
 import com.tulip.entity.*;
@@ -9,7 +11,6 @@ import com.tulip.entity.enums.OrderStatus;
 import com.tulip.entity.enums.PaymentMethod;
 import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.entity.product.ProductStock;
-import com.tulip.entity.product.ProductVariant;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
 import com.tulip.service.EmailService;
@@ -56,16 +57,19 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        List<CartItemDTO> cartItems = cartService.getCartItems(userId);
+        // Create a list of item IDs to filter (null or empty means ALL)
+        List<Long> checkoutItemIds = request.getCheckoutItems();
+
+        List<CartItemDTO> cartItems = cartService.getCartItems(userId, checkoutItemIds);
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Giỏ hàng trống, không thể đặt hàng");
+            throw new RuntimeException("Giỏ hàng trống hoặc không có sản phẩm nào được chọn");
         }
 
         UserAddress address = userAddressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new RuntimeException("Địa chỉ không hợp lệ"));
 
         String shippingAddress = address.getFullAddress();
-        BigDecimal totalPrice = cartService.getTotalPrice(userId);
+        BigDecimal totalPrice = cartService.getTotalPrice(userId, checkoutItemIds);
 
         // --- Logic tính phí ship từ API ---
         BigDecimal shippingFee;
@@ -82,7 +86,34 @@ public class OrderServiceImpl implements OrderService {
             shippingFee = new BigDecimal("30000");
         }
 
-        BigDecimal finalPrice = totalPrice.add(shippingFee);
+        // --- Logic xử lý Voucher ---
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        Voucher appliedVoucher = null;
+
+        if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
+            try {
+                VoucherApplyRequestDTO voucherRequest = new VoucherApplyRequestDTO();
+                voucherRequest.setCode(request.getVoucherCode());
+                voucherRequest.setOrderTotal(totalPrice);
+
+                VoucherApplyResponseDTO voucherResponse = voucherService
+                        .calculateDiscount(voucherRequest);
+                if (voucherResponse.isSuccess()) {
+                    discountAmount = voucherResponse.getDiscountAmount();
+                    // Lấy voucher entity để lưu vào order
+                    Optional<Voucher> voucherOpt = voucherService.getVoucherByCode(request.getVoucherCode());
+                    if (voucherOpt.isPresent()) {
+                        appliedVoucher = voucherOpt.get();
+                        // Tăng số lượt sử dụng
+                        voucherService.useVoucher(request.getVoucherCode());
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Lỗi khi áp dụng voucher: {}", e.getMessage());
+            }
+        }
+
+        BigDecimal finalPrice = totalPrice.subtract(discountAmount).add(shippingFee);
 
         // --- Logic Voucher ---
         Voucher voucher = null;
@@ -153,6 +184,14 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order savedOrder = orderRepository.save(order);
+
+        // SAU KHI ĐẶT HÀNG THÀNH CÔNG -> XÓA CÁC ITEMS ĐÃ MUA KHỎI GIỎ
+        if (checkoutItemIds != null && !checkoutItemIds.isEmpty()) {
+            cartService.removeItems(userId, checkoutItemIds);
+        } else {
+            // Nếu mua hết (không truyền IDs) thì clear all
+            cartService.clearCart(userId);
+        }
 
         log.info("📦 Order #{} saved successfully. Preparing to send confirmation email...", savedOrder.getId());
 
