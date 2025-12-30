@@ -26,12 +26,27 @@ public class VoucherApiController {
     @GetMapping("/applicable")
     public ResponseEntity<List<VoucherDTO>> getApplicableVouchers(
             @RequestParam BigDecimal orderTotal) {
-        List<Voucher> vouchers = voucherService.getApplicableVouchers(orderTotal);
+        // Get all vouchers and filter by order total
+        List<Voucher> allVouchers = voucherService.getAllVouchers();
+        List<Voucher> vouchers = allVouchers.stream()
+                .filter(v -> {
+                    // Check if voucher is valid for this order total
+                    if (v.getStatus() == null || !v.getStatus()) return false;
+                    if (v.getMinOrderValue() != null && orderTotal.compareTo(v.getMinOrderValue()) < 0) return false;
+                    // Check date range
+                    java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                    if (v.getStartAt() != null && now.isBefore(v.getStartAt())) return false;
+                    if (v.getExpireAt() != null && now.isAfter(v.getExpireAt())) return false;
+                    // Check quantity
+                    if (v.getQuantity() != null && v.getUsedCount() != null && v.getQuantity() <= v.getUsedCount()) return false;
+                    return true;
+                })
+                .collect(Collectors.toList());
         
         List<VoucherDTO> voucherDTOs = vouchers.stream().map(v -> {
             Integer remaining = v.getQuantity() != null && v.getUsedCount() != null
                     ? v.getQuantity() - v.getUsedCount()
-                    : 0;
+                    : null;
             
             return VoucherDTO.builder()
                     .id(v.getId())
@@ -45,7 +60,7 @@ public class VoucherApiController {
                     .startAt(v.getStartAt())
                     .expireAt(v.getExpireAt())
                     .status(v.getStatus())
-                    .isValid(v.isValid())
+                    .isValid(voucherService.isValid(v.getCode(), orderTotal))
                     .build();
         }).collect(Collectors.toList());
         
@@ -58,7 +73,15 @@ public class VoucherApiController {
     @PostMapping("/apply")
     public ResponseEntity<VoucherApplyResponseDTO> applyVoucher(
             @RequestBody VoucherApplyRequestDTO request) {
-        VoucherApplyResponseDTO response = voucherService.calculateDiscount(request);
+        BigDecimal discountAmount = voucherService.calculateDiscount(request.getCode(), request.getOrderTotal());
+        boolean isValid = voucherService.isValid(request.getCode(), request.getOrderTotal());
+        
+        VoucherApplyResponseDTO response = VoucherApplyResponseDTO.builder()
+                .success(isValid)
+                .discountAmount(discountAmount)
+                .message(isValid ? "Voucher áp dụng thành công" : "Voucher không hợp lệ")
+                .build();
+        
         return ResponseEntity.ok(response);
     }
 }

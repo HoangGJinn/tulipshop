@@ -67,7 +67,7 @@ public class CheckoutController {
             return "redirect:/cart";
 
         List<UserAddressDTO> addresses = addressService.getUserAddresses(userId);
-        BigDecimal totalPrice = cartService.getTotalPrice(userId, items);
+        BigDecimal totalPrice = cartService.getTotalPrice(userId);
 
         // Mặc định Standard
         BigDecimal shippingFee = new BigDecimal("30000");
@@ -98,11 +98,6 @@ public class CheckoutController {
             }
         }
 
-        // Lấy danh sách voucher có thể áp dụng
-        List<com.tulip.entity.Voucher> applicableVouchers = voucherService.getApplicableVouchers(totalPrice);
-        if (applicableVouchers == null)
-            applicableVouchers = new java.util.ArrayList<>();
-
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalPrice", totalPrice);
         model.addAttribute("shippingFee", shippingFee);
@@ -111,12 +106,7 @@ public class CheckoutController {
         if (addresses == null)
             addresses = new java.util.ArrayList<>();
         model.addAttribute("addresses", addresses);
-
-        OrderCreationDTO orderRequest = new OrderCreationDTO();
-        orderRequest.setCheckoutItems(items); // Set danh sách item đã chọn để submit lại khi đặt hàng
-        model.addAttribute("orderRequest", orderRequest);
-
-        model.addAttribute("applicableVouchers", applicableVouchers);
+        model.addAttribute("orderRequest", new OrderCreationDTO());
 
         return "order/checkout";
     }

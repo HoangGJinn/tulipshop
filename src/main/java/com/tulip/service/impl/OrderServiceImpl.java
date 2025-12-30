@@ -2,8 +2,6 @@ package com.tulip.service.impl;
 
 import com.tulip.dto.CartItemDTO;
 import com.tulip.dto.OrderCreationDTO;
-import com.tulip.dto.VoucherApplyRequestDTO;
-import com.tulip.dto.VoucherApplyResponseDTO;
 import com.tulip.dto.response.OrderAdminDTO;
 import com.tulip.dto.response.ShippingRateResponse;
 import com.tulip.entity.*;
@@ -57,19 +55,17 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        // Create a list of item IDs to filter (null or empty means ALL)
-        List<Long> checkoutItemIds = request.getCheckoutItems();
-
-        List<CartItemDTO> cartItems = cartService.getCartItems(userId, checkoutItemIds);
+        // Get all cart items (no filtering by selected items)
+        List<CartItemDTO> cartItems = cartService.getCartItems(userId);
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Giỏ hàng trống hoặc không có sản phẩm nào được chọn");
+            throw new RuntimeException("Giỏ hàng trống, không thể đặt hàng");
         }
 
         UserAddress address = userAddressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new RuntimeException("Địa chỉ không hợp lệ"));
 
         String shippingAddress = address.getFullAddress();
-        BigDecimal totalPrice = cartService.getTotalPrice(userId, checkoutItemIds);
+        BigDecimal totalPrice = cartService.getTotalPrice(userId);
 
         // --- Logic tính phí ship từ API ---
         BigDecimal shippingFee;
@@ -86,40 +82,13 @@ public class OrderServiceImpl implements OrderService {
             shippingFee = new BigDecimal("30000");
         }
 
-        // --- Logic xử lý Voucher ---
-        BigDecimal discountAmount = BigDecimal.ZERO;
-        Voucher appliedVoucher = null;
-
-        if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
-            try {
-                VoucherApplyRequestDTO voucherRequest = new VoucherApplyRequestDTO();
-                voucherRequest.setCode(request.getVoucherCode());
-                voucherRequest.setOrderTotal(totalPrice);
-
-                VoucherApplyResponseDTO voucherResponse = voucherService
-                        .calculateDiscount(voucherRequest);
-                if (voucherResponse.isSuccess()) {
-                    discountAmount = voucherResponse.getDiscountAmount();
-                    // Lấy voucher entity để lưu vào order
-                    Optional<Voucher> voucherOpt = voucherService.getVoucherByCode(request.getVoucherCode());
-                    if (voucherOpt.isPresent()) {
-                        appliedVoucher = voucherOpt.get();
-                        // Tăng số lượt sử dụng
-                        voucherService.useVoucher(request.getVoucherCode());
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Lỗi khi áp dụng voucher: {}", e.getMessage());
-            }
-        }
-
-        BigDecimal finalPrice = totalPrice.subtract(discountAmount).add(shippingFee);
-
         // --- Logic Voucher ---
+        BigDecimal finalPrice = totalPrice.add(shippingFee);
         Voucher voucher = null;
+        
         if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
             String code = request.getVoucherCode().trim();
-            // Validate voucher again
+            // Validate voucher
             if (voucherService.isValid(code, totalPrice)) {
                 BigDecimal discount = voucherService.calculateDiscount(code, totalPrice);
                 finalPrice = finalPrice.subtract(discount);
@@ -131,10 +100,6 @@ public class OrderServiceImpl implements OrderService {
                 // Update voucher usage
                 if (voucher != null) {
                     voucher.setUsedCount(voucher.getUsedCount() + 1);
-                    // Save voucher usage is handled by transactional?
-                    // Yes, voucher is a managed entity if fetched within this transaction
-                    // But need to save? voucherService.saveVoucher(voucher); or rely on dirty
-                    // checking
                     voucherService.saveVoucher(voucher);
                 }
             }
@@ -186,12 +151,8 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
 
         // SAU KHI ĐẶT HÀNG THÀNH CÔNG -> XÓA CÁC ITEMS ĐÃ MUA KHỎI GIỎ
-        if (checkoutItemIds != null && !checkoutItemIds.isEmpty()) {
-            cartService.removeItems(userId, checkoutItemIds);
-        } else {
-            // Nếu mua hết (không truyền IDs) thì clear all
-            cartService.clearCart(userId);
-        }
+        // Since we're processing all cart items, clear the entire cart
+        cartService.clearCart(userId);
 
         log.info("📦 Order #{} saved successfully. Preparing to send confirmation email...", savedOrder.getId());
 

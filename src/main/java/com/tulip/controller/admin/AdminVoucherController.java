@@ -3,15 +3,13 @@ package com.tulip.controller.admin;
 import com.tulip.entity.Voucher;
 import com.tulip.service.VoucherService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -57,41 +55,4 @@ public class AdminVoucherController {
         return "admin/layouts/layout";
     }
 
-    // --- API ---
-
-    @GetMapping("/v1/api/admin/vouchers")
-    @ResponseBody
-    public ResponseEntity<List<Voucher>> getVouchersApi() {
-        return ResponseEntity.ok(voucherService.getAllVouchers());
-    }
-
-    @PostMapping("/v1/api/admin/vouchers")
-    @ResponseBody
-    public ResponseEntity<?> saveVoucher(@RequestBody Voucher voucher) {
-        try {
-            // Simple validation
-            if (voucher.getCode() == null || voucher.getCode().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Mã voucher không được để trống"));
-            }
-            if (voucher.getDiscountValue() == null) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Giá trị giảm giá không được để trống"));
-            }
-
-            Voucher saved = voucherService.saveVoucher(voucher);
-            return ResponseEntity.ok(Map.of("status", "success", "message", "Lưu voucher thành công", "data", saved));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
-        }
-    }
-
-    @DeleteMapping("/v1/api/admin/vouchers/{id}")
-    @ResponseBody
-    public ResponseEntity<?> deleteVoucher(@PathVariable Long id) {
-        try {
-            voucherService.deleteVoucher(id);
-            return ResponseEntity.ok(Map.of("status", "success", "message", "Đã xóa (vô hiệu hóa) voucher"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
-        }
-    }
 }

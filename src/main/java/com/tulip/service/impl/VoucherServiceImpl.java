@@ -73,7 +73,7 @@ public class VoucherServiceImpl implements VoucherService {
             return false;
 
         // Check quantity
-        if (v.getQuantity() <= v.getUsedCount())
+        if (v.getQuantity() != null && v.getUsedCount() != null && v.getQuantity() <= v.getUsedCount())
             return false;
 
         // Check min order value
