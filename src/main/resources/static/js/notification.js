@@ -25,7 +25,6 @@ class NotificationManager {
      * Khởi tạo notification manager
      */
     init() {
-        console.log('🔔 Initializing Notification Manager...');
         
         // Load số lượng thông báo chưa đọc ngay lập tức (async)
         this.loadUnreadCount();
@@ -40,7 +39,6 @@ class NotificationManager {
         const dropdownBtn = document.getElementById('notificationDropdownBtn');
         if (dropdownBtn) {
             dropdownBtn.addEventListener('shown.bs.dropdown', () => {
-                console.log('📂 Dropdown opened, loading notifications...');
                 if (!this.notificationsLoaded) {
                     this.loadNotifications(null, 0, 5); // Load 5 tin đầu tiên
                     this.notificationsLoaded = true;
@@ -49,7 +47,6 @@ class NotificationManager {
             
             // Debug: Log khi dropdown được click
             dropdownBtn.addEventListener('click', () => {
-                console.log('🖱️ Notification bell clicked');
             });
         } else {
             console.warn('⚠️ Notification dropdown button not found');
@@ -66,8 +63,7 @@ class NotificationManager {
             console.warn('⚠️ No access token found, skipping WebSocket connection');
             return;
         }
-        
-        console.log('🔌 Connecting to WebSocket...');
+
         
         const socket = new SockJS('/ws');
         this.stompClient = Stomp.over(socket);
@@ -86,7 +82,6 @@ class NotificationManager {
      * Callback khi kết nối thành công
      */
     onConnected(frame) {
-        console.log('✅ WebSocket connected');
         this.connected = true;
         this.reconnectAttempts = 0;
         
@@ -99,8 +94,7 @@ class NotificationManager {
         this.stompClient.subscribe('/topic/public-notifications', (message) => {
             this.onNotificationReceived(message);
         });
-        
-        console.log('📡 Subscribed to notification channels');
+
     }
     
     /**
@@ -112,7 +106,6 @@ class NotificationManager {
         
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
-            console.log(`🔄 Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
             setTimeout(() => this.connect(), this.reconnectDelay);
         }
     }
@@ -123,7 +116,6 @@ class NotificationManager {
     onNotificationReceived(message) {
         try {
             const notification = JSON.parse(message.body);
-            console.log('🔔 New notification received:', notification);
             
             // Hiển thị toast với ảnh thumbnail
             this.showToast(notification);
@@ -447,7 +439,6 @@ class NotificationManager {
      * Đánh dấu thông báo là đã đọc
      */
     async markAsRead(notificationId) {
-        console.log('📝 Calling API to mark as read:', notificationId);
         try {
             const response = await fetch(`/v1/api/notifications/${notificationId}/read`, {
                 method: 'PUT',
@@ -455,14 +446,11 @@ class NotificationManager {
                     'Content-Type': 'application/json'
                 }
             });
-            
-            console.log('📡 API response:', response.status, response.ok);
+
             
             if (response.ok) {
-                console.log('✅ Successfully marked as read');
                 // Cập nhật UI: Xóa class unread và dot cho TẤT CẢ các instance của thông báo này
                 const items = document.querySelectorAll(`.notification-item[data-id="${notificationId}"]`);
-                console.log('🔄 Updating UI for', items.length, 'items');
                 items.forEach(item => {
                     item.classList.remove('unread');
                     const dot = item.querySelector('.unread-dot');
@@ -517,27 +505,18 @@ class NotificationManager {
             const notificationId = item.dataset.id;
             const link = item.getAttribute('href');
             const isUnread = item.classList.contains('unread');
-            
-            console.log('🖱️ Clicked notification:', {
-                id: notificationId,
-                link: link,
-                isUnread: isUnread
-            });
+
             
             // Nếu là thông báo chưa đọc
             if (isUnread) {
                 // LUÔN ngăn navigation mặc định để đánh dấu đã đọc trước
                 e.preventDefault();
-                
-                console.log('📖 Marking notification as read:', notificationId);
-                
+
                 // Đánh dấu đã đọc
                 this.markAsRead(notificationId).then((success) => {
-                    console.log('✅ Mark as read result:', success);
                     if (success) {
                         // Navigate sau khi đánh dấu thành công (nếu có link hợp lệ)
                         if (link && link !== '#' && link !== 'javascript:void(0)') {
-                            console.log('🔗 Navigating to:', link);
                             window.location.href = link;
                         }
                     } else {
