@@ -43,7 +43,7 @@
                     </div>
 
                     <div class="product-wl position-absolute top-0 end-0 p-2" style="z-index: 5;">
-                        <span class="btn-add-wl" onclick="toggleWishlist(this)" style="cursor: pointer;">
+                        <span class="btn-add-wl" onclick="toggleWishlist(this)" style="cursor: pointer;" th:attr="data-product-id=${prod.id}">
                             <i class="far fa-heart text-dark"></i>
                         </span>
                     </div>
@@ -188,6 +188,10 @@
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Chat Widget -->
+<div th:replace="~{fragments/chat-widget-simple :: chatWidget}"></div>
+
 <script th:src="@{/js/products.js}"></script>
 <script>
     function previewColor(el) {

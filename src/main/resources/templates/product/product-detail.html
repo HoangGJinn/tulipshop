@@ -58,7 +58,7 @@
 
                 <div class="mb-4">
                     <button class="btn btn-link p-0 text-decoration-none text-dark wishlist-btn"
-                        onclick="toggleWishlist(this)">
+                        onclick="toggleWishlist(this)" th:attr="data-product-id=${product.id}">
                         <i class="far fa-heart fs-5"></i>
                         <span class="ms-2 small text-uppercase border-bottom border-dark">Thêm vào yêu thích</span>
                     </button>
@@ -467,6 +467,9 @@
 
 
     <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget-simple :: chatWidget}"></div>
 
     <script th:inline="javascript">
         const productData = /*[[${product}]]*/ {};
