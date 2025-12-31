@@ -1,15 +1,20 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giỏ hàng - Tulip Shop</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/notification.css}">
+    
+    <!-- SweetAlert2 - Load trong head để tránh conflict -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         /* CSS riêng cho trang cart */
@@ -238,16 +243,60 @@
             </div>
         </div>
     </div>
+</div>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
-    <script th:src="@{/js/notification.js}"></script>
-    <script th:inline="javascript">
-        const API_BASE_URL = /*[[@{/v1/api}]]*/ '/v1/api';
+<!-- WebSocket Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<!-- Toast Notification Script - Load FIRST -->
+<script th:src="@{/js/toast-notification.js}"></script>
+<!-- Notification Script -->
+<script th:src="@{/js/notification.js}"></script>
 
-        // Hàm format số tiền
-        function formatPrice(price) {
-            return new Intl.NumberFormat('vi-VN').format(price) + '₫';
+<script th:inline="javascript">
+    const API_BASE_URL = /*[[@{/v1/api}]]*/ '/v1/api';
+    
+    // Hàm format số tiền
+    function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN').format(price) + '₫';
+    }
+    
+    // Hàm cập nhật tổng tiền trong summary
+    function updateCartSummary(totalPrice) {
+        document.getElementById('cart-subtotal').textContent = formatPrice(totalPrice);
+        document.getElementById('cart-total').textContent = formatPrice(totalPrice);
+    }
+    
+    // Hàm cập nhật số lượng trong header
+    function updateCartCount(count) {
+        const cartCounts = document.querySelectorAll('.cart-count');
+        cartCounts.forEach(el => {
+            el.textContent = count;
+            el.style.display = count > 0 ? 'inline-block' : 'none';
+        });
+    }
+    
+    // Hàm tăng số lượng
+    function increaseQuantity(itemId) {
+        const input = document.querySelector(`input.quantity-input[data-item-id="${itemId}"]`);
+        if (!input) return;
+        
+        const currentQty = parseInt(input.value) || 1;
+        const newQty = currentQty + 1;
+        updateQuantity(itemId, newQty);
+    }
+    
+    // Hàm giảm số lượng
+    function decreaseQuantity(itemId) {
+        const input = document.querySelector(`input.quantity-input[data-item-id="${itemId}"]`);
+        if (!input) return;
+        
+        const currentQty = parseInt(input.value) || 1;
+        if (currentQty <= 1) {
+            showWarning('Cảnh báo', 'Số lượng tối thiểu là 1');
+            return;
         }
 
         // Hàm cập nhật tổng tiền trong summary

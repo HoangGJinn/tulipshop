@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Về chúng tôi - Tulip Shop')}"></head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <!-- Main Content -->
+    <main class="main-content" style="padding-top: 40px; padding-bottom: 60px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="page-header text-center mb-5">
+                        <h1 class="page-title" style="font-size: 36px; font-weight: bold; color: #2C2C2C; margin-bottom: 20px;">
+                            Về chúng tôi
+                        </h1>
+                        <div class="title-divider" style="width: 80px; height: 3px; background: #D37171; margin: 0 auto;"></div>
+                    </div>
+
+                    <div class="about-content" style="line-height: 1.8; color: #666;">
+                        <div class="about-section mb-5">
+                            <h2 style="font-size: 24px; color: #2C2C2C; margin-bottom: 20px;">Giới thiệu</h2>
+                            <p style="font-size: 16px; margin-bottom: 15px;">
+                                Tulip Shop là thương hiệu thời trang nữ hàng đầu, chuyên cung cấp những sản phẩm thời trang chất lượng cao với thiết kế hiện đại, thanh lịch. Chúng tôi cam kết mang đến cho khách hàng những trải nghiệm mua sắm tuyệt vời nhất.
+                            </p>
+                            <p style="font-size: 16px; margin-bottom: 15px;">
+                                Với phương châm "Đẹp mỗi ngày", Tulip Shop không ngừng cập nhật những xu hướng thời trang mới nhất, đảm bảo mỗi sản phẩm đều thể hiện được phong cách riêng của bạn.
+                            </p>
+                        </div>
+
+                        <div class="about-section mb-5">
+                            <h2 style="font-size: 24px; color: #2C2C2C; margin-bottom: 20px;">Sứ mệnh</h2>
+                            <p style="font-size: 16px; margin-bottom: 15px;">
+                                Sứ mệnh của chúng tôi là mang đến những sản phẩm thời trang chất lượng, giá cả hợp lý, giúp mọi phụ nữ tự tin thể hiện vẻ đẹp của mình trong mọi hoàn cảnh.
+                            </p>
+                        </div>
+
+                        <div class="about-section mb-5">
+                            <h2 style="font-size: 24px; color: #2C2C2C; margin-bottom: 20px;">Giá trị cốt lõi</h2>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                    <i class="fas fa-check-circle" style="color: #D37171; margin-right: 10px;"></i>
+                                    <strong>Chất lượng:</strong> Cam kết sản phẩm chất lượng cao, bền đẹp
+                                </li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                    <i class="fas fa-check-circle" style="color: #D37171; margin-right: 10px;"></i>
+                                    <strong>Dịch vụ:</strong> Chăm sóc khách hàng tận tâm, chu đáo
+                                </li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                    <i class="fas fa-check-circle" style="color: #D37171; margin-right: 10px;"></i>
+                                    <strong>Uy tín:</strong> Minh bạch trong mọi giao dịch
+                                </li>
+                                <li style="padding: 10px 0;">
+                                    <i class="fas fa-check-circle" style="color: #D37171; margin-right: 10px;"></i>
+                                    <strong>Đổi mới:</strong> Luôn cập nhật xu hướng thời trang mới nhất
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
+

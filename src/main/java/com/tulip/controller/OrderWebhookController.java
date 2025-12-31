@@ -1,13 +1,16 @@
 package com.tulip.controller;
 
 import com.tulip.entity.Order;
+import com.tulip.entity.OrderItem;
 import com.tulip.entity.enums.OrderStatus;
 import com.tulip.entity.enums.PaymentMethod;
 import com.tulip.entity.enums.PaymentStatus;
 import com.tulip.repository.OrderRepository;
+import com.tulip.service.EmailService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderWebhookController {
 
     private final OrderRepository orderRepository;
+    private final EmailService emailService;
 
     @Data
     public static class ShippingStatusUpdateDTO {
@@ -87,6 +91,34 @@ public class OrderWebhookController {
         if (order.getPaymentMethod() == PaymentMethod.COD) {
             order.setPaymentStatus(PaymentStatus.SUCCESS); // Hoặc PAID tùy enum của bạn
             log.info("COD Order {} - Payment status updated to PAID", order.getOrderCode());
+        }
+        
+        // Eager load relationships before async email sending
+        Hibernate.initialize(order.getUser());
+        if (order.getUser() != null && order.getUser().getProfile() != null) {
+            Hibernate.initialize(order.getUser().getProfile());
+        }
+        Hibernate.initialize(order.getOrderItems());
+        for (OrderItem item : order.getOrderItems()) {
+            if (item.getProduct() != null) {
+                Hibernate.initialize(item.getProduct());
+            }
+            if (item.getVariant() != null) {
+                Hibernate.initialize(item.getVariant());
+                Hibernate.initialize(item.getVariant().getImages());
+            }
+            if (item.getSize() != null) {
+                Hibernate.initialize(item.getSize());
+            }
+        }
+        
+        // Send DELIVERED email
+        log.info("📧 Sending DELIVERED email for order #{} via webhook", order.getId());
+        try {
+            emailService.sendOrderUpdateEmail(order);
+            log.info("✅ DELIVERED email sent successfully for order #{}", order.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending DELIVERED email for order #{}: {}", order.getId(), e.getMessage(), e);
         }
     }
 

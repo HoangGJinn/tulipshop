@@ -1,214 +1,327 @@
-/* Login Page Styles */
-.login-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 20px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-.login-box {
-    background: white;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f3f4f6; /* Nền xám nhạt làm nổi bật khung login */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.login-container {
+    padding: 20px;
     width: 100%;
-    max-width: 400px;
+    display: flex;
+    justify-content: center;
+}
+
+.login-card {
+    display: flex;
+    background: white;
+    width: 100%;
+    max-width: 900px;
+    height: 550px;
+    /* BO GÓC SANG TRỌNG */
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08); /* Đổ bóng nhẹ nhàng */
+}
+
+/* Điều chỉnh cho trang đăng ký (không có ảnh) */
+.login-card.register-card {
+    height: auto;
+    min-height: 550px;
+    max-width: 500px;
+    justify-content: center; /* Căn giữa form */
+}
+
+.register-card .login-form-section {
+    width: 100%; /* Form chiếm toàn bộ không gian */
+}
+
+/* --- CỘT ẢNH (TRÁI) --- */
+.login-image-section {
+    width: 45%;
+    background-color: #eee;
+}
+
+.login-image-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ảnh tràn viền hoàn hảo */
+}
+
+/* --- CỘT FORM (PHẢI) --- */
+.login-form-section {
+    width: 55%;
+    padding: 40px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #ffffff;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
 }
 
 .login-title {
-    text-align: center;
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 30px;
-    color: #2C2C2C;
+    font-family: 'Playfair Display', serif; /* Font có chân tạo nét sang trọng */
+    font-size: 36px;
+    color: #2c3e50;
+    font-weight: 700;
 }
 
-.form-group {
+/* Input Styles */
+.input-group {
     margin-bottom: 20px;
 }
 
-.form-group label {
+.input-group label {
     display: block;
-    margin-bottom: 8px;
-    color: #2C2C2C;
+    font-size: 13px;
     font-weight: 500;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.required {
-    color: #ef4343;
-    font-weight: bold;
-}
-
-.form-group input {
+.input-group input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 14px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px; /* Bo nhẹ ô input */
+    font-size: 15px;
+    color: #333;
+    transition: all 0.3s ease;
 }
 
-.form-group input:focus {
+.input-group input:focus {
     outline: none;
-    border-color: #D37171;
+    background-color: #fff;
+    border-color: #d4a373; /* Màu nhấn của shop (Vàng đồng/Tulip) */
+    box-shadow: 0 0 0 4px rgba(212, 163, 115, 0.1);
 }
 
-.error-message {
-    color: #ef4343;
+/* Highlight input khi có lỗi */
+.input-group input.error,
+.input-group input:invalid:not(:placeholder-shown) {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.input-group:has(.field-error) input {
+    border-color: #ef4444;
+}
+
+.input-group .required {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.field-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 6px;
+    display: block;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-in;
+    line-height: 1.4;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between; /* QUAN TRỌNG: Lỗi bên trái, Link bên phải */
+    align-items: center;            /* Căn giữa theo chiều dọc */
+    margin-bottom: 25px;
+    min-height: 20px;              /* Giữ độ cao để layout không bị giật */
+}
+
+/* 2. Style cho khối chứa thông báo (Căn trái) */
+.validation-message {
+    text-align: left;
+    margin-right: 10px; /* Tạo khoảng cách với link quên mật khẩu */
+}
+
+/* 3. Style màu đỏ cho chữ lỗi */
+.error-text {
+    color: #e74c3c; /* Màu đỏ */
+    font-size: 13px;
+    font-weight: 500;
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* 4. Style màu xanh cho thông báo thành công (nếu có) */
+.success-text {
+    color: #27ae60;
+    font-size: 13px;
+    font-weight: 500;
+    display: block;
+}
+
+/* Link quên mật khẩu giữ nguyên, chỉ đảm bảo nó không bị co lại */
+.forgot-link {
+    color: #d4a373;
+    text-decoration: none;
     font-size: 14px;
-    margin-top: 5px;
-    margin-bottom: 15px;
+    font-weight: 500;
+    white-space: nowrap; /* Giữ dòng chữ này thẳng hàng, không xuống dòng */
+    transition: color 0.2s;
 }
 
-.message {
-    color: #21c45d;
-    font-size: 14px;
-    margin-top: 5px;
-    margin-bottom: 15px;
+.forgot-link:hover {
+    color: #b07d4e;
+    text-decoration: underline;
 }
 
+/* Hiệu ứng hiện dần */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Button */
 .login-button {
     width: 100%;
-    padding: 12px;
-    background-color: #D37171;
+    padding: 15px;
+    /* Gradient màu tối sang trọng */
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    font-weight: 500;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: background-color 0.3s;
+    box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .login-button:hover {
-    background-color: #c55d5d;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
 }
 
-.back-link {
+/* Social Login */
+.social-login-wrapper {
+    margin-top: 25px;
     text-align: center;
-    margin-top: 20px;
 }
 
-.back-link a {
-    color: #D37171;
-    text-decoration: none;
-}
-
-.back-link a:hover {
-    text-decoration: underline;
-}
-
-form div {
+.social-login-wrapper p {
+    font-size: 13px;
+    color: #9ca3af;
     margin-bottom: 15px;
+    position: relative;
 }
 
-form label {
-    display: block;
-    margin-bottom: 5px;
-    color: #2C2C2C;
-    font-weight: 500;
+/* Đường kẻ ngang trang trí chỗ "Hoặc tiếp tục với" */
+.social-login-wrapper p::before,
+.social-login-wrapper p::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background-color: #e5e7eb;
 }
+.social-login-wrapper p::before { left: 0; }
+.social-login-wrapper p::after { right: 0; }
 
-form input[type="text"],
-form input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-form input[type="text"]:focus,
-form input[type="password"]:focus {
-    outline: none;
-    border-color: #D37171;
-}
-
-form button {
-    width: 100%;
-    padding: 12px;
-    background-color: #D37171;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-form button:hover {
-    background-color: #c55d5d;
-}
-
-/* Import font Roboto cho giống Google nhất (nếu chưa có) */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap');
-
-.btn-google {
+.social-btn.google {
     display: inline-flex;
     align-items: center;
-    background-color: #ffffff;
-    color: #757575; /* Màu chữ chuẩn Google */
-    border: 1px solid #ddd;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    border-radius: 4px; /* Bo góc nhẹ */
-    text-decoration: none; /* Bỏ gạch chân link */
-    padding: 2px; /* Padding nhỏ để bọc cái icon */
-    font-family: 'Roboto', sans-serif;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 50px;
+    background: white;
+    color: #4b5563;
+    text-decoration: none;
     font-weight: 500;
-    transition: all 0.3s ease;
-    width: 100%; /* Hoặc để auto nếu muốn nút ngắn */
-    max-width: 395px; /* Giới hạn chiều rộng */
-    height: 42px; /* Chiều cao chuẩn */
-    justify-content: center; /* Căn giữa nội dung */
+    font-size: 14px;
+    transition: all 0.3s;
 }
 
-.btn-google:hover {
-    background-color: #f8f9fa; /* Màu xám nhẹ khi hover */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    color: #333;
+.social-btn.google:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.login-footer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.login-footer a {
+    color: #2c3e50;
+    font-weight: 600;
     text-decoration: none;
 }
 
-.icon-wrapper {
-    background: transparent;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
+.login-footer a:hover {
+    text-decoration: underline;
 }
 
-.google-icon {
-    width: 18px;
-    height: 18px;
-    margin-top: 15px;
-}
-
-.btn-text {
-    padding: 0 16px 0 8px; /* Căn chỉnh khoảng cách chữ */
+/* Alert styles */
+.alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     font-size: 14px;
-}
-
-/* Text alignment utilities */
-.text-right {
-    text-align: right;
-}
-
-.text-center {
     text-align: center;
 }
+.alert.error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+.alert.success { background-color: #ecfdf5; color: #065f46; border: 1px solid #d1fae5; }
 
-/* Forgot password link styling */
-.forgot-password-link {
-    color: #1976d2;
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.3s;
+/* Info message */
+.info-message {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
-.forgot-password-link:hover {
-    color: #1565c0;
-    text-decoration: underline;
+.info-message p {
+    margin: 0;
+    color: #1976d2;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-card {
+        flex-direction: column;
+        height: auto;
+        border-radius: 20px;
+    }
+
+    .login-image-section {
+        width: 100%;
+        height: 200px;
+    }
+
+    .login-form-section {
+        width: 100%;
+        padding: 30px;
+    }
+    
+    .login-card.register-card {
+        min-height: auto;
+    }
 }
