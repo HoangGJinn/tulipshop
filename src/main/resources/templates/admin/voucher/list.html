@@ -34,7 +34,7 @@
                              > ${new Intl.NumberFormat('vi-VN').format(item.minOrderValue || 0)}₫
                         </td>
                          <td class="p-6 text-[10px] uppercase text-gray-500">
-                           ${item.expireAt ? new Date(item.expireAt).toLocaleString('vi-VN') : 'Không hạn'}
+                           ${item.expireAt || 'Không hạn'}
                         </td>
                          <td class="p-6">
                             <span class="text-[10px] uppercase font-bold ${item.status ? 'text-green-500' : 'text-red-500'}">
@@ -60,13 +60,13 @@
         function deleteItem(id) {
             if (!confirm("Bạn có chắc muốn vô hiệu hóa voucher này?")) return;
             fetch(`/v1/api/admin/vouchers/${id}`, { method: 'DELETE' })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
+                .then(async (res) => {
+                    if (res.ok) {
                         loadData();
-                    } else {
-                        alert(data.message);
+                        return;
                     }
+                    const data = await res.json().catch(() => null);
+                    alert(data?.error || data?.message || 'Không thể vô hiệu hóa voucher lúc này');
                 });
         }
 

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head(title='Wishlist')}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container py-4">
+    <h3 class="mb-4">Danh sách yêu thích</h3>
+
+    <div th:if="${#lists.isEmpty(wishlistItems)}" class="text-muted">Chưa có sản phẩm nào trong wishlist.</div>
+
+    <div class="row" th:if="${!#lists.isEmpty(wishlistItems)}">
+        <div class="col-md-3 col-sm-4 col-6 mb-4" th:each="item : ${wishlistItems}">
+            <div class="card h-100">
+                <a th:href="@{/product/{id}(id=${item.product.id})}">
+                    <img th:src="${item.product.thumbnail}" class="card-img-top" alt="Product" />
+                </a>
+                <div class="card-body">
+                    <h6 class="card-title" th:text="${item.product.name}"></h6>
+                    <div class="small text-muted" th:if="${item.product.discountPrice != null}">
+                        <span th:text="${#numbers.formatDecimal(item.product.discountPrice, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                    </div>
+                    <div class="small" th:if="${item.product.discountPrice == null}">
+                        <span th:text="${#numbers.formatDecimal(item.product.basePrice, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger mt-2" type="button"
+                            th:attr="data-product-id=${item.product.id}"
+                            onclick="removeFromWishlist(this)">
+                        Bỏ yêu thích
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function removeFromWishlist(btn) {
+        const productId = btn.getAttribute('data-product-id');
+        const res = await fetch(`/v1/api/wishlist/toggle?productId=${productId}`, { method: 'POST', credentials: 'include' });
+        if (res.ok) {
+            window.location.reload();
+        } else {
+            alert('Không thể cập nhật wishlist');
+        }
+    }
+</script>
+</body>
+</html>

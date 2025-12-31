@@ -151,22 +151,26 @@
             };
 
             try {
-                const res = await fetch('/v1/api/admin/vouchers', {
-                    method: 'POST',
+                const id = document.getElementById('id').value;
+                const isUpdate = id && id.trim() !== '';
+                const url = isUpdate ? `/v1/api/admin/vouchers/${id}` : '/v1/api/admin/vouchers';
+                const method = isUpdate ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 
-                const result = await res.json();
-
-                if (result.status === 'success') {
-                    alert('Lưu thành công!');
+                if (res.ok) {
                     window.location.href = '/admin/vouchers';
-                } else {
-                    alert('Lỗi: ' + result.message);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+                    return;
                 }
+
+                const result = await res.json().catch(() => null);
+                alert('Lỗi: ' + (result?.error || result?.message || 'Không thể lưu voucher'));
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             } catch (err) {
                 console.error(err);
                 alert('Có lỗi xảy ra');

@@ -12,13 +12,53 @@ function previewColor(dot) {
 }
 
 // Wishlist
-function toggleWishlist(btn) {
+async function toggleWishlist(btn) {
     const icon = btn.querySelector('i');
-    if (icon.classList.contains('far')) {
-        icon.classList.remove('far');
-        icon.classList.add('fas', 'text-danger');
-    } else {
-        icon.classList.remove('fas', 'text-danger');
-        icon.classList.add('far');
+    const productId = btn.getAttribute('data-product-id');
+    if (!productId) return;
+
+    const wasLiked = icon.classList.contains('fas');
+
+    try {
+        const res = await fetch(`/v1/api/wishlist/toggle?productId=${encodeURIComponent(productId)}`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (res.status === 401) {
+            const redirectUrl = window.location.pathname + window.location.search;
+            window.location.href = `/login?redirect=${encodeURIComponent(redirectUrl)}`;
+            return;
+        }
+
+        if (!res.ok) {
+            throw new Error('Request failed');
+        }
+
+        const data = await res.json();
+        const liked = !!data.liked;
+
+        if (liked) {
+            icon.classList.remove('far');
+            icon.classList.add('fas', 'text-danger');
+            icon.classList.remove('text-dark');
+        } else {
+            icon.classList.remove('fas', 'text-danger');
+            icon.classList.add('far');
+            icon.classList.add('text-dark');
+        }
+    } catch (e) {
+        console.error(e);
+        // rollback UI
+        if (wasLiked) {
+            icon.classList.remove('far');
+            icon.classList.add('fas', 'text-danger');
+            icon.classList.remove('text-dark');
+        } else {
+            icon.classList.remove('fas', 'text-danger');
+            icon.classList.add('far');
+            icon.classList.add('text-dark');
+        }
+        alert('Không thể cập nhật wishlist lúc này');
     }
 }

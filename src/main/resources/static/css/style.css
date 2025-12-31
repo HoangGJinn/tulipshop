@@ -644,7 +644,11 @@ body.header-scrolled {
     font-size: 16px;
 }
 
-.cart-count {
+.header-wishlist-icon {
+    position: relative;
+}
+
+.cart-count, .wishlist-count {
     position: absolute;
     top: -6px;
     right: -6px;
