@@ -136,6 +136,11 @@ public class OrderServiceImpl implements OrderService {
             // realStock.setQuantity(realStock.getQuantity() - itemDTO.getQuantity());
             // productStockRepository.save(realStock);
 
+            // Snapshot thông tin sản phẩm tại thời điểm đặt hàng
+            String snapProductName = realStock.getVariant().getProduct().getName();
+            BigDecimal snapPrice = itemDTO.getPrice();
+            String snapThumbnailUrl = realStock.getVariant().getProduct().getThumbnail();
+
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(realStock.getVariant().getProduct())
@@ -145,6 +150,10 @@ public class OrderServiceImpl implements OrderService {
                     .sku(realStock.getSku())
                     .quantity(itemDTO.getQuantity())
                     .priceAtPurchase(itemDTO.getPrice())
+                    // Snapshot fields - Đóng băng thông tin
+                    .snapProductName(snapProductName)
+                    .snapPrice(snapPrice)
+                    .snapThumbnailUrl(snapThumbnailUrl)
                     .build();
 
             order.getOrderItems().add(orderItem);

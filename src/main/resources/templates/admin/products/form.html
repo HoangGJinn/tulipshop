@@ -133,6 +133,18 @@
                 <div class="lg:col-span-4 space-y-6">
 
                     <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                        <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 border-b pb-2">Trạng thái sản phẩm</h2>
+                        <select th:field="*{status}" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold outline-none focus:border-black">
+                            <option value="ACTIVE">Hoạt động</option>
+                            <option value="HIDDEN">Ẩn</option>
+                        </select>
+                        <p class="text-[9px] text-gray-400 mt-2 italic">
+                            <strong>Hoạt động:</strong> Hiển thị trên website<br>
+                            <strong>Ẩn:</strong> Không hiển thị trên website
+                        </p>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                         <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 border-b pb-2">Ảnh đại diện</h2>
                         <div class="relative group cursor-pointer border-2 border-dashed border-gray-200 rounded-xl overflow-hidden aspect-[3/4] flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-all"
                              onclick="document.getElementById('mainImageInput').click()">

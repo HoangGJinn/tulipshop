@@ -1,5 +1,6 @@
 package com.tulip.dto;
 
+import com.tulip.entity.product.ProductStatus;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,9 @@ public class ProductCompositeDTO {
 
     // Danh sách biến thể (Màu sắc)
     private List<VariantInput> variants = new ArrayList<>();
+
+    // Trạng thái sản phẩm
+    private ProductStatus status = ProductStatus.ACTIVE;
 
 
 

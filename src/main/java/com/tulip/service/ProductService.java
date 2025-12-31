@@ -25,4 +25,10 @@ public interface ProductService {
     ProductCompositeDTO getProductByIdAsDTO(Long id);
 
     void updateProduct(Long id, ProductCompositeDTO productDTO);
+    
+    /**
+     * Soft delete - Xóa mềm sản phẩm
+     * Kiểm tra tồn kho trước khi xóa
+     */
+    void deleteProduct(Long productId);
 }

@@ -1,5 +1,6 @@
 package com.tulip.repository;
 import com.tulip.entity.product.Product;
+import com.tulip.entity.product.ProductStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,19 +30,43 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "AND ((p.basePrice - p.discountPrice) * 1.0 / p.basePrice) >= 0.36")
     List<Product> findProductsWithDeepDiscount();
 
-    // Hàng mới về (Lấy 5 sản phẩm có ID lớn nhất = mới nhất)
-    List<Product> findTop5ByOrderByIdDesc();
+    // Hàng mới về (Lấy 5 sản phẩm có ID lớn nhất = mới nhất) - CHỈ ACTIVE
+    @Query("SELECT p FROM Product p WHERE p.status = :status ORDER BY p.id DESC LIMIT 5")
+    List<Product> findTop5ByStatusOrderByIdDesc(@Param("status") ProductStatus status);
 
-    // Sale > 18% (Lấy 10 sản phẩm, dùng Native Query để tính toán và giới hạn nhanh)
-    @Query(value = "SELECT * FROM products p " +
-            "WHERE p.discount_price > 0 " +
-            "AND ((p.base_price - p.discount_price) / p.base_price) > 0.18 LIMIT 10", nativeQuery = true)
-    List<Product> findProductsDiscountOver18();
+    // Sale > 18% - CHỈ ACTIVE
+    @Query("SELECT p FROM Product p " +
+            "WHERE p.status = :status " +
+            "AND p.discountPrice > 0 " +
+            "AND ((p.basePrice - p.discountPrice) / p.basePrice) > 0.18")
+    List<Product> findProductsDiscountOver18(@Param("status") ProductStatus status);
 
-    // Đang thịnh hành (Lấy 5 sản phẩm ngẫu nhiên)
-    @Query(value = "SELECT * FROM products ORDER BY RAND() LIMIT 5", nativeQuery = true)
-    List<Product> findRandomProducts();
+    // Đang thịnh hành (Lấy 5 sản phẩm ngẫu nhiên) - CHỈ ACTIVE
+    @Query(value = "SELECT * FROM products WHERE status = 'ACTIVE' ORDER BY RAND() LIMIT 5", nativeQuery = true)
+    List<Product> findRandomActiveProducts();
 
     // Tìm các sản phẩm mà cột tags có chứa từ khóa (ví dụ: "di-lam")
     List<Product> findByTagsContainingIgnoreCase(String tag);
+    
+    // Method mới: Lấy tất cả sản phẩm ACTIVE (cho admin)
+    List<Product> findByStatus(ProductStatus status);
+    
+    // Method mới: Lấy tất cả sản phẩm ACTIVE hoặc HIDDEN (cho admin)
+    List<Product> findByStatusIn(List<ProductStatus> statuses);
+
+    // DEPRECATED methods - Giữ lại để tương thích ngược
+    @Deprecated
+    default List<Product> findTop5ByOrderByIdDesc() {
+        return findTop5ByStatusOrderByIdDesc(ProductStatus.ACTIVE);
+    }
+    
+    @Deprecated
+    default List<Product> findProductsDiscountOver18() {
+        return findProductsDiscountOver18(ProductStatus.ACTIVE);
+    }
+    
+    @Deprecated
+    default List<Product> findRandomProducts() {
+        return findRandomActiveProducts();
+    }
 }
