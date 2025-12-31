@@ -1,47 +1,76 @@
 <!DOCTYPE html>
-<!-- Khai báo thymeleaf -->
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Login</title>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/header :: head('Đăng nhập - Tulip Shop')}"></head>
+
+<body class="login-page-body">
     <link rel="stylesheet" th:href="@{/css/login.css}">
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-box">
-            <h2 class="login-title">Đăng nhập</h2>
-            <!-- Cú pháp ${} là cú pháp thymeleaf để hiển thị giá trị của biến -->
-            <div th:if="${error}" class="error-message" th:text="${error}"></div>
-            <div th:if="${message}" class="message" th:text="${message}"></div>
-            <form th:action="@{/login}" method="post">
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="text" name="email"/>
+    <style>
+        .login-page-body {
+            display: block !important;
+        }
+        .login-page-wrapper {
+            min-height: calc(100vh - 160px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+    </style>
+
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="login-page-wrapper">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-image-section">
+                    <img th:src="@{/images/banner-login.webp}" alt="Fashion Banner">
                 </div>
-                <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" name="password"/>
-                </div>
-                <div class="form-group text-right">
-                    <a th:href="@{/forgot-password}" class="forgot-password-link">Quên mật khẩu?</a>
-                </div>
-                <div>
-                    <button type="submit" class="login-button">Đăng nhập</button>
-                </div>
-                <div class="form-group text-center">
-                    <a href="/oauth2/authorization/google" class="btn-google">
-                        <div class="icon-wrapper">
-                            <img class="google-icon" th:src="@{/images/google.png}" alt="Google Logo"/>
+
+                <div class="login-form-section">
+                    <div class="form-header">
+                        <h2 class="login-title">Đăng nhập</h2>
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="input-group">
+                            <label>Email / Số điện thoại</label>
+                            <input type="text" name="email" placeholder="Nhập email của bạn" />
                         </div>
-                        <span class="btn-text">Đăng nhập bằng Google</span>
-                    </a>
+
+                        <div class="input-group">
+                            <label>Mật khẩu</label>
+                            <input type="password" name="password" placeholder="••••••••" />
+                        </div>
+
+                        <div class="form-options">
+                            <div class="validation-message">
+                                <span th:if="${error}" class="error-text" th:text="${error}"></span>
+                                <span th:if="${message}" class="success-text" th:text="${message}"></span>
+                            </div>
+
+                            <a th:href="@{/forgot-password}" class="forgot-link">Quên mật khẩu?</a>
+                        </div>
+
+                        <button type="submit" class="login-button">ĐĂNG NHẬP</button>
+
+                        <div class="social-login-wrapper">
+                            <p>Hoặc tiếp tục với</p>
+                            <a href="/oauth2/authorization/google" class="social-btn google">
+                                <i class="fab fa-google"></i> Google
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="login-footer">
+                        Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a>
+                    </div>
                 </div>
-            </form>
-            <div class="back-link">
-                <p><a th:href="@{/register}">Đăng ký</a></p>
             </div>
         </div>
     </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
+
 </html>
