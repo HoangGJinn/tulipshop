@@ -203,6 +203,12 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a th:href="@{/wishlist}" class="header-wishlist-icon">
+                                            <i class="fas fa-heart"></i>
+                                            <span id="wishlist-count" class="wishlist-count">0</span>
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a th:href="@{/cart}" class="header-cart-icon">
                                             <i class="fas fa-shopping-bag"></i>
                                             <span class="cart-count">0</span>
@@ -358,6 +364,7 @@
 
 <!-- Notification Script - Load before header-scripts ends -->
 <script th:src="@{/js/notification.js}"></script>
+<script th:src="@{/js/wishlist.js}"></script>
 
 <!-- Notification Script Fragment (for backward compatibility) -->
 <script th:fragment="notification-script" th:src="@{/js/notification.js}"></script>

@@ -206,7 +206,11 @@ body {
     position: relative;
 }
 
-.cart-count {
+.header-wishlist-icon {
+    position: relative;
+}
+
+.cart-count, .wishlist-count {
     position: absolute;
     top: -8px;
     right: -8px;
