@@ -53,6 +53,40 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     // Method mới: Lấy tất cả sản phẩm ACTIVE hoặc HIDDEN (cho admin)
     List<Product> findByStatusIn(List<ProductStatus> statuses);
+    
+    // Tìm sản phẩm theo danh sách category IDs (hỗ trợ N-cấp)
+    @Query("SELECT p FROM Product p " +
+           "WHERE p.category.id IN :categoryIds " +
+           "AND p.status = :status")
+    List<Product> findByCategoryIdInAndStatus(
+        @Param("categoryIds") List<Long> categoryIds, 
+        @Param("status") ProductStatus status
+    );
+    
+    // Tìm sản phẩm có discount >= threshold (GIÁ TỐT)
+    @Query("SELECT p FROM Product p " +
+           "WHERE p.status = 'ACTIVE' " +
+           "AND p.discountPrice IS NOT NULL " +
+           "AND p.discountPrice > 0 " +
+           "AND ((p.basePrice - p.discountPrice) * 100.0 / p.basePrice) >= :discountThreshold")
+    List<Product> findProductsWithDiscountGreaterThan(@Param("discountThreshold") double discountThreshold);
+    
+    // Tìm sản phẩm bán chạy (SẢN PHẨM BÁN CHẠY)
+    @Query("SELECT p FROM Product p " +
+           "LEFT JOIN OrderItem oi ON oi.stock.variant.product.id = p.id " +
+           "WHERE p.status = 'ACTIVE' " +
+           "GROUP BY p.id " +
+           "ORDER BY COALESCE(SUM(oi.quantity), 0) DESC")
+    List<Product> findBestSellingProducts();
+    
+    // DEPRECATED: Giữ lại để tương thích ngược
+    @Deprecated
+    @Query("SELECT p FROM Product p " +
+           "WHERE p.status = 'ACTIVE' " +
+           "AND (p.category.name = :rootCategoryName " +
+           "OR p.category.parent.name = :rootCategoryName " +
+           "OR p.category.parent.parent.name = :rootCategoryName)")
+    List<Product> findByRootCategoryName(@Param("rootCategoryName") String rootCategoryName);
 
     // DEPRECATED methods - Giữ lại để tương thích ngược
     @Deprecated

@@ -1,6 +1,27 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: head(title='Tất cả sản phẩm')}">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:with="
+        collection=${param.collection != null ? param.collection[0] : 'all'},
+        bannerData=${
+            collection == 'ao' ? 'Áo Tulip|Áo Tulip đẹp, kiểu dáng thanh lịch cùng chất liệu cao cấp sẽ giúp bạn xây dựng phong cách lịch lãm, thu hút mọi ánh nhìn.|https://res.cloudinary.com/diawi4gde/image/upload/v1767198521/ao_jsfzwi.png' :
+            collection == 'quan' ? 'Quần Tulip|Các mẫu quần Tulip với form dáng chuẩn, chất liệu bền đẹp, mang lại sự thoải mái và tự tin cho phái mạnh trong mọi hoạt động.|https://cdn.hstatic.net/themes/1000197303/1001389401/14/banner-lookbook.jpg?v=848' :
+            collection == 'phu-kien' ? 'Phụ Kiện Tulip|Hoàn thiện phong cách của bạn với bộ sưu tập phụ kiện thời trang cao cấp, từ thắt lưng, ví da đến mũ nón và túi xách.|https://cdn.hstatic.net/themes/1000197303/1001389401/14/img-home-collection1.jpg?v=848' :
+            collection == 'gia-tot' ? 'Giá Tốt - Ưu Đãi Hấp Dẫn|Săn ngay các sản phẩm giảm giá lên đến 50%! Cơ hội tuyệt vời để sở hữu thời trang Tulip chất lượng với mức giá ưu đãi nhất.|https://res.cloudinary.com/diawi4gde/image/upload/v1767195612/sale_e2ldfd.png' :
+            collection == 'best-seller' ? 'Sản Phẩm Bán Chạy|Khám phá những sản phẩm được yêu thích nhất, được hàng ngàn khách hàng tin dùng và đánh giá cao về chất lượng.|https://res.cloudinary.com/diawi4gde/image/upload/v1767196289/best_h0h5ty.png' :
+            'Hàng Mới Về|Cập nhật xu hướng thời trang mới nhất với bộ sưu tập hàng mới về. Phong cách hiện đại, chất liệu cao cấp, thiết kế độc đáo.|https://res.cloudinary.com/diawi4gde/image/upload/v1767197305/hangmoi_cg84sv.png'
+        },
+        bannerTitle=${#strings.substringBefore(bannerData, '|')},
+        bannerDesc=${#strings.substringBefore(#strings.substringAfter(bannerData, '|'), '|')},
+        bannerImage=${#strings.substringAfter(#strings.substringAfter(bannerData, '|'), '|')},
+        collectionName=${
+            collection == 'ao' ? 'ÁO' :
+            collection == 'quan' ? 'QUẦN' :
+            collection == 'phu-kien' ? 'PHỤ KIỆN' :
+            collection == 'gia-tot' ? 'GIÁ TỐT' :
+            collection == 'best-seller' ? 'SẢN PHẨM BÁN CHẠY' :
+            'HÀNG MỚI VỀ'
+        }">
+<head th:replace="~{fragments/header :: head(title=${collectionName + ' - Tulip Shop'})}">
 </head>
 <body style="background-color: #F3F4F6;">
 <div th:replace="~{fragments/header :: header}"></div>
@@ -11,18 +32,18 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-dark small">TRANG CHỦ</a></li>
-            <li class="breadcrumb-item active small fw-bold" aria-current="page">ÁO</li>
+            <li class="breadcrumb-item active small fw-bold" aria-current="page" th:text="${collectionName}">HÀNG MỚI VỀ</li>
         </ol>
     </nav>
 </div>
 
-<!-- Banner Section (In Container) -->
+<!-- Banner Section (In Container) - Dynamic -->
 <div class="container mb-5">
-    <div class="position-relative rounded-3 overflow-hidden shadow-sm" style="min-height: 350px;">
+    <div class="position-relative rounded-3 overflow-hidden shadow-sm banner-transition" style="min-height: 350px;">
 
-        <img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/img-home-collection1.jpg?v=848"
+        <img th:src="${bannerImage}"
              alt="Banner"
-             class="position-absolute top-0 start-0 w-100 h-100"
+             class="position-absolute top-0 start-0 w-100 h-100 banner-image"
              style="object-fit: cover; z-index: 1; object-position: center;">
 
         <div class="position-absolute top-0 start-0 w-100 h-100"
@@ -31,13 +52,14 @@
         <div class="container h-100 position-relative" style="z-index: 3;">
             <div class="row align-items-center h-100" style="min-height: 350px;">
                 <div class="col-md-6">
-                    <div class="bg-white bg-opacity-90 p-4 p-md-5 rounded-3 shadow mx-3"
+                    <div class="bg-white bg-opacity-90 p-4 p-md-5 rounded-3 shadow mx-3 banner-content"
                          style="max-width: 450px; border: 1px solid rgba(255,255,255,0.3);">
-                        <h1 class="fw-bold mb-3" style="font-size: 2rem; color: #1a1a1a;">Áo</h1>
-                        <p class="text-muted mb-0" style="font-size: 0.95rem; line-height: 1.7;">
-                            Áo Tuplip đẹp, kiểu dáng thanh lịch cùng chất liệu cao cấp sẽ giúp bạn xây dựng phong cách lịch lãm, thu hút mọi ánh nhìn.
+                        <h1 class="fw-bold mb-3" style="font-size: 2rem; color: #1a1a1a;" th:text="${bannerTitle}">Áo Tulip Nam</h1>
+                        <p class="text-muted mb-0" style="font-size: 0.95rem; line-height: 1.7;" th:text="${bannerDesc}">
+                            Áo Tulip đẹp, kiểu dáng thanh lịch cùng chất liệu cao cấp sẽ giúp bạn xây dựng phong cách lịch lãm, thu hút mọi ánh nhìn.
                         </p>
-                        <button class="btn btn-dark mt-4 px-4 py-2 rounded-pill text-uppercase fw-bold" style="font-size: 0.8rem;">
+                        <button class="btn btn-dark mt-4 px-4 py-2 rounded-pill text-uppercase fw-bold" style="font-size: 0.8rem;"
+                                onclick="window.scrollTo({top: document.querySelector('.product-list').offsetTop - 100, behavior: 'smooth'})">
                             Khám phá ngay
                         </button>
                     </div>
@@ -47,15 +69,39 @@
     </div>
 </div>
 
-<!-- Category Menu -->
+<!-- Category Menu - Dynamic with Active State -->
 <div class="container mb-4">
     <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2">HÀNG MỚI VỀ</button>
-        <button class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2">GIÁ TỐT</button>
-        <button class="btn btn-sm btn-dark rounded-pill px-3 py-2">ÁO</button>
-        <button class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2">QUẦN</button>
-        <button class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2">PHỤ KIỆN</button>
-        <button class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2">SẢN PHẨM BÁN CHẠY</button>
+        <a th:href="@{/products(collection='all')}" 
+           class="btn btn-sm rounded-pill px-3 py-2 text-decoration-none"
+           th:classappend="${collection == 'all' ? 'btn-dark' : 'btn-outline-dark'}">
+            HÀNG MỚI VỀ
+        </a>
+        <a th:href="@{/products(collection='gia-tot')}" 
+           class="btn btn-sm rounded-pill px-3 py-2 text-decoration-none"
+           th:classappend="${collection == 'gia-tot' ? 'btn-dark' : 'btn-outline-dark'}">
+            GIÁ TỐT
+        </a>
+        <a th:href="@{/products(collection='ao')}" 
+           class="btn btn-sm rounded-pill px-3 py-2 text-decoration-none"
+           th:classappend="${collection == 'ao' ? 'btn-dark' : 'btn-outline-dark'}">
+            ÁO
+        </a>
+        <a th:href="@{/products(collection='quan')}" 
+           class="btn btn-sm rounded-pill px-3 py-2 text-decoration-none"
+           th:classappend="${collection == 'quan' ? 'btn-dark' : 'btn-outline-dark'}">
+            QUẦN
+        </a>
+        <a th:href="@{/products(collection='phu-kien')}" 
+           class="btn btn-sm rounded-pill px-3 py-2 text-decoration-none"
+           th:classappend="${collection == 'phu-kien' ? 'btn-dark' : 'btn-outline-dark'}">
+            PHỤ KIỆN
+        </a>
+        <a th:href="@{/products(collection='best-seller')}" 
+           class="btn btn-sm rounded-pill px-3 py-2 text-decoration-none"
+           th:classappend="${collection == 'best-seller' ? 'btn-dark' : 'btn-outline-dark'}">
+            SẢN PHẨM BÁN CHẠY
+        </a>
     </div>
 </div>
 
@@ -67,6 +113,9 @@
         <div class="col-lg-3">
             <div class="bg-white rounded-3 shadow-sm p-4 sticky-top" style="top: 80px; z-index: 100;">
                 <form action="/products" method="get" id="filterForm">
+                    
+                    <!-- Hidden input to preserve collection parameter -->
+                    <input type="hidden" name="collection" th:value="${collection}">
                     
                     <!-- Filter Header -->
                     <h6 class="fw-bold mb-3 text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Bộ lọc</h6>
@@ -248,7 +297,7 @@
                     <!-- Action Buttons -->
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-dark btn-sm py-2 fw-semibold">Áp dụng</button>
-                        <a href="/products" class="btn btn-outline-secondary btn-sm py-2">Xóa bộ lọc</a>
+                        <a th:href="@{/products(collection=${collection})}" class="btn btn-outline-secondary btn-sm py-2">Xóa bộ lọc</a>
                     </div>
                 </form>
             </div>
@@ -267,10 +316,10 @@
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center gap-2">
                             <span class="small text-muted">Sắp xếp:</span>
-                            <select class="form-select form-select-sm border-0 fw-semibold" style="width: auto; cursor: pointer;" onchange="location = this.value;">
-                                <option value="?sort=newest" th:selected="${selectedSort == 'newest'}">Mới nhất</option>
-                                <option value="?sort=price_asc" th:selected="${selectedSort == 'price_asc'}">Giá tăng dần</option>
-                                <option value="?sort=price_desc" th:selected="${selectedSort == 'price_desc'}">Giá giảm dần</option>
+                            <select class="form-select form-select-sm border-0 fw-semibold" style="width: auto; cursor: pointer;" onchange="updateSort(this.value);">
+                                <option value="newest" th:selected="${selectedSort == 'newest'}">Mới nhất</option>
+                                <option value="price_asc" th:selected="${selectedSort == 'price_asc'}">Giá tăng dần</option>
+                                <option value="price_desc" th:selected="${selectedSort == 'price_desc'}">Giá giảm dần</option>
                             </select>
                         </div>
                         <div class="d-flex gap-1">
@@ -387,6 +436,18 @@ function previewColor(el) {
     if(newSrc) document.getElementById(targetId).src = newSrc;
 }
 
+// Get current collection parameter
+function getCurrentCollection() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('collection') || 'all';
+}
+
+// Update sort with collection parameter
+function updateSort(sortValue) {
+    const collection = getCurrentCollection();
+    window.location.href = `/products?collection=${collection}&sort=${sortValue}`;
+}
+
 // Toggle Filter Sections (Accordion)
 function toggleFilterSection(btn) {
     const content = btn.nextElementSibling;
@@ -479,6 +540,9 @@ function updateSelectedFilters() {
     
     // Get all checked inputs
     document.querySelectorAll('#filterForm input[type="checkbox"]:checked, #filterForm input[type="radio"]:checked').forEach(input => {
+        // Skip the hidden collection input
+        if (input.name === 'collection') return;
+        
         hasSelection = true;
         const tag = document.createElement('span');
         tag.className = 'badge bg-dark text-white d-inline-flex align-items-center gap-1 px-2 py-1';
@@ -501,6 +565,9 @@ function removeFilter(btn, name, value) {
 
 function clearAllFilters() {
     document.querySelectorAll('#filterForm input[type="checkbox"], #filterForm input[type="radio"]').forEach(input => {
+        // Skip the hidden collection input
+        if (input.name === 'collection') return;
+        
         input.checked = false;
         input.dispatchEvent(new Event('change'));
     });
@@ -535,6 +602,42 @@ function clearAllFilters() {
 /* Ensure header stays above sticky sidebar */
 header, .header, nav.navbar {
     z-index: 1000 !important;
+}
+
+/* Banner transition effects */
+.banner-transition {
+    transition: all 0.5s ease-in-out;
+}
+
+.banner-image {
+    transition: opacity 0.5s ease-in-out;
+}
+
+.banner-content {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Category menu button hover effect */
+.btn-outline-dark:hover {
+    background-color: #000;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-dark, .btn-outline-dark {
+    transition: all 0.3s ease;
 }
 </style>
 </body>

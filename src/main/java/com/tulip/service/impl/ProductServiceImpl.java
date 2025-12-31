@@ -4,6 +4,7 @@ import com.tulip.dto.*;
 import com.tulip.entity.product.*;
 import com.tulip.exception.BusinessException;
 import com.tulip.repository.*;
+import com.tulip.service.CategoryService;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -26,6 +27,7 @@ public class ProductServiceImpl implements ProductService {
     private final SizeRepository sizeRepository;
     private final CloudinaryService cloudinaryService;
     private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
     private final VariantRepository variantRepository;
     private final ProductStockRepository productStockRepository;
     private final ProductAuditRepository productAuditRepository;
@@ -164,16 +166,29 @@ public class ProductServiceImpl implements ProductService {
                                                     String size, Double minPrice,
                                                     Double maxPrice) {
 
-        List<Product> products = productRepository.findAll();
+        List<Product> products;
+        
+        // Nếu có categorySlug, tìm theo N-cấp category hierarchy
+        if (categorySlug != null && !categorySlug.isEmpty()) {
+            // Tìm category theo slug
+            Optional<Category> categoryOpt = categoryService.findBySlug(categorySlug);
+            
+            if (categoryOpt.isPresent()) {
+                Category category = categoryOpt.get();
+                // Lấy tất cả ID của category và các con cháu (đệ quy N-cấp)
+                List<Long> categoryIds = categoryService.getAllChildCategoryIds(category.getId());
+                // Query sản phẩm theo danh sách category IDs
+                products = productRepository.findByCategoryIdInAndStatus(categoryIds, ProductStatus.ACTIVE);
+            } else {
+                // Category không tồn tại, trả về danh sách rỗng
+                products = new ArrayList<>();
+            }
+        } else {
+            // Không có category filter, lấy tất cả sản phẩm ACTIVE
+            products = productRepository.findByStatus(ProductStatus.ACTIVE);
+        }
 
         return products.stream()
-                // Lọc chỉ hiển thị sản phẩm ACTIVE
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
-                
-                // Lọc Category
-                .filter(p -> categorySlug == null || categorySlug.isEmpty() ||
-                        (p.getCategory() != null && p.getCategory().getSlug().equals(categorySlug)))
-
                 // Lọc Giá
                 .filter(p -> (minPrice == null || p.getBasePrice().doubleValue() >= minPrice) &&
                         (maxPrice == null || p.getBasePrice().doubleValue() <= maxPrice))
