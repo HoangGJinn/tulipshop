@@ -36,20 +36,26 @@ public class GoogleAIService {
     
     private String buildPrompt(String userMessage, String context) {
         return String.format("""
-            Bạn là nhân viên tư vấn thân thiện của một shop thời trang nữ.
+            Bạn là nhân viên tư vấn thân thiện của Tulip Shop (shop thời trang nữ).
+
+            QUY TẮC BẮT BUỘC:
+            - Chỉ trả lời dựa trên thông tin trong mục THÔNG TIN SHOP VÀ CHÍNH SÁCH.
+            - Không được tự bịa chính sách, số liệu, giá, thời gian.
+            - Nếu thiếu dữ liệu để trả lời chắc chắn, hãy hỏi lại 1-2 câu ngắn để làm rõ (ví dụ: chiều cao/cân nặng, mẫu sản phẩm, khu vực giao hàng).
+            - Nếu khách hỏi chính sách/size, ưu tiên trích dẫn ngắn gọn từ thông tin được cung cấp.
             
-            Thông tin shop (lấy từ hệ thống/DB) và ngữ cảnh cuộc trò chuyện:
+            THÔNG TIN SHOP VÀ CHÍNH SÁCH (dùng để trả lời khách):
             %s
             
             Tin nhắn của khách hàng: %s
             
-            Yêu cầu khi trả lời:
-            - Ưu tiên trả lời dựa trên thông tin shop/DB được cung cấp ở trên (chính sách, size, tồn kho, sản phẩm).
-            - Nếu thiếu dữ liệu để kết luận (ví dụ thiếu số đo/chiều cao/cân nặng, hoặc sản phẩm không xác định), hãy hỏi lại 1-2 câu để làm rõ.
-            - Trả lời tự nhiên như nhân viên shop, ngắn gọn, rõ ràng, có gợi ý size.
-            - Không bịa đặt chính sách/size/tồn kho nếu trong phần thông tin shop không có.
-            
-            Trả lời bằng tiếng Việt, ngắn gọn và dễ hiểu.
+            Hướng dẫn trả lời:
+            - Dựa vào THÔNG TIN SHOP VÀ CHÍNH SÁCH ở trên để trả lời chính xác.
+            - Nếu khách hỏi size, hãy dùng bảng size trong thông tin shop và có thể hỏi thêm chiều cao/cân nặng để tư vấn size phù hợp.
+            - Nếu khách hỏi chính sách, trích dẫn từ thông tin shop một cách ngắn gọn.
+            - Nếu khách hỏi sản phẩm, ưu tiên gợi ý sản phẩm nếu có trong thông tin.
+            - Giọng văn thân thiện, chuyên nghiệp, như nhân viên tư vấn thực tế.
+            - Trả lời bằng tiếng Việt, ngắn gọn, dễ hiểu.
             """, context, userMessage);
     }
     
@@ -65,7 +71,7 @@ public class GoogleAIService {
                 )
             ),
             "generationConfig", Map.of(
-                "temperature", 0.7,
+                "temperature", 0.4,
                 "topK", 40,
                 "topP", 0.95,
                 "maxOutputTokens", 1024
@@ -121,21 +127,17 @@ public class GoogleAIService {
         String lowerMessage = userMessage.toLowerCase();
         
         if (lowerMessage.contains("xin chào") || lowerMessage.contains("hello") || lowerMessage.contains("hi")) {
-            return "Xin chào! Tôi là trợ lý của Tulip Shop. Tôi có thể giúp gì cho bạn hôm nay? 🌷";
+            return "Xin chào! Mình là trợ lý của Tulip Shop. Mình có thể hỗ trợ bạn về size, chính sách đổi trả/bảo hành, thanh toán, vận chuyển hoặc tư vấn sản phẩm.";
         }
         
         if (lowerMessage.contains("cảm ơn") || lowerMessage.contains("thank")) {
             return "Rất vui được giúp đỡ bạn! Nếu có câu hỏi nào khác, đừng ngần ngại hỏi nhé.";
         }
         
-        if (lowerMessage.contains("tulip") || lowerMessage.contains("hoa tulip")) {
-            return "Hoa tulip là một trong những loại hoa đẹp nhất của chúng tôi! Chúng tôi có nhiều màu sắc khác nhau như đỏ, hồng, vàng và trắng. Bạn muốn tìm loại hoa tulip nào ạ?";
-        }
-        
         if (lowerMessage.contains("giá") || lowerMessage.contains("bao nhiêu")) {
-            return "Giá hoa của chúng tôi rất đa dạng, tùy thuộc vào loại hoa và kích thước. Bạn đang quan tâm đến loại hoa nào để tôi có thể báo giá chính xác nhất?";
+            return "Bạn đang xem sản phẩm/mẫu nào ạ? Bạn gửi tên sản phẩm hoặc link/mã sản phẩm, mình sẽ báo giá và chương trình khuyến mãi (nếu có).";
         }
         
-        return "Cảm ơn câu hỏi của bạn. Tôi đang tìm hiểu thông tin và sẽ trả lời sớm nhất có thể. Bạn có thể hỏi thêm về các loại hoa hoặc dịch vụ của Tulip Shop nhé!";
+        return "Mình đã nhận câu hỏi của bạn. Bạn có thể cho mình biết thêm: bạn đang quan tâm chính sách (đổi trả/bảo hành/vận chuyển/thanh toán) hay tư vấn size/sản phẩm nào để mình hỗ trợ đúng hơn?";
     }
 }

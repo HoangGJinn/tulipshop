@@ -78,13 +78,32 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public ChatMessageResponseDTO sendCustomerMessage(Long sessionId, String content) {
         sendMessage(sessionId, content, ChatMessage.MessageType.TEXT);
-        String context = getCustomerContext(sessionId);
-        String aiRes = generateAIResponse(content, context);
-        List<Long> products = recommendProducts(content, context);
-        String advice = getPolicyAdvice(content, context);
+        String baseContext = getCustomerContext(sessionId);
+        List<Long> productIds = recommendProducts(content, baseContext);
+        String policyAdvice = getPolicyAdvice(content, baseContext);
 
-        updateCustomerContext(sessionId, context + " User: " + content + " | AI: " + aiRes);
-        return sendBotResponse(sessionId, aiRes, products, advice);
+        // Build full context for AI: include policy advice and product info
+        String fullContext = baseContext;
+        if (policyAdvice != null && !policyAdvice.isBlank()) {
+            fullContext += "\n\nCHÍNH SÁCH LIÊN QUAN:\n" + policyAdvice;
+        }
+        if (!productIds.isEmpty()) {
+            List<Product> recProducts = productRepository.findAllById(productIds);
+            fullContext += "\n\nSẢN PHẨM GỢI Ý:\n" + recProducts.stream()
+                    .map(p -> "- " + p.getName() + " (giá: " + (p.getDiscountPrice() != null ? p.getDiscountPrice() : p.getBasePrice()) + "₫)")
+                    .reduce((a, b) -> a + "\n" + b).orElse("");
+        }
+        String aiRes;
+        String lower = content == null ? "" : content.toLowerCase();
+        if (policyAdvice != null && !policyAdvice.isBlank() && containsBodyMeasurement(lower) && isProductRequest(lower)) {
+            aiRes = policyAdvice + "\n\nMình gợi ý một vài mẫu phù hợp bên dưới, bạn xem giúp mình nhé.";
+        } else if (policyAdvice != null && !policyAdvice.isBlank() && isPolicyOrSizeQuestion(lower) && !isProductRequest(lower)) {
+            aiRes = policyAdvice;
+        } else {
+            aiRes = generateAIResponse(content, fullContext);
+        }
+        updateCustomerContext(sessionId, baseContext + " User: " + content + " | AI: " + aiRes);
+        return sendBotResponse(sessionId, aiRes, productIds, policyAdvice);
     }
 
     @Override
@@ -132,7 +151,8 @@ public class ChatServiceImpl implements ChatService {
                 .build();
     }
 
-    @Override public void endSession(Long id) {
+    @Override
+    public void endSession(Long id) {
         chatSessionRepository.findById(id).ifPresent(s -> {
             s.setStatus(ChatSession.SessionStatus.ENDED);
             s.setEndedAt(LocalDateTime.now());
@@ -140,11 +160,13 @@ public class ChatServiceImpl implements ChatService {
         });
     }
 
-    @Override public List<ChatSession> getUserSessions(User user) {
+    @Override
+    public List<ChatSession> getUserSessions(User user) {
         return chatSessionRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
-    @Override public void markMessagesAsRead(Long id) {
+    @Override
+    public void markMessagesAsRead(Long id) {
         chatSessionRepository.findById(id).ifPresent(s -> {
             List<ChatMessage> unread = chatMessageRepository.findBySessionAndSeenOrderByCreatedAtAsc(s, false);
             unread.forEach(m -> m.setSeen(true));
@@ -152,15 +174,142 @@ public class ChatServiceImpl implements ChatService {
         });
     }
 
-    @Override public String generateAIResponse(String msg, String ctx) {
+    @Override
+    public String generateAIResponse(String msg, String ctx) {
         try {
             return googleAIService.generateResponse(msg, ctx).get();
-        } catch (Exception e) { return "Tôi sẽ phản hồi bạn ngay!"; }
+        } catch (Exception e) {
+            return "Tôi sẽ phản hồi bạn ngay!";
+        }
     }
 
-    @Override public List<Long> recommendProducts(String msg, String ctx) { return new ArrayList<>(); }
-    @Override public String getPolicyAdvice(String msg, String ctx) { return null; }
-    @Override public void updateCustomerContext(Long id, String ctx) {
+    @Override
+    public List<Long> recommendProducts(String msg, String ctx) {
+        if (msg == null) return new ArrayList<>();
+        String lower = msg.toLowerCase();
+        List<String> keywords = new ArrayList<>();
+        if (lower.contains("đầm") || lower.contains("váy")) {
+            keywords.add("váy");
+            keywords.add("đầm");
+        }
+        if (lower.contains("áo") || lower.contains("blouse") || lower.contains("shirt")) {
+            keywords.add("áo");
+        }
+        if (lower.contains("quần") || lower.contains("pants")) {
+            keywords.add("quần");
+        }
+        if (lower.contains("set") || lower.contains("bộ")) {
+            keywords.add("set");
+        }
+
+        List<Product> found = new ArrayList<>();
+        for (String kw : keywords) {
+            found.addAll(productRepository.searchSmart(kw));
+        }
+
+        if (found.isEmpty() && isProductRequest(lower)) {
+            found.addAll(productRepository.findTop5ByOrderByIdDesc());
+        }
+
+        return found.stream().distinct().limit(3).map(Product::getId).toList();
+    }
+
+    @Override
+    public String getPolicyAdvice(String msg, String ctx) {
+        if (msg == null) return null;
+        String lower = msg.toLowerCase();
+        if (lower.contains("size") || lower.contains("kích thước") || lower.contains("size guide") || lower.contains("bảng size")
+                || containsBodyMeasurement(lower)) {
+            return """
+                💡 Bảng size tham khảo (chung, có thể khác biệt nhẹ theo từng mẫu):
+                - S: Vòng ngực 86, vai 38, dài 65
+                - M: Vòng ngực 90, vai 40, dài 67
+                - L: Vòng ngực 96, vai 42, dài 69
+                - XL: Vòng ngực 102, vai 44, dài 71
+                Bạn cho mình xin thêm chiều cao + số đo vòng ngực/vòng eo (hoặc mẫu bạn muốn mua) để mình chốt size chính xác hơn nhé.
+                """;
+        }
+
+        if (lower.contains("bảo hành") || lower.contains("warranty")) {
+            return """
+                🛡️ Chính sách bảo hành:
+                - Bảo hành 30 ngày đối với lỗi từ nhà sản xuất (bung chỉ, lỗi đường may, lỗi chất liệu).
+                - Không bảo hành cho lỗi do sử dụng (rách, ố, phai màu do giặt không đúng cách).
+                """;
+        }
+        if (lower.contains("đổi trả") || lower.contains("đổi hàng") || lower.contains("đổi size")
+                || lower.contains("trả hàng") || lower.contains("trả lại")
+                || lower.contains("return") || lower.contains("refund") || lower.contains("hoàn tiền")) {
+            return """
+                🔄 Đổi trả & Hoàn tiền:
+                - Đổi size miễn phí trong 7 ngày (sản phẩm chưa qua sử dụng, còn tag).
+                - Trả lại hàng trong vòng 14 ngày nếu có lỗi từ nhà sản xuất.
+                - Hoàn tiền trong 5-7 ngày làm việc sau khi nhận lại sản phẩm.
+                """;
+        }
+        if (lower.contains("thanh toán") || lower.contains("payment") || lower.contains("cod")) {
+            return """
+                💳 Phương thức thanh toán:
+                - COD (thanh toán khi nhận hàng)
+                - Chuyển khoản ngân hàng
+                - Ví điện tử (Momo, ZaloPay, VNPay)
+                - Thẻ tín dụng/ghi nợ
+                """;
+        }
+        if (lower.contains("vận chuyển") || lower.contains("giao hàng") || lower.contains("shipping")) {
+            return """
+                🚚 Vận chuyển:
+                - Nội thành Hà Nội: 1-2 ngày, phí 25k (đơn từ 500k miễn phí).
+                - Các tỉnh thành khác: 3-5 ngày, phí 35k (đơn từ 700k miễn phí).
+                - Giao hàng hỏa tốc (nếu có): 24h, phí 80k.
+                """;
+        }
+        return null;
+    }
+
+    private boolean isPolicyOrSizeQuestion(String lower) {
+        return lower.contains("size")
+                || lower.contains("kích thước")
+                || lower.contains("bảng size")
+                || lower.contains("size guide")
+                || containsBodyMeasurement(lower)
+
+                || lower.contains("đổi trả")
+                || lower.contains("đổi hàng")
+                || lower.contains("đổi size")
+                || lower.contains("trả hàng")
+                || lower.contains("trả lại")
+                || lower.contains("return")
+                || lower.contains("refund")
+                || lower.contains("hoàn tiền")
+                || lower.contains("bảo hành")
+                || lower.contains("warranty")
+                || lower.contains("thanh toán")
+                || lower.contains("payment")
+                || lower.contains("cod")
+                || lower.contains("vận chuyển")
+                || lower.contains("giao hàng")
+                || lower.contains("shipping");
+    }
+
+    private boolean isProductRequest(String lower) {
+        return lower.contains("sản phẩm")
+                || lower.contains("mẫu")
+                || lower.contains("gợi ý")
+                || lower.contains("recommend")
+                || lower.contains("phù hợp")
+                || lower.contains("tư vấn");
+    }
+
+    private boolean containsBodyMeasurement(String lower) {
+        return lower.matches(".*\\b\\d{2,3}\\s?kg\\b.*")
+                || lower.matches(".*\\b\\d{2,3}\\s?cm\\b.*")
+                || lower.matches(".*(nặng|cân nặng)\\s*\\d{2,3}.*")
+                || lower.matches(".*(cao|chiều cao)\\s*\\d{2,3}.*");
+    }
+
+    @Override
+    public void updateCustomerContext(Long id, String ctx) {
         chatSessionRepository.findById(id).ifPresent(s -> {
             s.setCustomerContext(ctx);
             chatSessionRepository.save(s);
