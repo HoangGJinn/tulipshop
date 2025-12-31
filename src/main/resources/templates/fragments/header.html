@@ -149,6 +149,15 @@
                                             <i class="fas fa-user-circle"></i>
                                             <span>Tài khoản</span>
                                         </a>
+                                    </li>
+                                    <li>
+                                        <a th:href="@{/wishlist}" class="header-wishlist-icon">
+                                            <i class="fas fa-heart"></i>
+                                            <span id="wishlist-count" class="wishlist-count">0</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a th:href="@{/cart}" class="header-cart-icon">
                                         <th:block sec:authorize="hasRole('ADMIN')">
                                             <a th:href="@{/admin/dashboard}" class="dropdown-item">
                                                 <i class="fas fa-cog"></i>
@@ -378,6 +387,13 @@
     window.changeSlide = changeSlide;
     window.currentSlide = currentSlide;
 </script>
+
+<!-- Notification Script - Load before header-scripts ends -->
+<script th:src="@{/js/notification.js}"></script>
+<script th:src="@{/js/wishlist.js}"></script>
+
+<!-- Notification Script Fragment (for backward compatibility) -->
+<script th:fragment="notification-script" th:src="@{/js/notification.js}"></script>
 
 </body>
 </html>

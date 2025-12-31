@@ -1,0 +1,95 @@
+<div th:fragment="content">
+    <div th:replace="~{admin/fragments/common :: tableLayout(
+        title='Quản lý Users',
+        addBtnText='-',
+        searchPlaceholder='TÌM THEO EMAIL / TÊN...',
+        tableHeaders=${T(java.util.List).of('Email','Họ tên','Role','Trạng thái','Provider','Thao tác')}
+    )}"></div>
+
+    <script th:inline="javascript">
+        async function loadUsers(keyword) {
+            const q = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
+            const res = await fetch(`/v1/api/admin/users${q}`);
+            if (!res.ok) throw new Error('Failed to fetch users');
+            return res.json();
+        }
+
+        async function renderUsers(keyword) {
+            try {
+                const data = await loadUsers(keyword);
+                const tbody = document.getElementById('table-body-data');
+                const countLabel = document.getElementById('data-count');
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center"><p class="text-[10px] tracking-[0.5em] uppercase text-gray-400">Chưa có user nào</p></td></tr>`;
+                    countLabel.innerText = '0 Items';
+                    return;
+                }
+
+                countLabel.innerText = `${data.length} Items`;
+                tbody.innerHTML = data.map(u => {
+                    const roleOptions = ['CUSTOMER','ADMIN'].map(r => `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('');
+                    return `
+                        <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-none">
+                            <td class="p-6 font-bold text-xs">${u.email || ''}</td>
+                            <td class="p-6 text-xs">${u.fullName || ''}</td>
+                            <td class="p-6">
+                                <select class="border border-gray-200 rounded px-2 py-1 text-xs" onchange="changeRole(${u.id}, this.value)">
+                                    ${roleOptions}
+                                </select>
+                            </td>
+                            <td class="p-6">
+                                <span class="text-[10px] uppercase font-bold ${u.status ? 'text-green-600' : 'text-red-500'}">${u.status ? 'ACTIVE' : 'DISABLED'}</span>
+                            </td>
+                            <td class="p-6 text-[10px] uppercase text-gray-500">${u.authProvider || ''}</td>
+                            <td class="p-6 text-right">
+                                <button class="text-[10px] font-black uppercase tracking-widest ${u.status ? 'text-red-500' : 'text-green-600'} hover:underline" onclick="toggleStatus(${u.id}, ${!u.status})">
+                                    ${u.status ? 'Disable' : 'Enable'}
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function openAddDialog() {
+            // No-op for now
+        }
+
+        function handleSearch() {
+            const kw = document.getElementById('tableSearch').value.trim();
+            renderUsers(kw);
+        }
+
+        async function toggleStatus(id, status) {
+            const res = await fetch(`/v1/api/admin/users/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (res.ok) {
+                renderUsers(document.getElementById('tableSearch').value.trim());
+            } else {
+                const data = await res.json().catch(() => null);
+                alert(data?.error || 'Không thể cập nhật trạng thái');
+            }
+        }
+
+        async function changeRole(id, role) {
+            const res = await fetch(`/v1/api/admin/users/${id}/role`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role })
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => null);
+                alert(data?.error || 'Không thể cập nhật role');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => renderUsers(''));
+    </script>
+</div>

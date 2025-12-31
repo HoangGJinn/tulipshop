@@ -44,7 +44,7 @@
                     </div>
 
                     <div class="product-wl position-absolute top-0 end-0 p-2" style="z-index: 5;">
-                        <span class="btn-add-wl" onclick="toggleWishlist(this)" style="cursor: pointer;">
+                        <span class="btn-add-wl" onclick="toggleWishlist(this)" style="cursor: pointer;" th:attr="data-product-id=${prod.id}">
                             <i class="far fa-heart text-dark"></i>
                         </span>
                     </div>
@@ -190,6 +190,8 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+<!-- Chat Widget -->
+<div th:replace="~{fragments/chat-widget-simple :: chatWidget}"></div>
 <!-- WebSocket Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
