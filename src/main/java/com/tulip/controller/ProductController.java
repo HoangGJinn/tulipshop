@@ -106,6 +106,7 @@ public class ProductController {
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String priceRange, // Nhận chuỗi "0-500000"
+            @RequestParam(defaultValue = "1") int page,
             Model model) {
 
         // 1. Xử lý logic khoảng giá (Giống ShopController cũ)
@@ -128,6 +129,7 @@ public class ProductController {
         // 3. Truyền dữ liệu ra View
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("products", products);
+        model.addAttribute("currentPage", page);
 
         // Giữ lại các tham số filter để hiển thị trên giao diện (Checked/Selected)
         model.addAttribute("selectedCategory", category);
