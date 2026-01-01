@@ -39,7 +39,16 @@ public class Rating {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "rating", cascade = CascadeType.ALL)
+    // Điểm hữu ích của đánh giá (dùng để sắp xếp thông minh)
+    @Column(name = "utility_score")
+    @Builder.Default
+    private Double utilityScore = 0.0;
+
+    // Liên kết với đơn hàng để kiểm tra quyền đánh giá
+    @Column(name = "order_id")
+    private Long orderId;
+
+    @OneToMany(mappedBy = "rating", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<RatingImage> images = new ArrayList<>();
 

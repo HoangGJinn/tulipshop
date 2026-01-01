@@ -4,6 +4,9 @@
 <head th:replace="~{fragments/header :: head(title='Chi tiết đơn hàng - Tulip Shop')}">
 </head>
 <body>
+<!-- Rating Modal CSS & JS -->
+<link rel="stylesheet" th:href="@{/css/rating-modal.css}">
+<script th:src="@{/js/rating-modal.js}" defer></script>
 
 
 <!-- Custom CSS cho trang order detail -->
@@ -178,6 +181,21 @@
                             <div class="small text-muted">
                                 Tổng: <span th:text="${#numbers.formatDecimal((item.snapPrice != null ? item.snapPrice : item.priceAtPurchase) * item.quantity, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
                             </div>
+                            
+                            <!-- Nút đánh giá cho đơn hàng đã hoàn thành -->
+                            <div th:if="${order.status.toString() == 'COMPLETED' or order.status.toString() == 'DELIVERED'}" class="mt-3">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-warning"
+                                        th:attr="data-product-id=${item.product != null ? item.product.id : null},
+                                                 data-product-name=${item.snapProductName != null ? item.snapProductName : (item.product != null ? item.product.name : 'Sản phẩm')},
+                                                 data-product-image=${item.snapThumbnailUrl != null ? item.snapThumbnailUrl : (item.variant != null and not #lists.isEmpty(item.variant.images) ? item.variant.images[0].imageUrl : (item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'))},
+                                                 data-variant-info=${item.variant != null ? (item.variant.colorName + (item.size != null ? ' - Size ' + item.size.code : '')) : ''},
+                                                 data-order-id=${order.id}"
+                                        onclick="openRatingModal(this)"
+                                        th:if="${item.product != null}">
+                                    <i class="fas fa-star me-1"></i>Đánh giá
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -343,6 +361,33 @@
     }
     if (errorMessage) {
         showError('Lỗi', errorMessage);
+    }
+    
+    // Hàm mở modal đánh giá
+    function openRatingModal(button) {
+        const productData = {
+            id: button.getAttribute('data-product-id'),
+            name: button.getAttribute('data-product-name'),
+            image: button.getAttribute('data-product-image'),
+            variant: button.getAttribute('data-variant-info')
+        };
+        const orderId = button.getAttribute('data-order-id');
+        
+        // Kiểm tra xem user đã đánh giá chưa
+        fetch(`/api/ratings/can-rate?productId=${productData.id}&orderId=${orderId}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success && result.canRate) {
+                    ratingModal.open(productData, orderId);
+                } else {
+                    alert('Bạn đã đánh giá sản phẩm này rồi hoặc không có quyền đánh giá');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking rating permission:', error);
+                // Vẫn cho phép mở modal nếu có lỗi
+                ratingModal.open(productData, orderId);
+            });
     }
 </script>
 
