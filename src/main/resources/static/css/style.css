@@ -129,25 +129,6 @@ body.header-scrolled {
     position: relative;
 }
 
-.header-nav-section::before,
-.header-nav-section::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1px;
-    height: 30px;
-    background: rgba(0,0,0,0.08);
-}
-
-.header-nav-section::before {
-    left: -25px;
-}
-
-.header-nav-section::after {
-    right: -25px;
-}
-
 /* Actions Section - Bên phải */
 .header-actions-section {
     display: flex;
@@ -434,6 +415,33 @@ body.header-scrolled {
     color: #D37171;
 }
 
+/* Search trong navigation */
+.nav-item.nav-search {
+    margin-left: 10px;
+}
+
+.nav-item.nav-search .header-action-btn {
+    background: none;
+    border: none;
+    color: #2C2C2C;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+}
+
+.nav-item.nav-search .header-action-btn:hover {
+    background-color: #f5f5f5;
+    color: #D37171;
+    transform: scale(1.05);
+}
+
 .nav-chevron {
     font-size: 9px;
     opacity: 0.6;
@@ -556,6 +564,8 @@ body.header-scrolled {
     border-radius: 50%;
     width: 36px;
     height: 36px;
+    position: relative;
+    z-index: 100;
 }
 
 .header-action-btn:hover {
@@ -603,15 +613,22 @@ body.header-scrolled {
     font-size: 13px;
     font-weight: 500;
     display: none;
-    max-width: 120px;
+    max-width: 90px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
     .user-name {
         display: inline-block;
+        max-width: 100px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .user-name {
+        max-width: 120px;
     }
 }
 
@@ -646,6 +663,23 @@ body.header-scrolled {
 
 .header-wishlist-icon {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #2C2C2C;
+    padding: 8px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.header-wishlist-icon:hover {
+    background-color: #f5f5f5;
+    color: #D37171;
+    transform: scale(1.05);
 }
 
 .cart-count, .wishlist-count {
@@ -1109,6 +1143,7 @@ body.header-scrolled {
 
 .user-dropdown {
     position: relative;
+    z-index: 50;
 }
 
 .user-dropdown-menu {
@@ -1127,6 +1162,7 @@ body.header-scrolled {
     transform: translateY(-10px);
     transition: all 0.3s ease;
     visibility: hidden;
+    pointer-events: none;
 }
 
 .user-dropdown-menu.active {
@@ -1134,6 +1170,7 @@ body.header-scrolled {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
+    pointer-events: auto;
 }
 
 .dropdown-item {

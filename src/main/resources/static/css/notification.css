@@ -1,474 +1,4 @@
-/**
- * Notification Dropdown Styles
- */
-
-/* Notification Bell Icon */
-.notification-bell {
-    position: relative;
-    cursor: pointer;
-    font-size: 16px;
-    color: #2C2C2C;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    background: none;
-    border: none;
-    text-decoration: none;
-}
-
-.notification-bell:hover {
-    background-color: #f5f5f5;
-    color: #D37171;
-    transform: scale(1.05);
-}
-
-/* Dropdown container */
-.dropdown {
-    position: relative;
-}
-
-#notificationDropdown {
-    position: relative;
-    z-index: 1000;
-}
-
-/* Badge số lượng thông báo chưa đọc */
-.notification-badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background-color: #dc3545;
-    color: white;
-    font-size: 0.65rem;
-    font-weight: bold;
-    padding: 2px 5px;
-    border-radius: 10px;
-    min-width: 18px;
-    text-align: center;
-    display: none; /* Ẩn khi không có thông báo */
-}
-
-@media (max-width: 768px) {
-    .notification-bell {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-        padding: 6px;
-    }
-    
-    .notification-badge {
-        top: 2px;
-        right: 2px;
-        font-size: 0.6rem;
-        padding: 1px 4px;
-        min-width: 16px;
-    }
-}
-
-@media (max-width: 576px) {
-    .notification-bell {
-        width: 30px;
-        height: 30px;
-        font-size: 13px;
-        padding: 5px;
-    }
-}
-
-@media (max-width: 480px) {
-    .notification-bell {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-        padding: 4px;
-    }
-    
-    .notification-badge {
-        font-size: 0.55rem;
-        padding: 1px 3px;
-        min-width: 14px;
-    }
-}
-
-/* Dropdown Menu */
-.notification-dropdown {
-    width: 400px;
-    min-width: 350px;
-    max-width: 90vw;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-radius: 8px;
-    padding: 0;
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 9999 !important;
-    background-color: #fff;
-    margin-top: 0.5rem;
-}
-
-.notification-dropdown.show {
-    display: block !important;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Header của dropdown */
-.notification-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #e9ecef;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 8px 8px 0 0;
-}
-
-.notification-header h6 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.mark-all-read {
-    font-size: 0.85rem;
-    color: #007bff;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.mark-all-read:hover {
-    text-decoration: underline;
-}
-
-/* Tabs - Sử dụng grid để chia đều không gian và tránh tràn nút */
-.notification-tabs {
-    border-bottom: 1px solid #e9ecef;
-    padding: 0;
-    background-color: #fff;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 cột đều nhau */
-    gap: 0;
-}
-
-.notification-tabs .nav-item {
-    min-width: 0; /* Cho phép text truncate */
-}
-
-.notification-tabs .nav-link {
-    color: #6c757d;
-    font-size: 0.85rem;
-    padding: 10px 8px;
-    border: none;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s ease;
-    white-space: nowrap; /* Không xuống dòng */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    width: 100%;
-    display: block;
-}
-
-.notification-tabs .nav-link:hover {
-    color: #007bff;
-    background-color: #f8f9fa;
-}
-
-.notification-tabs .nav-link.active {
-    color: #007bff;
-    border-bottom-color: #007bff;
-    font-weight: 600;
-}
-
-.notification-tabs .badge {
-    font-size: 0.65rem;
-    padding: 2px 4px;
-    margin-left: 3px;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-/* Notification List */
-.notification-list {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 0;
-}
-
-.notification-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.notification-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.notification-list::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-}
-
-.notification-list::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-/* Notification Item */
-.notification-item {
-    display: flex;
-    align-items: flex-start;
-    padding: 15px 20px;
-    border-bottom: 1px solid #f1f1f1;
-    text-decoration: none;
-    color: inherit;
-    transition: background-color 0.2s ease;
-    position: relative;
-}
-
-.notification-item:hover {
-    background-color: #f8f9fa;
-}
-
-.notification-item:last-child {
-    border-bottom: none;
-}
-
-.notification-item.unread {
-    background-color: #e7f3ff;
-}
-
-.notification-item.unread:hover {
-    background-color: #d0e9ff;
-}
-
-/* Icon thông báo */
-.notification-icon {
-    flex-shrink: 0;
-    width: 50px;
-    height: 50px;
-    border-radius: 8px; /* Bo góc rounded */
-    background-color: #007bff;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    font-size: 1.1rem;
-    overflow: hidden;
-}
-
-.notification-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Giữ tỷ lệ ảnh */
-    border-radius: 8px;
-}
-
-.notification-item[data-type="ORDER"] .notification-icon {
-    background-color: #28a745;
-}
-
-.notification-item[data-type="PROMOTION"] .notification-icon {
-    background-color: #ffc107;
-}
-
-.notification-item[data-type="SYSTEM"] .notification-icon {
-    background-color: #6c757d;
-}
-
-/* Nội dung thông báo */
-.notification-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.notification-title {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #333;
-    margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.notification-text {
-    font-size: 0.85rem;
-    color: #6c757d;
-    line-height: 1.4;
-    margin-bottom: 4px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.notification-time {
-    font-size: 0.75rem;
-    color: #999;
-}
-
-/* Dấu chấm chưa đọc */
-.unread-dot {
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    background-color: #007bff;
-    border-radius: 50%;
-}
-
-/* Empty state */
-.notification-empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: #6c757d;
-}
-
-.notification-empty i {
-    font-size: 3rem;
-    color: #dee2e6;
-    margin-bottom: 15px;
-}
-
-/* Footer */
-.notification-footer {
-    padding: 12px 20px;
-    text-align: center;
-    border-top: 1px solid #e9ecef;
-    background-color: #f8f9fa;
-    border-radius: 0 0 8px 8px;
-}
-
-.notification-footer a {
-    color: #007bff;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.notification-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Toast Notification */
-.notification-toast {
-    min-width: 300px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.notification-toast .toast-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.notification-toast .toast-body {
-    padding: 15px;
-}
-
-/* Load More Button */
-.load-more-btn {
-    border-top: 1px solid #f1f1f1;
-}
-
-.load-more-btn .btn {
-    font-size: 0.85rem;
-}
-
-/* Responsive */
-@media (max-width: 576px) {
-    .notification-dropdown {
-        width: 100vw;
-        max-width: 100vw;
-        min-width: 100vw;
-        left: 0 !important;
-        right: 0 !important;
-        transform: none !important;
-        margin: 0;
-        border-radius: 0;
-    }
-    
-    .notification-list {
-        max-height: 300px;
-    }
-    
-    .notification-tabs {
-        padding: 0 2px;
-    }
-    
-    .notification-tabs .nav-link {
-        font-size: 0.75rem;
-        padding: 8px 4px;
-    }
-    
-    .notification-tabs .badge {
-        font-size: 0.6rem;
-        padding: 1px 3px;
-        margin-left: 2px;
-    }
-    
-    .notification-header h6 {
-        font-size: 0.9rem;
-    }
-    
-    .mark-all-read {
-        font-size: 0.75rem;
-    }
-}
-
-@keyframes ring {
-    0% { transform: rotate(0deg); }
-    10% { transform: rotate(15deg); }
-    20% { transform: rotate(-15deg); }
-    30% { transform: rotate(15deg); }
-    40% { transform: rotate(-15deg); }
-    50% { transform: rotate(10deg); }
-    60% { transform: rotate(-10deg); }
-    70% { transform: rotate(5deg); }
-    80% { transform: rotate(-5deg); }
-    90% { transform: rotate(0deg); }
-    100% { transform: rotate(0deg); }
-}
-
-.notification-bell i.animate-ring {
-    animation: ring 0.5s ease-in-out;
-    transform-origin: top center;
-}
-
-/* Loading spinner */
-.notification-loading {
-    text-align: center;
-    padding: 20px;
-    color: #6c757d;
-}
-
-.notification-loading .spinner-border {
-    width: 2rem;
-    height: 2rem;
-}
-
-/* ============================================
-   Toast Notification Styles (for action feedback)
-   ============================================ */
-
+/* Toast Notification Styles */
 .toast {
     position: fixed !important;
     top: 25px !important;
@@ -480,9 +10,9 @@
     border-left: 4px solid #47d864;
     overflow: hidden;
     transform: translateX(calc(100% + 100px)) !important;
-    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35), 
-                opacity 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35),
-                visibility 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35) !important;
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35),
+    opacity 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35),
+    visibility 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35) !important;
     z-index: 99999 !important;
     max-width: 400px;
     min-width: 300px;
@@ -521,17 +51,16 @@
     flex: 1;
 }
 
-.toast .message .text-1 { 
-    font-size: 16px; 
-    font-weight: 600; 
-    color: #333; 
+.toast .message .text-1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
     margin-bottom: 5px;
 }
-
-.toast .message .text-2 { 
-    font-size: 14px; 
-    color: #666; 
-    font-weight: 400; 
+.toast .message .text-2 {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
 }
 
 .toast .close {
@@ -541,10 +70,6 @@
     padding: 5px;
     cursor: pointer;
     opacity: 0.7;
-}
-
-.toast .close:hover {
-    opacity: 1;
 }
 
 .toast .progress {
@@ -566,12 +91,12 @@
     background-color: #47d864;
 }
 
-/* Animation cho thanh progress */
+/* Đây là phần quan trọng để thanh progress chạy */
 .toast.active .progress:before {
-    animation: toastProgress var(--duration, 5000ms) linear forwards;
+    animation: progress var(--duration, 5000ms) linear forwards;
 }
 
-@keyframes toastProgress {
+@keyframes progress {
     100% { right: 100%; }
 }
 
@@ -587,13 +112,3 @@
 .toast.attention { border-left-color: #ffc107; }
 .toast.attention .check { background-color: #ffc107; }
 .toast.attention .progress:before { background-color: #ffc107; }
-
-/* Responsive cho mobile */
-@media (max-width: 576px) {
-    .toast {
-        right: 10px !important;
-        left: 10px !important;
-        max-width: calc(100% - 20px);
-        min-width: auto;
-    }
-}

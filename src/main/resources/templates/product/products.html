@@ -28,7 +28,7 @@
 <link rel="stylesheet" th:href="@{/css/products.css}">
 
 <!-- Breadcrumb (Above Banner) -->
-<div class="container mt-3 mb-2">
+<div class="products-container mt-3 mb-2">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-dark small">TRANG CHỦ</a></li>
@@ -38,7 +38,7 @@
 </div>
 
 <!-- Banner Section (In Container) - Dynamic -->
-<div class="container mb-5">
+<div class="products-container mb-5">
     <div class="position-relative rounded-3 overflow-hidden shadow-sm banner-transition" style="min-height: 350px;">
 
         <img th:src="${bannerImage}"
@@ -49,7 +49,7 @@
         <div class="position-absolute top-0 start-0 w-100 h-100"
              style="background: rgba(0,0,0,0.05); z-index: 2;"></div>
 
-        <div class="container h-100 position-relative" style="z-index: 3;">
+        <div class="container h-100 position-relative" style="z-index: 3; max-width: 1400px !important;">
             <div class="row align-items-center h-100" style="min-height: 350px;">
                 <div class="col-md-6">
                     <div class="bg-white bg-opacity-90 p-4 p-md-5 rounded-3 shadow mx-3 banner-content"
@@ -70,7 +70,7 @@
 </div>
 
 <!-- Category Menu - Dynamic with Active State -->
-<div class="container mb-4">
+<div class="products-container mb-4">
     <div class="d-flex gap-2 flex-wrap">
         <a th:href="@{/products(collection='all')}" 
            class="btn btn-sm rounded-pill px-3 py-2 text-decoration-none"
@@ -106,7 +106,7 @@
 </div>
 
 <!-- Main Content: 2 Panels -->
-<div class="container mb-5">
+<div class="products-container mb-5">
     <div class="row g-4">
         
         <!-- LEFT PANEL: Sidebar Filter -->
@@ -333,9 +333,9 @@
                     </div>
                 </div>
 
-                <!-- Product Grid - GIỮ NGUYÊN CẤU TRÚC GỐC - 3 sản phẩm mỗi hàng -->
+                <!-- Product Grid - 4 sản phẩm mỗi hàng -->
                 <div class="row product-list">
-                    <div class="col-lg-4 col-md-6 col-sm-6 pro-loop mb-4" th:each="prod : ${products}">
+                    <div class="col-lg-3 col-md-4 col-sm-6 pro-loop mb-4" th:each="prod : ${products}">
                         <div class="product-block product-resize h-100">
                             <div class="product-img position-relative">
                                 <div class="product-sale-flag" th:if="${prod.discountPercent != null}">

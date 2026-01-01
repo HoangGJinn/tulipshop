@@ -1,283 +1,286 @@
 /**
- * Notification WebSocket Client - Optimized for High-Traffic
- * Real-time, High-Performance, Smart "Read" Logic
+ * Notification Simple - Enhanced with Smooth Animations
+ * @author Tulip Shop
+ * @version 2.0
  */
 
-class NotificationManager {
+class Notification {
     constructor() {
         this.stompClient = null;
         this.connected = false;
-        this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 3000;
         this.notificationsLoaded = false;
         this.currentPage = { all: 0, ORDER: 0, PROMOTION: 0, SYSTEM: 0 };
         this.hasMore = { all: true, ORDER: true, PROMOTION: true, SYSTEM: true };
+        this.currentTab = 'all';
         
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.init());
-        } else {
-            this.init();
-        }
+        this.initElements();
+        this.initEventListeners();
+        this.init();
     }
     
     /**
-     * Khởi tạo notification manager
+     * Initialize DOM elements
+     */
+    initElements() {
+        this.bellBtn = document.getElementById('notificationBellBtn');
+        this.panel = document.getElementById('notificationPanel');
+        this.markAllReadBtn = document.getElementById('markAllReadBtn');
+        this.countBadge = document.getElementById('notificationCountBadge');
+        this.headerCount = document.getElementById('headerCount');
+        this.toastContainer = document.getElementById('notificationToastContainer');
+    }
+    
+    /**
+     * Initialize event listeners
+     */
+    initEventListeners() {
+        // Bell button toggle
+        if (this.bellBtn) {
+            this.bellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePanel();
+            });
+        }
+        
+        // Mark all as read
+        if (this.markAllReadBtn) {
+            this.markAllReadBtn.addEventListener('click', () => this.markAllAsRead());
+        }
+        
+        // Close panel when clicking outside
+        document.addEventListener('click', (e) => {
+            if (this.panel && !this.panel.contains(e.target) && !this.bellBtn.contains(e.target)) {
+                this.closePanel();
+            }
+        });
+        
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.switchTab(e.currentTarget.dataset.tab));
+        });
+        
+        // Notification item clicks
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest('.notification-item');
+            if (item) this.handleNotificationClick(item, e);
+        });
+    }
+    
+    /**
+     * Initialize notification system
      */
     init() {
-        
-        // Load số lượng thông báo chưa đọc ngay lập tức (async)
         this.loadUnreadCount();
-        
-        // Bind event handlers
-        this.bindEvents();
-        
-        // Kết nối WebSocket NGAY LẬP TỨC để nhận real-time notifications
         this.connect();
+    }
+    
+    /**
+     * Toggle notification panel with smooth animation
+     */
+    togglePanel() {
+        const isOpen = this.panel.classList.contains('open');
         
-        // Lazy loading: Chỉ load thông báo khi mở dropdown
-        const dropdownBtn = document.getElementById('notificationDropdownBtn');
-        if (dropdownBtn) {
-            dropdownBtn.addEventListener('shown.bs.dropdown', () => {
-                if (!this.notificationsLoaded) {
-                    this.loadNotifications(null, 0, 5); // Load 5 tin đầu tiên
-                    this.notificationsLoaded = true;
-                }
-            });
-            
-            // Debug: Log khi dropdown được click
-            dropdownBtn.addEventListener('click', () => {
-            });
+        if (isOpen) {
+            this.closePanel();
         } else {
-            console.warn('⚠️ Notification dropdown button not found');
+            this.openPanel();
         }
     }
     
     /**
-     * Kết nối đến WebSocket server
+     * Open panel with animation
+     */
+    openPanel() {
+        this.panel.classList.add('open');
+        
+        // Load notifications on first open
+        if (!this.notificationsLoaded) {
+            this.loadNotifications(null, 0, 10);
+            this.notificationsLoaded = true;
+        }
+        
+        // Add entrance animation
+        requestAnimationFrame(() => {
+            this.panel.style.opacity = '1';
+            this.panel.style.transform = 'translateY(0) scale(1)';
+        });
+    }
+    
+    /**
+     * Close panel with animation
+     */
+    closePanel() {
+        this.panel.classList.remove('open');
+    }
+    
+    /**
+     * Switch between tabs
+     */
+    switchTab(tab) {
+        this.currentTab = tab;
+        
+        // Update active tab button
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+        
+        // Update active content
+        document.querySelectorAll('.notification-tab-content').forEach(content => {
+            content.classList.toggle('active', content.dataset.tab === tab);
+        });
+        
+        // Load notifications if not loaded yet
+        const listId = this.getListId(tab);
+        const list = document.getElementById(listId);
+        const hasItems = list && list.querySelectorAll('.notification-item').length > 0;
+        
+        if (!hasItems) {
+            const type = tab === 'all' ? null : document.querySelector(`.tab-btn[data-tab="${tab}"]`).dataset.type;
+            this.loadNotifications(type, 0, 10);
+        }
+    }
+    
+    /**
+     * Get styling configuration by notification type
+     */
+    getStyleByType(type) {
+        const styles = {
+            'ORDER': { bg: '#E8F5E9', color: '#2E7D32', icon: 'fas fa-box-open' },
+            'PROMOTION': { bg: '#FFF8E1', color: '#F57F17', icon: 'fas fa-tag' },
+            'SYSTEM': { bg: '#F5F5F5', color: '#424242', icon: 'fas fa-info-circle' }
+        };
+        return styles[type] || styles['SYSTEM'];
+    }
+    
+    /**
+     * Create notification HTML with enhanced styling
+     */
+    createNotificationHtml(notification) {
+        const styles = this.getStyleByType(notification.type);
+        const unreadClass = notification.isRead ? '' : 'unread';
+        const timeAgo = this.formatTimeAgo(notification.createdAt);
+        
+        const iconHtml = notification.imageUrl 
+            ? `<img src="${notification.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="icon">` 
+            : `<i class="${styles.icon}"></i>`;
+        
+        return `
+            <a href="${notification.link || 'javascript:void(0)'}" 
+               class="notification-item ${unreadClass}" 
+               data-id="${notification.id}"
+               style="animation: fadeIn 0.3s ease">
+                <div class="notification-item-icon" style="background: ${styles.bg}; color: ${styles.color}">
+                    ${iconHtml}
+                </div>
+                <div class="notification-item-content">
+                    <div class="notification-item-title">${this.escapeHtml(notification.title)}</div>
+                    <div class="notification-item-text">${this.escapeHtml(notification.content)}</div>
+                    <div class="notification-item-time">${timeAgo}</div>
+                </div>
+            </a>
+        `;
+    }
+    
+    /**
+     * Show toast notification with smooth animation
+     */
+    showToast(notification) {
+        const styles = this.getStyleByType(notification.type);
+        const toast = document.createElement('div');
+        toast.className = 'notification-toast';
+        
+        const iconHtml = notification.imageUrl 
+            ? `<img src="${notification.imageUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;" alt="icon">` 
+            : `<i class="${styles.icon}" style="color:${styles.color};font-size:18px;"></i>`;
+        
+        toast.innerHTML = `
+            <div style="flex-shrink:0;">${iconHtml}</div>
+            <div style="flex:1;">
+                <div style="font-weight:600;font-size:13px;margin-bottom:2px;">${this.escapeHtml(notification.title)}</div>
+                <div style="font-size:12px;color:#666;">${this.escapeHtml(notification.content)}</div>
+            </div>
+        `;
+        
+        toast.onclick = () => {
+            if (notification.link && notification.link !== 'javascript:void(0)') {
+                window.location.href = notification.link;
+            }
+            this.removeToast(toast);
+        };
+        
+        this.toastContainer.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => this.removeToast(toast), 5000);
+    }
+    
+    /**
+     * Remove toast with exit animation
+     */
+    removeToast(toast) {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 300);
+    }
+    
+    /**
+     * Connect to WebSocket
      */
     connect() {
         const token = this.getAccessToken();
-        
-        if (!token) {
-            console.warn('⚠️ No access token found, skipping WebSocket connection');
-            return;
-        }
-
+        if (!token) return;
         
         const socket = new SockJS('/ws');
         this.stompClient = Stomp.over(socket);
-        this.stompClient.debug = null; // Tắt debug log
+        this.stompClient.debug = null;
         
         const headers = { 'Authorization': 'Bearer ' + token };
-        
         this.stompClient.connect(
             headers,
-            (frame) => this.onConnected(frame),
-            (error) => this.onError(error)
+            () => this.onConnected(),
+            (error) => console.error('WebSocket connection error:', error)
         );
     }
     
     /**
-     * Callback khi kết nối thành công
+     * Handle WebSocket connection success
      */
-    onConnected(frame) {
+    onConnected() {
         this.connected = true;
-        this.reconnectAttempts = 0;
         
-        // Subscribe đến kênh cá nhân
+        // Subscribe to personal notifications
         this.stompClient.subscribe('/user/queue/notifications', (message) => {
             this.onNotificationReceived(message);
         });
         
-        // Subscribe đến kênh broadcast
+        // Subscribe to public notifications
         this.stompClient.subscribe('/topic/public-notifications', (message) => {
             this.onNotificationReceived(message);
         });
-
     }
     
     /**
-     * Callback khi có lỗi kết nối
-     */
-    onError(error) {
-        console.error('❌ WebSocket error:', error);
-        this.connected = false;
-        
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectAttempts++;
-            setTimeout(() => this.connect(), this.reconnectDelay);
-        }
-    }
-    
-    /**
-     * Callback khi nhận được thông báo mới
+     * Handle incoming notification
      */
     onNotificationReceived(message) {
         try {
             const notification = JSON.parse(message.body);
-            
-            // Hiển thị toast với ảnh thumbnail
             this.showToast(notification);
-            
-            // Prepend vào danh sách (nếu dropdown đang mở)
             this.prependNotification(notification);
-            
-            // Cập nhật badge
-            this.incrementUnreadCount(notification.type);
-            
-            // Hiệu ứng rung chuông
-            this.animateBell();
-            
+            this.incrementUnreadCount();
         } catch (error) {
             console.error('Error processing notification:', error);
         }
     }
     
     /**
-     * Hiệu ứng rung chuông
-     */
-    animateBell() {
-        const bell = document.querySelector('.notification-bell i');
-        if (bell) {
-            bell.classList.add('animate-ring');
-            setTimeout(() => bell.classList.remove('animate-ring'), 1000);
-        }
-    }
-    
-    /**
-     * Hiển thị toast notification với ảnh thumbnail
-     */
-    showToast(notification) {
-        // Tạo thumbnail HTML
-        let thumbnailHtml = '';
-        if (notification.imageUrl) {
-            thumbnailHtml = `<img src="${notification.imageUrl}" alt="Notification" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-right: 12px;">`;
-        } else {
-            thumbnailHtml = `<i class="bi ${this.getIconByType(notification.type)}" style="font-size: 2rem; margin-right: 12px; color: #007bff;"></i>`;
-        }
-        
-        const toastHtml = `
-            <div class="toast notification-toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-                <div class="toast-header">
-                    <i class="bi bi-bell-fill text-primary me-2"></i>
-                    <strong class="me-auto">${this.escapeHtml(notification.title)}</strong>
-                    <small class="text-muted">Vừa xong</small>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-                </div>
-                <div class="toast-body d-flex align-items-center">
-                    ${thumbnailHtml}
-                    <div class="flex-grow-1">
-                        ${this.escapeHtml(notification.content)}
-                        ${notification.link ? `<a href="${notification.link}" class="btn btn-sm btn-primary mt-2">Xem chi tiết</a>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        let toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toastContainer';
-            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-            toastContainer.style.zIndex = '9999';
-            document.body.appendChild(toastContainer);
-        }
-        
-        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-        
-        const toastElement = toastContainer.lastElementChild;
-        const toast = new bootstrap.Toast(toastElement);
-        toast.show();
-        
-        toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
-    }
-    
-    /**
-     * Prepend thông báo vào danh sách
-     */
-    prependNotification(notification) {
-        const tabId = this.getTabIdByType(notification.type);
-        const listElement = document.getElementById(tabId);
-        
-        if (listElement) {
-            const loading = listElement.querySelector('.notification-loading');
-            if (loading) loading.remove();
-            
-            const emptyMsg = listElement.querySelector('.text-center.text-muted');
-            if (emptyMsg) emptyMsg.remove();
-            
-            const notificationHtml = this.createNotificationHtml(notification);
-            listElement.insertAdjacentHTML('afterbegin', notificationHtml);
-            
-            // Giới hạn 20 thông báo
-            const items = listElement.querySelectorAll('.notification-item');
-            if (items.length > 20) {
-                items[items.length - 1].remove();
-            }
-        }
-        
-        // Thêm vào tab "Tất cả"
-        if (notification.type) {
-            const allListElement = document.getElementById('allNotifications');
-            if (allListElement) {
-                const loading = allListElement.querySelector('.notification-loading');
-                if (loading) loading.remove();
-                
-                const emptyMsg = allListElement.querySelector('.text-center.text-muted');
-                if (emptyMsg) emptyMsg.remove();
-                
-                const notificationHtml = this.createNotificationHtml(notification);
-                allListElement.insertAdjacentHTML('afterbegin', notificationHtml);
-                
-                const items = allListElement.querySelectorAll('.notification-item');
-                if (items.length > 20) {
-                    items[items.length - 1].remove();
-                }
-            }
-        }
-    }
-    
-    /**
-     * Tạo HTML cho một thông báo với ảnh thumbnail
-     */
-    createNotificationHtml(notification) {
-        const timeAgo = this.formatTimeAgo(notification.createdAt);
-        const unreadClass = notification.isRead ? '' : 'unread';
-        const link = notification.link || '#';
-        
-        // Icon hoặc ảnh với kích thước 50x50px, bo góc rounded
-        let iconHtml = '';
-        if (notification.imageUrl) {
-            iconHtml = `<img src="${notification.imageUrl}" alt="Notification" loading="lazy" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">`;
-        } else {
-            iconHtml = `<i class="bi ${this.getIconByType(notification.type)}"></i>`;
-        }
-        
-        return `
-            <a href="${link}" class="notification-item ${unreadClass}" data-id="${notification.id}" data-type="${notification.type}">
-                <div class="notification-icon">
-                    ${iconHtml}
-                </div>
-                <div class="notification-content">
-                    <div class="notification-title">${this.escapeHtml(notification.title)}</div>
-                    <div class="notification-text">${this.escapeHtml(notification.content)}</div>
-                    <div class="notification-time">${timeAgo}</div>
-                </div>
-                ${!notification.isRead ? '<span class="unread-dot"></span>' : ''}
-            </a>
-        `;
-    }
-    
-    /**
-     * Load số lượng thông báo chưa đọc (async)
+     * Load unread notification count
      */
     async loadUnreadCount() {
         try {
             const response = await fetch('/v1/api/notifications/unread/count');
             if (response.ok) {
-                const data = await response.json();
-                this.updateUnreadBadges(data);
+                const counts = await response.json();
+                this.updateUnreadBadges(counts);
             }
         } catch (error) {
             console.error('Error loading unread count:', error);
@@ -285,27 +288,23 @@ class NotificationManager {
     }
     
     /**
-     * Load danh sách thông báo với pagination
+     * Load notifications with pagination
      */
-    async loadNotifications(type = null, page = 0, size = 5) {
+    async loadNotifications(type, page, size) {
+        const tabKey = type || 'all';
+        
+        if (!this.hasMore[tabKey] && page > 0) return;
+        
+        const url = type 
+            ? `/v1/api/notifications/type/${type}?page=${page}&size=${size}`
+            : `/v1/api/notifications?page=${page}&size=${size}`;
+        
         try {
-            const tabKey = type || 'all';
-            
-            if (!this.hasMore[tabKey] && page > 0) {
-                return;
-            }
-            
-            const url = type 
-                ? `/v1/api/notifications/type/${type}?page=${page}&size=${size}`
-                : `/v1/api/notifications?page=${page}&size=${size}`;
-            
             const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
-                
                 this.hasMore[tabKey] = !data.last;
                 this.currentPage[tabKey] = page;
-                
                 this.renderNotifications(data.content, type, page > 0);
                 
                 if (this.hasMore[tabKey]) {
@@ -318,175 +317,126 @@ class NotificationManager {
     }
     
     /**
-     * Render danh sách thông báo
+     * Render notifications to DOM
      */
-    renderNotifications(notifications, type = null, append = false) {
-        const tabId = type ? this.getTabIdByType(type) : 'allNotifications';
-        const listElement = document.getElementById(tabId);
+    renderNotifications(notifications, type, append) {
+        const tab = type ? type.toLowerCase() : 'all';
+        const list = document.getElementById(this.getListId(tab));
         
-        if (listElement) {
-            if (notifications.length === 0 && !append) {
-                listElement.innerHTML = '<div class="text-center text-muted py-4">Không có thông báo</div>';
-            } else {
-                const notificationsHtml = notifications.map(n => this.createNotificationHtml(n)).join('');
-                
-                if (append) {
-                    const oldLoadMore = listElement.querySelector('.load-more-btn');
-                    if (oldLoadMore) oldLoadMore.remove();
-                    
-                    listElement.insertAdjacentHTML('beforeend', notificationsHtml);
-                } else {
-                    listElement.innerHTML = notificationsHtml;
-                }
-            }
+        if (!list) return;
+        
+        // Clear spinner on first load
+        if (!append) list.innerHTML = '';
+        
+        if (notifications.length === 0 && !append) {
+            list.innerHTML = `
+                <div class="notification-empty" style="animation: fadeIn 0.5s ease;">
+                    <i class="far fa-bell"></i>
+                    <p>Chưa có thông báo nào</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = notifications.map(n => this.createNotificationHtml(n)).join('');
+        
+        if (append) {
+            const loadMoreBtn = list.querySelector('.load-more-container');
+            if (loadMoreBtn) loadMoreBtn.remove();
+            list.insertAdjacentHTML('beforeend', html);
+        } else {
+            list.innerHTML = html;
         }
     }
     
     /**
-     * Thêm nút "Tải thêm"
+     * Get list element ID by tab
      */
-    addLoadMoreButton(type = null) {
-        const tabId = type ? this.getTabIdByType(type) : 'allNotifications';
-        const listElement = document.getElementById(tabId);
+    getListId(tab) {
+        const mapping = {
+            'all': 'allNotificationList',
+            'order': 'orderNotificationList',
+            'promotion': 'promotionNotificationList',
+            'system': 'systemNotificationList'
+        };
+        return mapping[tab] || 'allNotificationList';
+    }
+    
+    /**
+     * Add load more button
+     */
+    addLoadMoreButton(type) {
+        const tab = type ? type.toLowerCase() : 'all';
+        const list = document.getElementById(this.getListId(tab));
         
-        if (listElement) {
-            const oldBtn = listElement.querySelector('.load-more-btn');
-            if (oldBtn) oldBtn.remove();
-            
-            const loadMoreHtml = `
-                <div class="text-center py-3 load-more-btn">
-                    <button class="btn btn-sm btn-outline-primary" onclick="window.notificationManager.loadMore('${type}')">
-                        <i class="bi bi-arrow-down-circle"></i> Tải thêm
+        if (list) {
+            const html = `
+                <div class="load-more-container">
+                    <button class="load-more-btn" onclick="window.notificationSimple.loadMore('${type || ''}')">
+                        <i class="fas fa-chevron-down"></i> Xem thêm
                     </button>
                 </div>
             `;
-            listElement.insertAdjacentHTML('beforeend', loadMoreHtml);
+            list.insertAdjacentHTML('beforeend', html);
         }
     }
     
     /**
-     * Load thêm thông báo
+     * Load more notifications
      */
-    loadMore(type = null) {
-        const tabKey = type || 'all';
-        const nextPage = this.currentPage[tabKey] + 1;
-        this.loadNotifications(type, nextPage, 5);
+    loadMore(type) {
+        const t = (type === 'null' || type === '') ? null : type;
+        const tabKey = t || 'all';
+        this.loadNotifications(t, this.currentPage[tabKey] + 1, 10);
     }
     
     /**
-     * Cập nhật badge số lượng chưa đọc
+     * Prepend new notification to list
+     */
+    prependNotification(notification) {
+        const list = document.getElementById('allNotificationList');
+        if (list) {
+            const empty = list.querySelector('.notification-empty');
+            if (empty) list.innerHTML = '';
+            
+            list.insertAdjacentHTML('afterbegin', this.createNotificationHtml(notification));
+        }
+    }
+    
+    /**
+     * Update unread badges
      */
     updateUnreadBadges(counts) {
-        const totalBadge = document.getElementById('notificationBadge');
-        if (totalBadge) {
-            if (counts.total > 0) {
-                totalBadge.textContent = counts.total > 99 ? '99+' : counts.total;
-                totalBadge.style.display = 'inline-block';
-            } else {
-                totalBadge.style.display = 'none';
-            }
+        if (this.headerCount) {
+            this.headerCount.textContent = counts.total > 99 ? '99+' : counts.total;
+            this.headerCount.style.display = counts.total > 0 ? 'inline-block' : 'none';
         }
         
-        this.updateTabBadge('orderBadge', counts.order);
-        this.updateTabBadge('promotionBadge', counts.promotion);
-        this.updateTabBadge('systemBadge', counts.system);
+        if (this.countBadge) {
+            this.countBadge.style.display = counts.total > 0 ? 'block' : 'none';
+        }
     }
     
     /**
-     * Cập nhật badge của một tab
+     * Increment unread count
      */
-    updateTabBadge(badgeId, count) {
-        const badge = document.getElementById(badgeId);
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
-                badge.style.display = 'inline-block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
+    incrementUnreadCount() {
+        const current = parseInt(this.headerCount?.textContent || '0');
+        this.updateUnreadBadges({ total: current + 1 });
     }
     
     /**
-     * Tăng số lượng chưa đọc
-     */
-    incrementUnreadCount(type) {
-        const totalBadge = document.getElementById('notificationBadge');
-        if (totalBadge) {
-            const current = parseInt(totalBadge.textContent) || 0;
-            totalBadge.textContent = current + 1;
-            totalBadge.style.display = 'inline-block';
-        }
-        
-        const badgeMap = {
-            'ORDER': 'orderBadge',
-            'PROMOTION': 'promotionBadge',
-            'SYSTEM': 'systemBadge'
-        };
-        
-        const badgeId = badgeMap[type];
-        if (badgeId) {
-            const badge = document.getElementById(badgeId);
-            if (badge) {
-                const current = parseInt(badge.textContent) || 0;
-                badge.textContent = current + 1;
-                badge.style.display = 'inline-block';
-            }
-        }
-    }
-    
-    /**
-     * Đánh dấu thông báo là đã đọc
-     */
-    async markAsRead(notificationId) {
-        try {
-            const response = await fetch(`/v1/api/notifications/${notificationId}/read`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            
-            if (response.ok) {
-                // Cập nhật UI: Xóa class unread và dot cho TẤT CẢ các instance của thông báo này
-                const items = document.querySelectorAll(`.notification-item[data-id="${notificationId}"]`);
-                items.forEach(item => {
-                    item.classList.remove('unread');
-                    const dot = item.querySelector('.unread-dot');
-                    if (dot) dot.remove();
-                });
-                
-                // Reload unread count
-                await this.loadUnreadCount();
-                
-                return true;
-            }
-            console.warn('⚠️ API returned non-OK status');
-            return false;
-        } catch (error) {
-            console.error('❌ Error marking notification as read:', error);
-            return false;
-        }
-    }
-    
-    /**
-     * Đánh dấu tất cả là đã đọc
+     * Mark all notifications as read
      */
     async markAllAsRead() {
         try {
-            const response = await fetch('/v1/api/notifications/read-all', {
-                method: 'PUT'
-            });
+            const response = await fetch('/v1/api/notifications/read-all', { method: 'PUT' });
             
             if (response.ok) {
                 document.querySelectorAll('.notification-item.unread').forEach(item => {
                     item.classList.remove('unread');
-                    const dot = item.querySelector('.unread-dot');
-                    if (dot) dot.remove();
                 });
-                
-                this.updateUnreadBadges({ total: 0, order: 0, promotion: 0, system: 0 });
+                this.updateUnreadBadges({ total: 0 });
             }
         } catch (error) {
             console.error('Error marking all as read:', error);
@@ -494,104 +444,57 @@ class NotificationManager {
     }
     
     /**
-     * Bind event handlers
+     * Mark single notification as read
      */
-    bindEvents() {
-        // Click vào thông báo -> đánh dấu đã đọc
-        document.addEventListener('click', (e) => {
-            const item = e.target.closest('.notification-item');
-            if (!item) return;
+    async markAsRead(notificationId) {
+        try {
+            const response = await fetch(`/v1/api/notifications/${notificationId}/read`, {
+                method: 'PUT'
+            });
+            return response.ok;
+        } catch (error) {
+            console.error('Error marking as read:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Handle notification item click
+     */
+    handleNotificationClick(item, event) {
+        const isUnread = item.classList.contains('unread');
+        
+        if (isUnread) {
+            event.preventDefault();
             
             const notificationId = item.dataset.id;
             const link = item.getAttribute('href');
-            const isUnread = item.classList.contains('unread');
-
             
-            // Nếu là thông báo chưa đọc
-            if (isUnread) {
-                // LUÔN ngăn navigation mặc định để đánh dấu đã đọc trước
-                e.preventDefault();
-
-                // Đánh dấu đã đọc
-                this.markAsRead(notificationId).then((success) => {
-                    if (success) {
-                        // Navigate sau khi đánh dấu thành công (nếu có link hợp lệ)
-                        if (link && link !== '#' && link !== 'javascript:void(0)') {
-                            window.location.href = link;
-                        }
-                    } else {
-                        // Nếu API fail, vẫn cho phép navigate
-                        if (link && link !== '#' && link !== 'javascript:void(0)') {
-                            console.log('🔗 Navigating to (fallback):', link);
-                            window.location.href = link;
-                        }
-                    }
-                });
-            } else {
-                console.log('ℹ️ Notification already read');
-            }
-            // Nếu đã đọc rồi, cho phép navigate bình thường (không preventDefault)
-        });
-        
-        // Click "Đánh dấu tất cả là đã đọc"
-        const markAllReadBtn = document.getElementById('markAllRead');
-        if (markAllReadBtn) {
-            markAllReadBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.markAllAsRead();
-            });
-        }
-        
-        // Switch tabs - lazy load
-        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
-            tab.addEventListener('shown.bs.tab', (e) => {
-                const type = e.target.dataset.type;
-                const tabKey = type || 'all';
-                const tabId = type ? this.getTabIdByType(type) : 'allNotifications';
-                const listElement = document.getElementById(tabId);
-                const hasContent = listElement && listElement.querySelector('.notification-item');
+            this.markAsRead(notificationId).then(() => {
+                item.classList.remove('unread');
                 
-                if (!hasContent) {
-                    this.loadNotifications(type, 0, 5);
-                }
-            });
-        });
-        
-        // Ngăn dropdown đóng khi click bên trong (stopPropagation)
-        const dropdown = document.querySelector('.notification-dropdown');
-        if (dropdown) {
-            dropdown.addEventListener('click', (e) => {
-                // Chỉ stopPropagation nếu KHÔNG phải click vào notification-item
-                if (!e.target.closest('.notification-item')) {
-                    e.stopPropagation();
+                if (link && link !== 'javascript:void(0)') {
+                    setTimeout(() => {
+                        window.location.href = link;
+                    }, 200); // Small delay for smooth transition
                 }
             });
         }
     }
     
     /**
-     * Helper: Lấy access token từ cookie
+     * Get access token from cookie
      */
     getAccessToken() {
-        const name = 'accessToken=';
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') {
-                c = c.substring(1);
-            }
-            if (c.indexOf(name) === 0) {
-                return c.substring(name.length, c.length);
-            }
-        }
-        return null;
+        const match = document.cookie.match(new RegExp('(^| )accessToken=([^;]+)'));
+        return match ? match[2] : null;
     }
     
     /**
-     * Helper: Escape HTML
+     * Escape HTML to prevent XSS
      */
     escapeHtml(text) {
+        if (!text) return '';
         const map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -603,45 +506,23 @@ class NotificationManager {
     }
     
     /**
-     * Helper: Format thời gian
+     * Format time ago
      */
     formatTimeAgo(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const seconds = Math.floor((now - date) / 1000);
+        const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
         
         if (seconds < 60) return 'Vừa xong';
         if (seconds < 3600) return Math.floor(seconds / 60) + ' phút trước';
         if (seconds < 86400) return Math.floor(seconds / 3600) + ' giờ trước';
         if (seconds < 604800) return Math.floor(seconds / 86400) + ' ngày trước';
         
-        return date.toLocaleDateString('vi-VN');
-    }
-    
-    /**
-     * Helper: Lấy icon theo loại thông báo
-     */
-    getIconByType(type) {
-        const icons = {
-            'ORDER': 'bi-box-seam',
-            'PROMOTION': 'bi-gift',
-            'SYSTEM': 'bi-info-circle'
-        };
-        return icons[type] || 'bi-bell';
-    }
-    
-    /**
-     * Helper: Lấy tab ID theo loại
-     */
-    getTabIdByType(type) {
-        const tabs = {
-            'ORDER': 'orderNotifications',
-            'PROMOTION': 'promotionNotifications',
-            'SYSTEM': 'systemNotifications'
-        };
-        return tabs[type] || 'allNotifications';
+        return new Date(dateString).toLocaleDateString('vi-VN');
     }
 }
 
-// Khởi tạo global instance
-window.notificationManager = new NotificationManager();
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.querySelector('.notification-widget-container')) {
+        window.notificationSimple = new Notification();
+    }
+});
