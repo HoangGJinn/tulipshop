@@ -5,6 +5,7 @@ import com.tulip.dto.ProductDetailDTO;
 import com.tulip.dto.RatingDTO;
 import com.tulip.dto.RatingSummaryDTO;
 import com.tulip.repository.CategoryRepository;
+import com.tulip.repository.ProductRepository;
 import com.tulip.service.ProductService;
 import com.tulip.service.RatingService;
 import jakarta.servlet.http.Cookie;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
     private final RatingService ratingService;
 
     // --- CHI TIẾT SẢN PHẨM ---
@@ -101,14 +104,16 @@ public class ProductController {
     // --- DANH SÁCH SẢN PHẨM (FILTER) ---
     @GetMapping("/products")
     public String viewAllProducts(
+            @RequestParam(required = false) String collection,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String priceRange, // Nhận chuỗi "0-500000"
+            @RequestParam(defaultValue = "1") int page,
             Model model) {
 
-        // 1. Xử lý logic khoảng giá (Giống ShopController cũ)
+        // 1. Xử lý logic khoảng giá
         Double minPrice = null;
         Double maxPrice = null;
 
@@ -122,14 +127,88 @@ public class ProductController {
             }
         }
 
-        // 2. Gọi Service để lọc
-        List<ProductCardDTO> products = productService.getFilteredProducts(category, sort, color, size, minPrice, maxPrice);
+        // 2. Xử lý collection parameter
+        List<ProductCardDTO> products;
+        String effectiveCategory = category;
+        
+        if (collection != null && !collection.isEmpty()) {
+            switch (collection) {
+                case "ao":
+                    effectiveCategory = "ao"; // slug
+                    break;
+                case "quan":
+                    effectiveCategory = "quan"; // slug
+                    break;
+                case "phu-kien":
+                    effectiveCategory = "phu-kien"; // slug
+                    break;
+                case "gia-tot":
+                    // Lấy sản phẩm có discount >= 50%
+                    products = productService.getFilteredProducts(null, sort, color, size, minPrice, maxPrice)
+                        .stream()
+                        .filter(p -> p.getDiscountPercent() != null && p.getDiscountPercent() >= 50)
+                        .collect(Collectors.toList());
+                    
+                    model.addAttribute("categories", categoryRepository.findAll());
+                    model.addAttribute("products", products);
+                    model.addAttribute("currentPage", page);
+                    model.addAttribute("selectedCollection", collection);
+                    model.addAttribute("selectedCategory", category);
+                    model.addAttribute("selectedSort", sort);
+                    model.addAttribute("selectedColor", color);
+                    model.addAttribute("selectedSize", size);
+                    model.addAttribute("selectedPriceRange", priceRange);
+                    return "product/products";
+                    
+                case "best-seller":
+                    // Lấy sản phẩm bán chạy từ repository
+                    products = productRepository.findBestSellingProducts()
+                        .stream()
+                        .map(productService::convertToCardDTO)
+                        .collect(Collectors.toList());
+                    
+                    // Áp dụng các filter khác
+                    Double finalMinPrice = minPrice;
+                    Double finalMaxPrice = maxPrice;
+                    products = products.stream()
+                        .filter(p -> (finalMinPrice == null || p.getPrice().doubleValue() >= finalMinPrice) &&
+                                    (finalMaxPrice == null || p.getPrice().doubleValue() <= finalMaxPrice))
+                        .filter(p -> color == null || color.isEmpty() || 
+                                    p.getColorCodes().stream().anyMatch(c -> c.equalsIgnoreCase(color)))
+                        .filter(p -> size == null || size.isEmpty()) // Size filter cần logic phức tạp hơn
+                        .collect(Collectors.toList());
+                    
+                    model.addAttribute("categories", categoryRepository.findAll());
+                    model.addAttribute("products", products);
+                    model.addAttribute("currentPage", page);
+                    model.addAttribute("selectedCollection", collection);
+                    model.addAttribute("selectedCategory", category);
+                    model.addAttribute("selectedSort", sort);
+                    model.addAttribute("selectedColor", color);
+                    model.addAttribute("selectedSize", size);
+                    model.addAttribute("selectedPriceRange", priceRange);
+                    return "product/products";
+                    
+                case "all":
+                default:
+                    // Hiển thị tất cả sản phẩm mới
+                    effectiveCategory = null;
+                    break;
+            }
+        }
 
-        // 3. Truyền dữ liệu ra View
+        // 3. Gọi Service để lọc (cho các collection thông thường)
+        products = productService.getFilteredProducts(
+            effectiveCategory, sort, color, size, minPrice, maxPrice
+        );
+
+        // 4. Truyền dữ liệu ra View
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("products", products);
+        model.addAttribute("currentPage", page);
 
-        // Giữ lại các tham số filter để hiển thị trên giao diện (Checked/Selected)
+        // Giữ lại các tham số filter để hiển thị trên giao diện
+        model.addAttribute("selectedCollection", collection != null ? collection : "all");
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedSort", sort);
         model.addAttribute("selectedColor", color);

@@ -2,18 +2,20 @@ package com.tulip.service.impl;
 
 import com.tulip.dto.*;
 import com.tulip.entity.product.*;
-import com.tulip.repository.CategoryRepository;
-import com.tulip.repository.ProductRepository;
-import com.tulip.repository.SizeRepository;
-import com.tulip.repository.VariantRepository;
+import com.tulip.exception.BusinessException;
+import com.tulip.repository.*;
+import com.tulip.service.CategoryService;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,7 +27,10 @@ public class ProductServiceImpl implements ProductService {
     private final SizeRepository sizeRepository;
     private final CloudinaryService cloudinaryService;
     private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
     private final VariantRepository variantRepository;
+    private final ProductStockRepository productStockRepository;
+    private final ProductAuditRepository productAuditRepository;
 
     @Transactional
     public void CreateFullProduct(ProductCompositeDTO dto){
@@ -161,13 +166,29 @@ public class ProductServiceImpl implements ProductService {
                                                     String size, Double minPrice,
                                                     Double maxPrice) {
 
-        List<Product> products = productRepository.findAll();
+        List<Product> products;
+        
+        // Nếu có categorySlug, tìm theo N-cấp category hierarchy
+        if (categorySlug != null && !categorySlug.isEmpty()) {
+            // Tìm category theo slug
+            Optional<Category> categoryOpt = categoryService.findBySlug(categorySlug);
+            
+            if (categoryOpt.isPresent()) {
+                Category category = categoryOpt.get();
+                // Lấy tất cả ID của category và các con cháu (đệ quy N-cấp)
+                List<Long> categoryIds = categoryService.getAllChildCategoryIds(category.getId());
+                // Query sản phẩm theo danh sách category IDs
+                products = productRepository.findByCategoryIdInAndStatus(categoryIds, ProductStatus.ACTIVE);
+            } else {
+                // Category không tồn tại, trả về danh sách rỗng
+                products = new ArrayList<>();
+            }
+        } else {
+            // Không có category filter, lấy tất cả sản phẩm ACTIVE
+            products = productRepository.findByStatus(ProductStatus.ACTIVE);
+        }
 
         return products.stream()
-                // Lọc Category
-                .filter(p -> categorySlug == null || categorySlug.isEmpty() ||
-                        (p.getCategory() != null && p.getCategory().getSlug().equals(categorySlug)))
-
                 // Lọc Giá
                 .filter(p -> (minPrice == null || p.getBasePrice().doubleValue() >= minPrice) &&
                         (maxPrice == null || p.getBasePrice().doubleValue() <= maxPrice))
@@ -300,6 +321,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId){
         List<Product> products = productRepository.findTop5ByCategoryIdAndIdNot(categoryId, currentProductId);
         return products.stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // Chỉ hiển thị sản phẩm ACTIVE
                 .map(this::convertToCardDTO)
                 .collect(Collectors.toList());
 
@@ -314,6 +336,7 @@ public class ProductServiceImpl implements ProductService {
 
         // Sắp xếp lại theo thứ tự mới nhất lên đầu
         Map<Long, Product> productMap = products.stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // Chỉ hiển thị sản phẩm ACTIVE
                 .collect(Collectors.toMap(Product::getId, p -> p));
         List<ProductCardDTO> result = new ArrayList<>();
         for (Long id : productIds){
@@ -327,7 +350,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> findProductsWithDeepDiscount() {
-        return productRepository.findProductsWithDeepDiscount();
+        List<Product> products = productRepository.findProductsWithDeepDiscount();
+        // Chỉ trả về sản phẩm ACTIVE
+        return products.stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -345,6 +372,7 @@ public class ProductServiceImpl implements ProductService {
         dto.setDiscountPrice(product.getDiscountPrice());
         dto.setDescription(product.getDescription());
         dto.setTags(product.getTags());
+        dto.setStatus(product.getStatus());
 
         // Gán URL ảnh cũ để hiển thị
         dto.setThumbnailUrl(product.getThumbnail());
@@ -392,12 +420,23 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm ID: " + id));
 
+        // Lưu giá trị cũ để audit
+        String oldName = product.getName();
+        BigDecimal oldPrice = product.getBasePrice();
+        boolean nameChanged = !oldName.equals(dto.getName());
+        boolean priceChanged = oldPrice.compareTo(dto.getPrice()) != 0;
+
         //  Cập nhật thông tin cơ bản
         product.setName(dto.getName());
         product.setBasePrice(dto.getPrice());
         product.setDiscountPrice(dto.getDiscountPrice());
         product.setDescription(dto.getDescription());
         product.setTags(dto.getTags());
+        
+        // Cập nhật trạng thái
+        if (dto.getStatus() != null) {
+            product.setStatus(dto.getStatus());
+        }
 
         // Cập nhật Category
         if (dto.getCategorySlug() != null) {
@@ -528,6 +567,78 @@ public class ProductServiceImpl implements ProductService {
             }
         }
         productRepository.save(product);
+
+        // Tạo audit log chỉ khi tên hoặc giá thay đổi
+        if (nameChanged || priceChanged) {
+            createAuditLog(product.getId(), oldName, product.getName(), 
+                          oldPrice, product.getBasePrice(), nameChanged, priceChanged);
+        }
+    }
+
+    /**
+     * Soft Delete - Xóa mềm sản phẩm
+     * Kiểm tra tồn kho trước khi xóa
+     */
+    @Transactional
+    public void deleteProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm ID: " + productId));
+
+        // Kiểm tra tổng tồn kho của tất cả variants
+        int totalStock = productStockRepository.sumQuantityByProductId(productId);
+        
+        if (totalStock > 0) {
+            throw new BusinessException(
+                "Không thể xóa sản phẩm vẫn còn tồn kho. " +
+                "Vui lòng điều chỉnh kho về 0 trước. Tồn kho hiện tại: " + totalStock
+            );
+        }
+
+        // Thực hiện soft delete
+        product.setStatus(ProductStatus.DELETED);
+        product.setDeletedAt(LocalDateTime.now());
+        productRepository.save(product);
+    }
+
+    /**
+     * Tạo bản ghi audit log khi tên hoặc giá thay đổi
+     */
+    private void createAuditLog(Long productId, String oldName, String newName,
+                               BigDecimal oldPrice, BigDecimal newPrice,
+                               boolean nameChanged, boolean priceChanged) {
+        String changeType;
+        if (nameChanged && priceChanged) {
+            changeType = "BOTH";
+        } else if (nameChanged) {
+            changeType = "NAME_CHANGE";
+        } else {
+            changeType = "PRICE_CHANGE";
+        }
+
+        String changedBy = getCurrentUserEmail();
+
+        ProductAudit audit = ProductAudit.builder()
+                .productId(productId)
+                .oldName(nameChanged ? oldName : null)
+                .newName(nameChanged ? newName : null)
+                .oldPrice(priceChanged ? oldPrice : null)
+                .newPrice(priceChanged ? newPrice : null)
+                .changedBy(changedBy)
+                .changeType(changeType)
+                .build();
+
+        productAuditRepository.save(audit);
+    }
+
+    /**
+     * Lấy email của user hiện tại từ SecurityContext
+     */
+    private String getCurrentUserEmail() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            return auth.getName();
+        }
+        return "system";
     }
 
 

@@ -134,18 +134,25 @@
                 <div th:each="item : ${order.orderItems}" class="order-item-row">
                     <div class="row align-items-center">
                         <div class="col-md-2">
-                            <img th:if="${item.variant != null and not #lists.isEmpty(item.variant.images)}"
+                            <!-- Ưu tiên hiển thị ảnh snapshot, fallback về ảnh hiện tại -->
+                            <img th:if="${item.snapThumbnailUrl != null}"
+                                 th:src="${item.snapThumbnailUrl}"
+                                 class="item-image"
+                                 alt="Sản phẩm"
+                                 onerror="this.src='/images/placeholder.jpg'">
+                            <img th:if="${item.snapThumbnailUrl == null and item.variant != null and not #lists.isEmpty(item.variant.images)}"
                                  th:src="${item.variant.images[0].imageUrl}"
                                  class="item-image"
                                  alt="Sản phẩm"
                                  th:onerror="this.src=(${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'});">
-                            <img th:if="${item.variant == null or #lists.isEmpty(item.variant.images)}"
+                            <img th:if="${item.snapThumbnailUrl == null and (item.variant == null or #lists.isEmpty(item.variant.images))}"
                                  th:src="${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'}"
                                  class="item-image"
                                  alt="Sản phẩm">
                         </div>
                         <div class="col-md-6">
-                            <div class="fw-bold mb-2" th:text="${item.product != null ? item.product.name : 'Sản phẩm đã bị xóa'}">
+                            <!-- Hiển thị tên snapshot nếu có, nếu không thì tên hiện tại -->
+                            <div class="fw-bold mb-2" th:text="${item.snapProductName != null ? item.snapProductName : (item.product != null ? item.product.name : 'Sản phẩm đã bị xóa')}">
                                 Tên sản phẩm
                             </div>
                             <div class="small text-muted mb-1">
@@ -164,11 +171,12 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(item.priceAtPurchase, 0, 'COMMA', 0, 'POINT') + '₫'}">
+                            <!-- Hiển thị giá snapshot nếu có, nếu không thì giá tại thời điểm mua -->
+                            <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(item.snapPrice != null ? item.snapPrice : item.priceAtPurchase, 0, 'COMMA', 0, 'POINT') + '₫'}">
                                 0₫
                             </div>
                             <div class="small text-muted">
-                                Tổng: <span th:text="${#numbers.formatDecimal(item.priceAtPurchase * item.quantity, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
+                                Tổng: <span th:text="${#numbers.formatDecimal((item.snapPrice != null ? item.snapPrice : item.priceAtPurchase) * item.quantity, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
                             </div>
                         </div>
                     </div>

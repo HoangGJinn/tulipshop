@@ -49,7 +49,13 @@ public class AdminApiController {
     // --- API: LẤY DANH SÁCH SẢN PHẨM CHO ADMIN ---
     @GetMapping("/products")
     public ResponseEntity<List<Map<String, Object>>> getProducts() {
-        List<Product> products = productRepository.findAll();
+        // Admin thấy tất cả sản phẩm ACTIVE và HIDDEN (không thấy DELETED)
+        List<com.tulip.entity.product.ProductStatus> visibleStatuses = List.of(
+            com.tulip.entity.product.ProductStatus.ACTIVE,
+            com.tulip.entity.product.ProductStatus.HIDDEN
+        );
+        List<Product> products = productRepository.findByStatusIn(visibleStatuses);
+        
         List<Map<String, Object>> productList = products.stream().map(p -> {
             Map<String, Object> productMap = new HashMap<>();
             productMap.put("id", p.getId());
@@ -58,6 +64,7 @@ public class AdminApiController {
             productMap.put("image", p.getThumbnail() != null ? p.getThumbnail() : "/images/placeholder.jpg");
             productMap.put("category", p.getCategory() != null ? p.getCategory().getName() : "Chưa phân loại");
             productMap.put("price", p.getBasePrice().doubleValue());
+            productMap.put("status", p.getStatus() != null ? p.getStatus().name() : "ACTIVE");
             // Tính tổng stock
             int totalStock = p.getVariants().stream()
                 .flatMap(v -> v.getStocks().stream())
@@ -70,18 +77,64 @@ public class AdminApiController {
         return ResponseEntity.ok(productList);
     }
     
-    // --- API: XÓA SẢN PHẨM ---
+    // --- API: CẬP NHẬT TRẠNG THÁI SẢN PHẨM ---
+    @PutMapping("/products/{id}/status")
+    public ResponseEntity<?> updateProductStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> payload) {
+        try {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+            
+            String statusStr = payload.get("status");
+            com.tulip.entity.product.ProductStatus newStatus = 
+                com.tulip.entity.product.ProductStatus.valueOf(statusStr);
+            
+            // Nếu chuyển sang DELETED, kiểm tra tồn kho
+            if (newStatus == com.tulip.entity.product.ProductStatus.DELETED) {
+                productService.deleteProduct(id);
+            } else {
+                product.setStatus(newStatus);
+                productRepository.save(product);
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success", 
+                "message", "Cập nhật trạng thái thành công"
+            ));
+        } catch (com.tulip.exception.BusinessException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error", 
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error", 
+                "message", "Lỗi: " + e.getMessage()
+            ));
+        }
+    }
+    
+    // --- API: XÓA SẢN PHẨM (SOFT DELETE) ---
     @DeleteMapping("/products/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         try {
-            Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-            
-            productRepository.delete(product);
-            return ResponseEntity.ok(Map.of("status", "success", "message", "Xóa sản phẩm thành công!"));
+            productService.deleteProduct(id);
+            return ResponseEntity.ok(Map.of(
+                "status", "success", 
+                "message", "Xóa sản phẩm thành công!"
+            ));
+        } catch (com.tulip.exception.BusinessException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error", 
+                "message", e.getMessage()
+            ));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Lỗi: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error", 
+                "message", "Lỗi: " + e.getMessage()
+            ));
         }
     }
 

@@ -32,7 +32,12 @@ public class AdminProductController {
 
     @GetMapping
     public String showProductList(Model model) {
-        List<Product> allProducts = productRepository.findAll();
+        // Admin thấy tất cả sản phẩm ACTIVE và HIDDEN (không thấy DELETED)
+        List<com.tulip.entity.product.ProductStatus> visibleStatuses = List.of(
+            com.tulip.entity.product.ProductStatus.ACTIVE,
+            com.tulip.entity.product.ProductStatus.HIDDEN
+        );
+        List<Product> allProducts = productRepository.findByStatusIn(visibleStatuses);
         model.addAttribute("products", allProducts);
 
         long totalProducts = allProducts.size();
@@ -94,7 +99,7 @@ public class AdminProductController {
         model.addAttribute("contentTemplate", "admin/products/list");
         model.addAttribute("showSearch", true);
         
-        List<String> tableHeaders = List.of("Ảnh", "Sản phẩm", "Danh mục", "Giá bán", "Tổng kho", "Thao tác");
+        List<String> tableHeaders = List.of("Ảnh", "Sản phẩm", "Danh mục", "Giá bán", "Tổng kho", "Trạng thái", "Thao tác");
         model.addAttribute("tableHeaders", tableHeaders);
         
         return "admin/layouts/layout";

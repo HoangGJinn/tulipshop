@@ -43,4 +43,11 @@ public interface ProductStockRepository extends JpaRepository<ProductStock, Long
            "  WHERE ps.variant.id = v.id AND ps.size.id = s.id" +
            ")")
     List<Object[]> findUninitializedVariantSizeCombinations();
+    
+    /**
+     * Tính tổng tồn kho của tất cả variants của một sản phẩm
+     */
+    @Query("SELECT COALESCE(SUM(ps.quantity), 0) FROM ProductStock ps " +
+           "WHERE ps.variant.product.id = :productId")
+    int sumQuantityByProductId(@Param("productId") Long productId);
 }
