@@ -1,158 +1,61 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <title>Notification Fragment</title>
-</head>
-<body>
-
-<!-- Notification Bell Dropdown Fragment -->
-<div th:fragment="notification-bell" sec:authorize="isAuthenticated()">
-    <!-- Notification Bell Icon -->
-    <div class="dropdown">
-        <button class="notification-bell" 
-                type="button" 
-                id="notificationDropdownBtn"
-                data-bs-toggle="dropdown" 
-                data-bs-auto-close="false"
-                aria-expanded="false"
-                title="Thông báo">
-            <i class="bi bi-bell"></i>
-            <span class="notification-badge" id="notificationBadge">0</span>
+<div th:fragment="notification" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <!-- Load CSS -->
+    <link rel="stylesheet" th:href="@{/css/notification.css}">
+    <link rel="stylesheet" th:href="@{/css/notification-bell.css}">
+    
+    <div sec:authorize="isAuthenticated()" class="notification-widget-container">
+        <button class="notification-bell-btn" id="notificationBellBtn" type="button" aria-label="Thông báo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notification-dot" id="notificationCountBadge" style="display: none;"></span>
         </button>
         
-        <!-- Dropdown Menu -->
-        <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdownBtn">
-            <!-- Header -->
-            <div class="notification-header">
-                <h6>Thông báo</h6>
-                <a href="#" class="mark-all-read" id="markAllRead" onclick="event.preventDefault();">Đánh dấu tất cả là đã đọc</a>
+        <div class="notification-panel" id="notificationPanel">
+            
+            <div class="panel-fixed-top">
+                <div class="notification-panel-header">
+                    <div class="header-title">
+                        <h5>Thông báo</h5>
+                        <span class="header-count" id="headerCount" style="display: none;">0</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn" id="markAllReadBtn" title="Đánh dấu tất cả đã đọc">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="notification-tabs">
+                    <button class="tab-btn active" data-tab="all" data-type="">Tất cả</button>
+                    <button class="tab-btn" data-tab="order" data-type="ORDER">Đơn hàng</button>
+                    <button class="tab-btn" data-tab="promotion" data-type="PROMOTION">Ưu đãi</button>
+                    <button class="tab-btn" data-tab="system" data-type="SYSTEM">Tin tức</button>
+                </div>
             </div>
             
-            <!-- Tabs -->
-            <ul class="nav nav-tabs notification-tabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" 
-                            id="all-tab" 
-                            data-bs-toggle="tab" 
-                            data-bs-target="#all" 
-                            type="button" 
-                            role="tab"
-                            aria-controls="all"
-                            aria-selected="true">
-                        Tất cả
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" 
-                            id="order-tab" 
-                            data-bs-toggle="tab" 
-                            data-bs-target="#order" 
-                            data-type="ORDER"
-                            type="button" 
-                            role="tab"
-                            aria-controls="order"
-                            aria-selected="false">
-                        Đơn hàng
-                        <span class="badge bg-success" id="orderBadge" style="display: none;">0</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" 
-                            id="promotion-tab" 
-                            data-bs-toggle="tab" 
-                            data-bs-target="#promotion" 
-                            data-type="PROMOTION"
-                            type="button" 
-                            role="tab"
-                            aria-controls="promotion"
-                            aria-selected="false">
-                        KM
-                        <span class="badge bg-warning text-dark" id="promotionBadge" style="display: none;">0</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" 
-                            id="system-tab" 
-                            data-bs-toggle="tab" 
-                            data-bs-target="#system" 
-                            data-type="SYSTEM"
-                            type="button" 
-                            role="tab"
-                            aria-controls="system"
-                            aria-selected="false">
-                        Hệ thống
-                        <span class="badge bg-secondary" id="systemBadge" style="display: none;">0</span>
-                    </button>
-                </li>
-            </ul>
+            <div class="notification-content-wrapper">
+                <div class="notification-tab-content active" data-tab="all">
+                    <div class="notification-list" id="allNotificationList">
+                        <div class="notification-loading"><span class="spinner"></span></div>
+                    </div>
+                </div>
+                <div class="notification-tab-content" data-tab="order"><div class="notification-list" id="orderNotificationList"></div></div>
+                <div class="notification-tab-content" data-tab="promotion"><div class="notification-list" id="promotionNotificationList"></div></div>
+                <div class="notification-tab-content" data-tab="system"><div class="notification-list" id="systemNotificationList"></div></div>
+            </div>
             
-            <!-- Tab Content -->
-            <div class="tab-content">
-                <!-- Tab Tất cả -->
-                <div class="tab-pane fade show active" id="all" role="tabpanel">
-                    <div class="notification-list" id="allNotifications">
-                        <div class="notification-loading">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Đang tải...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tab Đơn hàng -->
-                <div class="tab-pane fade" id="order" role="tabpanel">
-                    <div class="notification-list" id="orderNotifications">
-                        <div class="notification-loading">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Đang tải...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tab Khuyến mãi -->
-                <div class="tab-pane fade" id="promotion" role="tabpanel">
-                    <div class="notification-list" id="promotionNotifications">
-                        <div class="notification-loading">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Đang tải...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tab Hệ thống -->
-                <div class="tab-pane fade" id="system" role="tabpanel">
-                    <div class="notification-list" id="systemNotifications">
-                        <div class="notification-loading">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Đang tải...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="notification-footer">
+                <a href="/notifications" class="view-all-link">Xem tất cả lịch sử</a>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Required Scripts Fragment -->
-<th:block th:fragment="notification-scripts">
-    <!-- SockJS và STOMP.js cho WebSocket -->
+    
+    <div id="notificationToastContainer" class="notification-toast-container"></div>
+    
+    <!-- Load External JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    
-    <!-- Notification Manager Script -->
     <script th:src="@{/js/notification.js}"></script>
-</th:block>
-
-<!-- Required CSS Fragment -->
-<th:block th:fragment="notification-styles">
-    <link rel="stylesheet" th:href="@{/css/notification.css}">
-    <!-- Bootstrap Icons (nếu chưa có) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-</th:block>
-
-</body>
-</html>
+</div>

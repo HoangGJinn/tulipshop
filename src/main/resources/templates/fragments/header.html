@@ -13,9 +13,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link rel="stylesheet" th:href="@{/css/notification.css}">
-    <link rel="stylesheet" th:href="@{/css/notification-fix.css}">
-    <link rel="stylesheet" th:href="@{/css/header-fix.css}">
     <style>
         .active-color {
             border: 2px solid #000 !important;
@@ -121,17 +118,11 @@
                     <!-- Actions Section -->
                     <div class="header-actions-section">
                         <ul class="header-actions">
-                            
                             <!-- Search Icon -->
                             <li>
                                 <button type="button" class="header-action-btn search-trigger" onclick="toggleSearchPanel()" aria-label="Tìm kiếm">
                                     <i class="fas fa-search"></i>
                                 </button>
-                            </li>
-
-                            <!-- Notification Bell - Chỉ hiển thị khi đã đăng nhập -->
-                            <li sec:authorize="isAuthenticated()">
-                                <div th:replace="~{fragments/notification :: notification-bell}"></div>
                             </li>
 
                             <!-- User Menu -->
@@ -149,15 +140,10 @@
                                             <i class="fas fa-user-circle"></i>
                                             <span>Tài khoản</span>
                                         </a>
-                                    </li>
-                                    <li>
-                                        <a th:href="@{/wishlist}" class="header-wishlist-icon">
+                                        <a th:href="@{/wishlist}" class="dropdown-item">
                                             <i class="fas fa-heart"></i>
-                                            <span id="wishlist-count" class="wishlist-count">0</span>
+                                            <span>Yêu thích</span>
                                         </a>
-                                    </li>
-                                    <li>
-                                        <a th:href="@{/cart}" class="header-cart-icon">
                                         <th:block sec:authorize="hasRole('ADMIN')">
                                             <a th:href="@{/admin/dashboard}" class="dropdown-item">
                                                 <i class="fas fa-cog"></i>
@@ -184,12 +170,16 @@
 
                             <!-- Cart Icon -->
                             <li>
-                                <a th:href="@{/cart}" class="header-cart-wrapper">
+                                <a th:href="@{/cart}" class="header-cart-wrapper" aria-label="Giỏ hàng">
                                     <div class="header-cart-icon">
                                         <i class="fas fa-shopping-bag"></i>
                                         <span class="cart-count">0</span>
                                     </div>
                                 </a>
+                            </li>
+
+                            <li>
+                                <div th:replace="~{fragments/notification :: notification}"></div>
                             </li>
                             
                         </ul>
@@ -262,10 +252,20 @@
                     <li class="nav-item">
                         <a th:href="@{/contact}">Liên hệ</a>
                     </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0);" onclick="toggleSearchPanel()">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </a>
+                    </li>
                     <!-- User menu trong mobile -->
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a th:href="@{/account}">
                             <i class="fas fa-user-circle"></i> Tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/wishlist}">
+                            <i class="fas fa-heart"></i> Yêu thích
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
@@ -294,18 +294,11 @@
     <!-- Bootstrap Test Script -->
     <script th:src="@{/js/bootstrap-test.js}"></script>
 
-    <!-- Toast Notification Script - Load FIRST for toast messages -->
+    <!-- Toast Notification Script -->
     <script th:src="@{/js/toast-notification.js}"></script>
-
-    <!-- Notification Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    <script th:src="@{/js/notification.js}"></script>
 
     <script th:src="@{/js/header.js}" defer></script>
 </div>
-
-<script th:fragment="notification-script" th:src="@{/js/notification.js}"></script>
 
 <!-- Header Scripts Fragment -->
 <script th:fragment="header-scripts">

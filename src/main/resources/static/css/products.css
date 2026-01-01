@@ -7,6 +7,13 @@ body {
     color: #333;
 }
 
+/* Container rộng bằng header */
+.products-container {
+    max-width: 1400px !important;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
 .font-serif {
     font-family: 'Playfair Display', serif;
 }

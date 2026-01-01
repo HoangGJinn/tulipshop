@@ -144,14 +144,24 @@ function toggleSearchPanel() {
     const input = document.getElementById('searchInput');
     
     if (panel) {
-        if (panel.classList.contains('open')) {
+        const isOpen = panel.classList.contains('open');
+        
+        if (isOpen) {
+            // Đóng panel
             panel.classList.remove('open');
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = '';
+            // Reset scroll position
+            document.body.style.position = '';
+            document.body.style.top = '';
         } else {
+            // Mở panel
             panel.classList.add('open');
             document.body.style.overflow = 'hidden';
+            // Focus vào input sau khi animation hoàn tất
             setTimeout(() => {
-                if (input) input.focus();
+                if (input) {
+                    input.focus();
+                }
             }, 300);
         }
     }
