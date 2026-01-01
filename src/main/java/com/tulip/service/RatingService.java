@@ -28,4 +28,9 @@ public interface RatingService {
      * Lấy thống kê đánh giá của sản phẩm
      */
     RatingStatistics getProductRatingStatistics(Long productId);
+    
+    /**
+     * Lấy thông tin đơn hàng (dùng cho debug)
+     */
+    com.tulip.entity.Order getOrderById(Long orderId);
 }

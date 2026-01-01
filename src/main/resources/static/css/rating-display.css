@@ -5,6 +5,35 @@
     border-top: 2px solid #e9ecef;
 }
 
+/* Review Section Styles */
+.review-section {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.review-section .cursor-pointer {
+    cursor: pointer;
+}
+
+.review-section .fit-progress .progress {
+    background-color: #e9ecef;
+}
+
+.review-section .fit-progress .progress-bar {
+    background-color: #212529;
+}
+
+.review-section .filter-cb {
+    cursor: pointer;
+}
+
+.review-section .review-card {
+    transition: all 0.3s ease;
+}
+
+.review-section .review-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
 .ratings-header {
     margin-bottom: 40px;
 }

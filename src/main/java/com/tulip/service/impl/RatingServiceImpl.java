@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,9 +38,34 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional
     public RatingDTO submitRating(RatingRequest request, User user) {
-        // 1. Validate: Kiểm tra quyền đánh giá
-        if (!canUserRateProduct(user.getId(), request.getProductId(), request.getOrderId())) {
-            throw new IllegalStateException("Bạn không có quyền đánh giá sản phẩm này hoặc đã đánh giá rồi");
+        // 1. Validate: Kiểm tra quyền đánh giá với message lỗi chi tiết
+        Order order = orderRepository.findById(request.getOrderId()).orElse(null);
+        
+        if (order == null) {
+            throw new IllegalStateException("Không tìm thấy đơn hàng");
+        }
+        
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new IllegalStateException("Đơn hàng này không thuộc về bạn");
+        }
+        
+        if (order.getStatus() != OrderStatus.DELIVERED) {
+            throw new IllegalStateException(
+                "Bạn chỉ có thể đánh giá sau khi đơn hàng đã được giao thành công. " +
+                "Trạng thái hiện tại: " + getStatusDisplayName(order.getStatus())
+            );
+        }
+        
+        boolean productInOrder = order.getOrderItems().stream()
+                .anyMatch(item -> item.getProduct().getId().equals(request.getProductId()));
+        if (!productInOrder) {
+            throw new IllegalStateException("Sản phẩm này không có trong đơn hàng của bạn");
+        }
+        
+        Optional<Rating> existingRating = ratingRepository.findByUserAndProductAndOrder(
+            user.getId(), request.getProductId(), request.getOrderId());
+        if (existingRating.isPresent()) {
+            throw new IllegalStateException("Bạn đã đánh giá sản phẩm này rồi");
         }
 
         // 2. Lấy thông tin Product
@@ -106,14 +132,24 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional(readOnly = true)
     public boolean canUserRateProduct(Long userId, Long productId, Long orderId) {
+        log.info("🔍 Checking rating permission: userId={}, productId={}, orderId={}", 
+                 userId, productId, orderId);
+        
         // 1. Kiểm tra đơn hàng tồn tại và thuộc về user
         Order order = orderRepository.findById(orderId).orElse(null);
-        if (order == null || !order.getUser().getId().equals(userId)) {
+        if (order == null) {
+            log.warn("❌ Order not found: orderId={}", orderId);
+            return false;
+        }
+        if (!order.getUser().getId().equals(userId)) {
+            log.warn("❌ Order does not belong to user: orderId={}, userId={}, orderUserId={}", 
+                     orderId, userId, order.getUser().getId());
             return false;
         }
 
         // 2. Kiểm tra đơn hàng đã hoàn thành
         if (order.getStatus() != OrderStatus.DELIVERED) {
+            log.warn("❌ Order not delivered yet: orderId={}, status={}", orderId, order.getStatus());
             return false;
         }
 
@@ -121,11 +157,21 @@ public class RatingServiceImpl implements RatingService {
         boolean productInOrder = order.getOrderItems().stream()
                 .anyMatch(item -> item.getProduct().getId().equals(productId));
         if (!productInOrder) {
+            log.warn("❌ Product not in order: productId={}, orderId={}", productId, orderId);
             return false;
         }
 
         // 4. Kiểm tra chưa đánh giá
-        return ratingRepository.findByUserAndProductAndOrder(userId, productId, orderId).isEmpty();
+        Optional<Rating> existingRating = ratingRepository.findByUserAndProductAndOrder(userId, productId, orderId);
+        if (existingRating.isPresent()) {
+            log.warn("❌ User already rated this product: userId={}, productId={}, orderId={}", 
+                     userId, productId, orderId);
+            return false;
+        }
+        
+        log.info("✅ User can rate product: userId={}, productId={}, orderId={}", 
+                 userId, productId, orderId);
+        return true;
     }
 
     @Override
@@ -151,6 +197,12 @@ public class RatingServiceImpl implements RatingService {
                 .twoStars(twoStar)
                 .oneStar(oneStar)
                 .build();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Order getOrderById(Long orderId) {
+        return orderRepository.findById(orderId).orElse(null);
     }
 
     /**
@@ -251,5 +303,19 @@ public class RatingServiceImpl implements RatingService {
                 .imageUrls(imageUrls)
                 .isHighQuality(rating.getUtilityScore() >= 40.0)
                 .build();
+    }
+    
+    /**
+     * Helper method để hiển thị tên trạng thái đơn hàng
+     */
+    private String getStatusDisplayName(OrderStatus status) {
+        switch (status) {
+            case PENDING: return "Chờ xác nhận";
+            case CONFIRMED: return "Đã xác nhận";
+            case SHIPPING: return "Đang giao hàng";
+            case DELIVERED: return "Đã giao hàng";
+            case CANCELLED: return "Đã hủy";
+            default: return status.toString();
+        }
     }
 }

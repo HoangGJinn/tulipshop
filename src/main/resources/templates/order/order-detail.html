@@ -373,19 +373,23 @@
         };
         const orderId = button.getAttribute('data-order-id');
         
-        // Kiểm tra xem user đã đánh giá chưa
-        fetch(`/api/ratings/can-rate?productId=${productData.id}&orderId=${orderId}`)
+        // Kiểm tra xem user đã đánh giá chưa - Gọi API debug để lấy thông tin chi tiết
+        fetch(`/api/ratings/debug/can-rate?productId=${productData.id}&orderId=${orderId}`)
             .then(response => response.json())
             .then(result => {
-                if (result.success && result.canRate) {
+                console.log('Rating permission check:', result);
+                
+                if (result.canRate) {
                     ratingModal.open(productData, orderId);
                 } else {
-                    alert('Bạn đã đánh giá sản phẩm này rồi hoặc không có quyền đánh giá');
+                    // Hiển thị message lỗi chi tiết từ backend
+                    const reason = result.reason || 'Bạn không có quyền đánh giá sản phẩm này';
+                    alert(reason);
                 }
             })
             .catch(error => {
                 console.error('Error checking rating permission:', error);
-                // Vẫn cho phép mở modal nếu có lỗi
+                // Vẫn cho phép mở modal nếu có lỗi API
                 ratingModal.open(productData, orderId);
             });
     }
