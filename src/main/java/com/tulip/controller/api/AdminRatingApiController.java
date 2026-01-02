@@ -139,6 +139,15 @@ public class AdminRatingApiController {
                     objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class)
                 );
                 
+                // If we got less than 3 suggestions, fill with fallback
+                if (suggestions.size() < 3) {
+                    log.info("AI returned {} suggestions, filling with fallback", suggestions.size());
+                    List<Map<String, String>> fallback = getFallbackSuggestions(rating.getStars());
+                    while (suggestions.size() < 3 && suggestions.size() < fallback.size()) {
+                        suggestions.add(fallback.get(suggestions.size()));
+                    }
+                }
+                
                 return ResponseEntity.ok(Map.of(
                     "success", true,
                     "suggestions", suggestions
@@ -183,6 +192,35 @@ public class AdminRatingApiController {
                 Map.of("type", "Thân thiện", "text", "Shop rất tiếc khi bạn chưa hài lòng 😔 Bạn có thể cho shop biết thêm chi tiết để mình khắc phục được không ạ? Shop cam kết sẽ cải thiện!"),
                 Map.of("type", "Nhiệt tình", "text", "Ôi không! Shop thật sự xin lỗi bạn 💔 Hãy để shop có cơ hội làm tốt hơn nhé! Inbox ngay để được hỗ trợ đổi trả hoặc giải quyết vấn đề nha!")
             );
+        }
+    }
+    
+    /**
+     * Test endpoint to debug AI service
+     */
+    @GetMapping("/test-ai")
+    public ResponseEntity<?> testAI() {
+        try {
+            log.info("🧪 Testing AI service...");
+            
+            String result = googleAIService.generateReplySuggestions(5, "Sản phẩm rất đẹp, chất lượng tốt!");
+            
+            log.info("✅ AI test successful");
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "AI service is working",
+                "rawResponse", result
+            ));
+            
+        } catch (Exception e) {
+            log.error("❌ AI test failed", e);
+            return ResponseEntity.status(500)
+                    .body(Map.of(
+                        "success", false,
+                        "message", "AI service failed: " + e.getMessage(),
+                        "error", e.getClass().getSimpleName()
+                    ));
         }
     }
 }

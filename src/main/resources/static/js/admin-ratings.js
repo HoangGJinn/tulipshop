@@ -158,7 +158,11 @@ function renderRatings(ratings) {
 function renderStars(count) {
     let stars = '';
     for (let i = 0; i < 5; i++) {
-        stars += i < count ? '<i class="fas fa-star"></i>' : '<i class="far fa-star text-muted"></i>';
+        if (i < count) {
+            stars += '<span class="text-yellow-400">★</span>';
+        } else {
+            stars += '<span class="text-gray-300">★</span>';
+        }
     }
     return stars;
 }
@@ -186,7 +190,9 @@ function formatDate(dateString) {
 // Escape HTML
 function escapeHtml(text) {
     if (!text) return '';
-    return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Open reply modal
@@ -280,9 +286,11 @@ function renderAISuggestions(suggestions) {
     
     container.innerHTML = suggestions.map((suggestion, index) => {
         const color = colors[index % colors.length];
+        // Store text in data attribute to avoid escaping issues
         return `
             <button type="button" 
-                    onclick="selectAISuggestion('${escapeHtml(suggestion.text)}')"
+                    data-suggestion-text="${escapeHtml(suggestion.text)}"
+                    onclick="selectAISuggestion(this.getAttribute('data-suggestion-text'))"
                     class="w-full text-left p-3 ${color.bg} border ${color.border} rounded-lg ${color.hover} transition-all cursor-pointer group">
                 <div class="flex items-start gap-2">
                     <div class="flex-shrink-0 mt-0.5">

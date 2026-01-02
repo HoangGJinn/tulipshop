@@ -71,15 +71,17 @@ public class GoogleAIService {
                 )
             ),
             "generationConfig", Map.of(
-                "temperature", 0.4,
+                "temperature", 0.7,
                 "topK", 40,
                 "topP", 0.95,
-                "maxOutputTokens", 1024
+                "maxOutputTokens", 1024,
+                "responseMimeType", "application/json"
             )
         );
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Accept-Charset", "UTF-8");
         
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
         
@@ -150,17 +152,32 @@ public class GoogleAIService {
     public String generateReplySuggestions(int stars, String content) {
         try {
             String prompt = buildReplySuggestionsPrompt(stars, content);
+            
             String response = callGoogleAI(prompt);
+            
             String extractedText = extractResponseContent(response);
+            //log.info("FULL Extracted text from AI: {}", extractedText);
             
-            // Clean markdown code blocks if present
+            // Clean and extract JSON
             extractedText = cleanJsonResponse(extractedText);
+            //log.info("FULL Cleaned JSON: {}", extractedText);
             
-            log.info("AI generated reply suggestions for {} stars rating", stars);
-            return extractedText;
+            // Validate JSON before returning
+            try {
+                objectMapper.readTree(extractedText);
+                //log.info("AI generated valid JSON reply suggestions");
+                return extractedText;
+            } catch (Exception e) {
+                log.warn("AI response is not valid JSON, using fallback");
+                log.warn("JSON parse error: {}", e.getMessage());
+                log.warn("JSON length: {} chars", extractedText != null ? extractedText.length() : 0);
+                log.warn("Full invalid JSON: {}", extractedText);
+                return generateFallbackSuggestions(stars);
+            }
             
         } catch (Exception e) {
-            log.error("Error generating reply suggestions", e);
+            log.error("Error generating reply suggestions: {}", e.getMessage());
+            log.warn("Using fallback suggestions instead");
             return generateFallbackSuggestions(stars);
         }
     }
@@ -168,37 +185,37 @@ public class GoogleAIService {
     private String buildReplySuggestionsPrompt(int stars, String content) {
         String contentText = (content != null && !content.trim().isEmpty()) 
             ? content 
-            : "Không có nội dung cụ thể";
+            : "Không có nội dung";
+            
+        String tone = (stars >= 4) 
+            ? "grateful and welcoming"
+            : "apologetic and helpful";
             
         return String.format("""
-            Bạn là nhân viên CSKH chuyên nghiệp của 'TulipShop' (shop thời trang nữ cao cấp).
+            Create 3 Vietnamese customer service replies for %d-star rating: "%s"
             
-            Khách hàng vừa đánh giá %d sao với nội dung: "%s"
+            Tone: %s
+            Length: Max 25 words each
+            Emojis: 1-2 per reply
             
-            Hãy viết 3 mẫu câu trả lời ngắn gọn (dưới 50 từ mỗi câu), lịch sự, giọng văn thân thiện, có emoji phù hợp.
-            
-            YÊU CẦU:
-            - Nếu đánh giá 4-5 sao: Cảm ơn, khuyến khích, mời quay lại
-            - Nếu đánh giá 1-3 sao: Xin lỗi, thể hiện quan tâm, đề xuất giải pháp
-            - Mỗi câu trả lời phải có phong cách khác nhau (chuyên nghiệp, thân thiện, nhiệt tình)
-            - Sử dụng emoji phù hợp nhưng không quá nhiều (1-2 emoji/câu)
-            
-            Trả về kết quả CHỈ LÀ JSON array thuần túy, KHÔNG có markdown, KHÔNG có ```json, theo định dạng:
+            Return JSON array:
             [
-                {"type": "Chuyên nghiệp", "text": "..."},
-                {"type": "Thân thiện", "text": "..."},
-                {"type": "Nhiệt tình", "text": "..."}
+              {"type":"Professional","text":"reply 1"},
+              {"type":"Warm","text":"reply 2"},
+              {"type":"Creative","text":"reply 3"}
             ]
-            
-            CHÚ Ý: Chỉ trả về JSON array, không thêm bất kỳ text nào khác.
-            """, stars, contentText);
+            """, stars, contentText, tone);
     }
     
     private String cleanJsonResponse(String response) {
-        if (response == null) return "[]";
+        if (response == null || response.trim().isEmpty()) {
+            log.warn("Empty response from AI");
+            return "[]";
+        }
+        
+        response = response.trim();
         
         // Remove markdown code blocks
-        response = response.trim();
         if (response.startsWith("```json")) {
             response = response.substring(7);
         } else if (response.startsWith("```")) {
@@ -208,7 +225,53 @@ public class GoogleAIService {
             response = response.substring(0, response.length() - 3);
         }
         
-        return response.trim();
+        response = response.trim();
+        
+        // Find JSON array in the response
+        int startIdx = response.indexOf('[');
+        int endIdx = response.lastIndexOf(']');
+        
+        if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+            response = response.substring(startIdx, endIdx + 1);
+        } else if (startIdx != -1) {
+            // JSON array started but not closed - try to fix it
+            log.warn("JSON array not properly closed, attempting to fix");
+            response = response.substring(startIdx);
+            
+            // Try to close incomplete JSON
+            // Count open braces
+            int openBraces = 0;
+            int closeBraces = 0;
+            int lastValidPos = response.length();
+            
+            for (int i = 0; i < response.length(); i++) {
+                char c = response.charAt(i);
+                if (c == '{') openBraces++;
+                if (c == '}') closeBraces++;
+                
+                // If we have balanced braces, mark this position
+                if (openBraces > 0 && openBraces == closeBraces) {
+                    lastValidPos = i + 1;
+                }
+            }
+            
+            // Truncate to last valid position and close array
+            if (lastValidPos < response.length()) {
+                response = response.substring(0, lastValidPos) + "]";
+                log.info("Fixed truncated JSON, new length: {}", response.length());
+            } else if (!response.endsWith("]")) {
+                response = response + "]";
+            }
+        }
+        
+        // Remove trailing comma before closing bracket (invalid JSON)
+        response = response.replaceAll(",\\s*]", "]");
+        
+        // Remove any text before [ or after ]
+        response = response.trim();
+        
+        log.debug("Cleaned response length: {}", response.length());
+        return response;
     }
     
     private String generateFallbackSuggestions(int stars) {
