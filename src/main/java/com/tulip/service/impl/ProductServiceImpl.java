@@ -318,10 +318,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
+    /**
+     * Filters a list of products to return only those with ACTIVE status
+     * @param products the list of products to filter
+     * @return a list containing only active products
+     */
+    private List<Product> filterActiveProducts(List<Product> products) {
+        return products.stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
+                .collect(Collectors.toList());
+    }
+
     public List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId){
         List<Product> products = productRepository.findTop5ByCategoryIdAndIdNot(categoryId, currentProductId);
-        return products.stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // Chỉ hiển thị sản phẩm ACTIVE
+        return filterActiveProducts(products).stream()
                 .map(this::convertToCardDTO)
                 .collect(Collectors.toList());
 
@@ -335,8 +345,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products = productRepository.findAllById(productIds);
 
         // Sắp xếp lại theo thứ tự mới nhất lên đầu
-        Map<Long, Product> productMap = products.stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // Chỉ hiển thị sản phẩm ACTIVE
+        Map<Long, Product> productMap = filterActiveProducts(products).stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
         List<ProductCardDTO> result = new ArrayList<>();
         for (Long id : productIds){
@@ -352,9 +361,7 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> findProductsWithDeepDiscount() {
         List<Product> products = productRepository.findProductsWithDeepDiscount();
         // Chỉ trả về sản phẩm ACTIVE
-        return products.stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
-                .collect(Collectors.toList());
+        return filterActiveProducts(products);
     }
 
     @Override
