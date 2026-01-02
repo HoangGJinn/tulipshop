@@ -79,6 +79,10 @@ public class SecurityConfig {
                 .requestMatchers("/v1/api/auth/login", "/v1/api/auth/register", "/v1/api/auth/forgot-password", 
                                  "/v1/api/auth/reset-password", "/v1/api/auth/resend-otp", "/v1/api/auth/verify-email").permitAll()
                 .requestMatchers("/v1/api/auth/**").authenticated()
+                // Rating API - cho phép truy cập để debug
+                .requestMatchers("/api/ratings/product/**").permitAll()
+                .requestMatchers("/api/ratings/debug/**").permitAll()
+                .requestMatchers("/api/ratings/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")

@@ -674,6 +674,29 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.error("❌ Error sending notification for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
         }
+        
+        // Gửi thông báo nhắc đánh giá sản phẩm
+        try {
+            com.tulip.dto.NotificationRequest ratingReminderRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đánh giá sản phẩm")
+                .content("Bạn đã nhận được hàng? Hãy chia sẻ trải nghiệm của bạn để giúp người mua khác!")
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.SYSTEM)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), ratingReminderRequest);
+            log.info("⭐ Rating reminder notification sent for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending rating reminder for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
+        
+        // Gửi email nhắc đánh giá
+        try {
+            emailService.sendRatingReminderEmail(savedOrder);
+            log.info("📧 Rating reminder email sent for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending rating reminder email for order #{}: {}", savedOrder.getId(), e.getMessage(), e);
+        }
     }
 
     // Helper method to convert Order entity to DTO

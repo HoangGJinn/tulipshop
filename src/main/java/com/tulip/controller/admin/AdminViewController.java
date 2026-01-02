@@ -105,4 +105,13 @@ public class AdminViewController {
         model.addAttribute("showSearch", false);
         return "admin/layouts/layout";
     }
+    
+    @GetMapping("/ratings")
+    public String ratings(Model model) {
+        model.addAttribute("pageTitle", "QUẢN LÝ ĐÁNH GIÁ");
+        model.addAttribute("currentPage", "ratings");
+        model.addAttribute("contentTemplate", "admin/ratings/index");
+        model.addAttribute("showSearch", true);
+        return "admin/layouts/layout";
+    }
 }
