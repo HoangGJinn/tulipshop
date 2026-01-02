@@ -94,4 +94,19 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByUserIdAndStatusPaginated(@Param("userId") Long userId,
                                                 @Param("status") OrderStatus status,
                                                 Pageable pageable);
+    
+    /**
+     * Lấy top sản phẩm bán chạy nhất
+     * Trả về: productId, productName, thumbnail, price, totalSold, totalRevenue
+     */
+    @Query("SELECT p.id, p.name, p.thumbnail, p.basePrice, " +
+           "SUM(oi.quantity) as totalSold, " +
+           "SUM(oi.quantity * oi.priceAtPurchase) as totalRevenue " +
+           "FROM OrderItem oi " +
+           "JOIN oi.product p " +
+           "JOIN oi.order o " +
+           "WHERE o.status = 'DELIVERED' " +
+           "GROUP BY p.id, p.name, p.thumbnail, p.basePrice " +
+           "ORDER BY totalSold DESC")
+    List<Object[]> findTopSellingProducts(Pageable pageable);
 }
