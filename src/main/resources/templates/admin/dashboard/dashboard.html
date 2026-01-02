@@ -1,76 +1,713 @@
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-    <div class="space-y-8">
-        <!-- Welcome Section -->
-        <div class="border border-black p-8 bg-white">
-            <h1 class="text-4xl font-black italic tracking-tighter mb-2">Chào mừng đến Admin Dashboard</h1>
-            <p class="text-sm text-gray-500 uppercase tracking-widest">Quản lý cửa hàng TulipShop</p>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+
+    <link rel="stylesheet" th:href="@{/css/dashboard-stats.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-card { animation: fade-in-up 0.5s ease-out forwards; opacity: 0; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+    </style>
+
+    <div class="space-y-6">
+
+    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 animate-card">
+        
+        <div class="flex items-center gap-4 w-full md:w-auto">
+            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <i data-lucide="clock" class="w-6 h-6 text-black"></i>
+            </div>
+            <div>
+                <h2 id="digital-clock" class="text-xl font-bold text-gray-900 leading-none" style="font-feature-settings: 'tnum'; font-variant-numeric: tabular-nums;">
+                    00:00:00
+                </h2>
+                <p id="current-date" class="text-xs text-gray-500 mt-1 font-medium capitalize">
+                    Loading date...
+                </p>
+            </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div id="stats-container" class="grid gap-4 md:grid-cols-4">
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Tổng sản phẩm</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
+        <div class="flex-1 px-4 hidden md:block border-l border-gray-200 mx-4">
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+                <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                Hệ thống hoạt động ổn định. 
+                <span th:if="${pendingOrdersCount != null and pendingOrdersCount > 0}">
+                    Có <strong class="text-red-600" th:text="${pendingOrdersCount}">0</strong> đơn chưa xử lý.
+                </span>
+                <span th:unless="${pendingOrdersCount != null and pendingOrdersCount > 0}">
+                    Không có đơn hàng tồn đọng.
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full md:w-auto">
+            <button id="refreshStatsBtn" 
+                    class="flex-1 md:flex-none justify-center px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition flex items-center gap-2"
+                    onclick="refreshDashboardStats()">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                <span class="whitespace-nowrap">Làm mới</span>
+            </button>
+            <a href="/admin/orders" class="flex-1 md:flex-none justify-center px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition shadow-sm flex items-center gap-2">
+                <i data-lucide="package-check" class="w-4 h-4"></i>
+                <span class="whitespace-nowrap">Xử lý đơn</span>
+            </a>
+            <a href="/admin/products/new" class="flex-1 md:flex-none justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span class="whitespace-nowrap">Thêm SP</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+
+        <div class="stat-card revenue-card animate-card delay-100" data-tooltip="Tổng doanh thu thực nhận">
+            <div class="bg-icon">
+                <i data-lucide="dollar-sign" width="80" height="80"></i>
+            </div>
+
+            <div class="card-header">
+                <p class="card-label">Doanh thu hôm nay</p>
+                <div class="card-icon" style="background: rgba(255,255,255,0.1); color: white;">
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
                 </div>
             </div>
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Đơn hàng</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
-                </div>
-            </div>
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Khách hàng</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-black">0</span>
-                </div>
-            </div>
-            <div class="border border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1">Doanh thu</span>
-                    <span class="text-3xl font-black italic tracking-tighter text-green-600">0₫</span>
+
+            <div>
+                <p class="card-value" data-stat="revenue" 
+                th:text="${stats != null ? #numbers.formatDecimal(stats.todayRevenue, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}">0đ</p>
+                
+                <div class="card-footer" th:if="${stats != null}">
+                    <span class="trend-badge" 
+                        th:classappend="${stats.todayGrowthPercent >= 0 ? 'text-green' : 'text-red'}">
+                        <i th:attr="data-lucide=${stats.todayGrowthPercent >= 0 ? 'trending-up' : 'trending-down'}" class="w-3 h-3 mr-1"></i>
+                        <span th:text="${#numbers.formatDecimal(stats.todayGrowthPercent, 1, 'POINT', 1, 'POINT')} + '%'">0%</span>
+                    </span>
+                    <span>so với hôm qua</span>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="border border-black p-6 bg-white">
-            <h3 class="font-black italic uppercase tracking-[0.2em] text-sm mb-6">Thao tác nhanh</h3>
-            <div class="grid gap-4 md:grid-cols-3">
-                <a href="/admin/products" class="border border-black p-4 hover:bg-gray-50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="shirt" class="h-6 w-6"></i>
-                        <div>
-                            <div class="font-black uppercase text-xs tracking-wider">Quản lý sản phẩm</div>
-                            <div class="text-[9px] text-gray-400 uppercase mt-1">Thêm, sửa, xóa sản phẩm</div>
+        <div class="stat-card animate-card delay-200">
+            <div class="card-header" style="margin-bottom: 0.5rem;">
+                <p class="card-label">Hiệu suất kinh doanh</p>
+                <div class="card-icon bg-indigo-light">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div class="split-container">
+                <div class="split-item">
+                    <p class="sub-label">Đơn mới</p>
+                    <p class="sub-value" data-stat="orders" th:text="${stats != null ? stats.newOrders : '0'}">0</p>
+                    <div class="card-footer" style="font-size: 0.75rem; margin-top: 2px;">
+                        <span th:if="${stats != null}"
+                            th:classappend="${stats.ordersGrowthPercent >= 0 ? 'text-blue' : 'text-red'}"
+                            th:text="(${stats.ordersGrowthPercent >= 0 ? '+' : ''}) + ${#numbers.formatDecimal(stats.ordersGrowthPercent, 1, 'POINT', 1, 'POINT')} + '%'"></span>
+                    </div>
+                </div>
+                <div class="split-item">
+                    <p class="sub-label">Khách mới</p>
+                    <p class="sub-value" data-stat="customers" th:text="${stats != null ? stats.newCustomers : '0'}">0</p>
+                    <div class="card-footer" style="font-size: 0.75rem; margin-top: 2px;">
+                        <span th:if="${stats != null}"
+                            th:classappend="${stats.customersGrowthPercent >= 0 ? 'text-green' : 'text-red'}"
+                            th:text="(${stats.customersGrowthPercent >= 0 ? '+' : ''}) + ${#numbers.formatDecimal(stats.customersGrowthPercent, 1, 'POINT', 1, 'POINT')} + '%'"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card animate-card delay-300">
+            <div class="card-header">
+                <p class="card-label">Vận hành</p>
+                <div class="card-icon bg-blue-light">
+                    <i data-lucide="truck" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 2px;">
+                        <span class="text-gray-500">Chờ xử lý</span>
+                        <span style="font-weight: 700; color: #ca8a04;" data-stat="pending-orders" th:text="${stats != null ? stats.pendingOrders : '0'}">0</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" 
+                             th:style="'background-color: #facc15; width: ' + ${(stats != null && (stats.pendingOrders + stats.confirmedOrders + stats.shippingOrders) > 0) ? (stats.pendingOrders * 100.0 / (stats.pendingOrders + stats.confirmedOrders + stats.shippingOrders)) : 0} + '%'">
                         </div>
                     </div>
-                </a>
-                <a href="/admin/orders" class="border border-black p-4 hover:bg-gray-50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="shopping-bag" class="h-6 w-6"></i>
-                        <div>
-                            <div class="font-black uppercase text-xs tracking-wider">Quản lý đơn hàng</div>
-                            <div class="text-[9px] text-gray-400 uppercase mt-1">Xem và xử lý đơn hàng</div>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 2px;">
+                        <span class="text-gray-500">Đã xác nhận</span>
+                        <span style="font-weight: 700; color: #059669;" data-stat="confirmed-orders" th:text="${stats != null ? stats.confirmedOrders : '0'}">0</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" 
+                             th:style="'background-color: #10b981; width: ' + ${(stats != null && (stats.pendingOrders + stats.confirmedOrders + stats.shippingOrders) > 0) ? (stats.confirmedOrders * 100.0 / (stats.pendingOrders + stats.confirmedOrders + stats.shippingOrders)) : 0} + '%'">
                         </div>
                     </div>
-                </a>
-                <a href="/admin/customers" class="border border-black p-4 hover:bg-gray-50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="user-round" class="h-6 w-6"></i>
-                        <div>
-                            <div class="font-black uppercase text-xs tracking-wider">Quản lý khách hàng</div>
-                            <div class="text-[9px] text-gray-400 uppercase mt-1">Xem danh sách khách hàng</div>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 2px;">
+                        <span class="text-gray-500">Đang giao hàng</span>
+                        <span style="font-weight: 700; color: #2563eb;" data-stat="shipping-orders" th:text="${stats != null ? stats.shippingOrders : '0'}">0</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" 
+                             th:style="'background-color: #3b82f6; width: ' + ${(stats != null && (stats.pendingOrders + stats.confirmedOrders + stats.shippingOrders) > 0) ? (stats.shippingOrders * 100.0 / (stats.pendingOrders + stats.confirmedOrders + stats.shippingOrders)) : 0} + '%'">
                         </div>
                     </div>
-                </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card animate-card" style="animation-delay: 0.4s;"
+            th:styleappend="${stats != null and stats.lowStockCount > 0 ? 'border: 1px solid #fecaca; box-shadow: 0 0 0 4px #fef2f2;' : ''}">
+            <div class="card-header">
+                <p class="card-label" style="color: #dc2626;">Cảnh báo kho</p>
+                <div class="card-icon bg-red-light">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div>
+                <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                    <p class="card-value" data-stat="low-stock" th:text="${stats != null ? stats.lowStockCount : '0'}">0</p>
+                    <span th:if="${stats != null and stats.lowStockCount > 0}" 
+                        style="font-size: 0.75rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 8px; border-radius: 12px; margin-bottom: 8px; animation: pulse 2s infinite;">
+                        Cần nhập
+                    </span>
+                </div>
+                <p class="card-footer" style="margin-top: 0.25rem;">Sản phẩm dưới định mức</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-7 animate-card delay-200" style="margin-top: 1.5rem;">
+        
+        <div class="md:col-span-5 stat-card" style="min-height: 420px;">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                <div>
+                    <h3 class="font-bold text-lg text-[#0f172a]">Biểu đồ doanh thu</h3>
+                    <p class="text-sm text-gray-500 font-medium mt-1">Hiệu suất kinh doanh theo thời gian</p>
+                </div>
+                
+                <div class="chart-controls">
+                    <button onclick="changeChartTab('week', this)" class="chart-tab active">7 Ngày</button>
+                    <button onclick="changeChartTab('month', this)" class="chart-tab">Tháng</button>
+                    <button onclick="changeChartTab('quarter', this)" class="chart-tab">Quý</button>
+                </div>
+            </div>
+            
+            <div class="relative w-full flex-1" style="height: 300px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 stat-card flex flex-col">
+            <div class="mb-2">
+                <h3 class="font-bold text-lg text-[#0f172a]">Phân bổ</h3>
+                <p class="text-sm text-gray-500 font-medium mt-1">Tỷ trọng danh mục</p>
+            </div>
+            
+            <div class="relative flex-1 flex items-center justify-center" style="min-height: 250px;">
+                <canvas id="categoryChart"></canvas>
+                
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tổng SP</span>
+                    <span class="text-3xl font-extrabold text-[#0f172a]" id="total-products-center">--</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        lucide.createIcons();
-    </script>
-</div>
+        <div class="grid gap-6 md:grid-cols-2 animate-card" style="animation-delay: 0.5s;">
 
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900">Đơn hàng mới nhất</h3>
+                    <a href="/admin/orders" class="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                        Xem tất cả <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                    </a>
+                </div>
+                <div class="p-4 flex-1 overflow-auto">
+                    <div id="recentOrdersList" class="space-y-3">
+                        <!-- Dynamic content will be loaded here -->
+                        <div class="flex items-center justify-center py-8 text-gray-400">
+                            <i data-lucide="loader" class="w-6 h-6 animate-spin"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900">Sản phẩm bán chạy</h3>
+                </div>
+                <div class="p-4 flex-1">
+                    <div id="topSellingList" class="space-y-4">
+                        <!-- Dynamic content will be loaded here -->
+                        <div class="flex items-center justify-center py-8 text-gray-400">
+                            <i data-lucide="loader" class="w-6 h-6 animate-spin"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script th:inline="javascript">
+        // Lucide icons sẽ được layout chính gọi, nhưng gọi lại ở đây cho chắc chắn nếu load dynamic
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // --- Revenue Chart (Line) ---
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        
+        // Tạo màu Gradient (Đen mờ dần xuống dưới)
+        const gradient = revenueCtx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.15)'); // Đậm ở trên
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');    // Trong suốt ở dưới
+
+        let revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Doanh thu',
+                    data: [],
+                    borderColor: '#111827',       // Màu đen (Gray-900)
+                    backgroundColor: gradient,    // Màu nền gradient
+                    borderWidth: 2,               // Độ dày đường kẻ
+                    pointBackgroundColor: '#fff', // Điểm màu trắng
+                    pointBorderColor: '#111827',  // Viền điểm màu đen
+                    pointBorderWidth: 2,
+                    pointRadius: 4,               // Kích thước điểm bình thường
+                    pointHoverRadius: 6,          // Kích thước điểm khi hover
+                    fill: true,                   // Tô màu dưới đường kẻ
+                    tension: 0.4                  // Độ cong mềm mại (bezier curve)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: { display: false }, // Ẩn chú thích mặc định
+                    tooltip: {
+                        backgroundColor: '#111827',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false, // Ẩn ô màu trong tooltip
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label; 
+                            },
+                            // Format giá trị tiền: 15000000 => 15.000.000 ₫
+                            label: function(context) {
+                                let value = context.parsed.y;
+                                return new Intl.NumberFormat('vi-VN', { 
+                                    style: 'currency', 
+                                    currency: 'VND' 
+                                }).format(value);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false }, // Ẩn lưới dọc
+                        ticks: {
+                            font: { size: 12 },
+                            color: '#6b7280' // Gray-500
+                        }
+                    },
+                    y: {
+                        border: { display: false }, // Ẩn đường trục Y
+                        grid: { 
+                            color: '#f3f4f6',   // Màu lưới ngang nhạt
+                            borderDash: [5, 5]  // Lưới nét đứt
+                        },
+                        beginAtZero: true,
+                        ticks: {
+                            font: { size: 11 },
+                            color: '#9ca3af', // Gray-400
+                            padding: 10,
+                            // Format trục Y: Chia cho 1 triệu và thêm chữ "tr"
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000) + ' tr';
+                                }
+                                return value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Load chart data khi trang load
+        loadRevenueChart('week');
+
+        // --- Category Chart (Doughnut) ---
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        let categoryChart = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { 
+                            usePointStyle: true, 
+                            padding: 20,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const percentage = context.dataset.percentages[context.dataIndex];
+                                return `${label}: ${value} sản phẩm (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Load dữ liệu category từ API
+        async function loadCategoryStats() {
+            try {
+                const response = await fetch('/v1/api/admin/category-stats', {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                
+                if (!data || data.length === 0) return;
+                
+                // Extract data
+                const labels = data.map(item => item.categoryName);
+                const values = data.map(item => item.productCount);
+                const colors = data.map(item => item.color);
+                const percentages = data.map(item => item.percentage);
+                
+                // Update chart
+                categoryChart.data.labels = labels;
+                categoryChart.data.datasets[0].data = values;
+                categoryChart.data.datasets[0].backgroundColor = colors;
+                categoryChart.data.datasets[0].percentages = percentages;
+                categoryChart.update();
+
+                // 1. Tính tổng số lượng từ mảng values
+                const totalProductCount = values.reduce((sum, current) => sum + current, 0);
+                
+                // 2. Tìm element hiển thị số ở giữa
+                const centerTextElement = document.getElementById('total-products-center');
+                
+                // 3. Cập nhật text (nếu element tồn tại)
+                if (centerTextElement) {
+                    centerTextElement.innerText = totalProductCount;
+                }
+                
+            } catch (error) {
+                console.error('Error loading category stats:', error);
+            }
+        }
+        
+        // Load category stats khi trang load
+        loadCategoryStats();
+        
+        /**
+         * Load đơn hàng mới nhất
+         */
+        async function loadRecentOrders() {
+            try {
+                const response = await fetch('/v1/api/admin/revenue-stats/recent-orders', {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to load recent orders:', response.status);
+                    return;
+                }
+                
+                const orders = await response.json();
+                
+                const container = document.getElementById('recentOrdersList');
+                
+                if (!orders || orders.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-400 py-8">Chưa có đơn hàng nào</p>';
+                    lucide.createIcons();
+                    return;
+                }
+                
+                // Render orders
+                container.innerHTML = orders.map((order, index) => {
+                    const statusConfig = getOrderStatusConfig(order.status);
+                    const timeAgo = formatTimeAgo(order.createdAt);
+                    const formattedPrice = new Intl.NumberFormat('vi-VN').format(order.totalAmount) + 'đ';
+                    
+                    return `
+                        <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition border border-transparent hover:border-gray-100">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-xs">
+                                    #${index + 1}
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm font-bold text-gray-900">${order.customerName}</p>
+                                        <span class="text-xs text-gray-400">• ${timeAgo}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500">${order.orderCode}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-gray-900">${formattedPrice}</p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusConfig.class}">
+                                    ${statusConfig.text}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                lucide.createIcons();
+                
+            } catch (error) {
+                console.error('Error loading recent orders:', error);
+            }
+        }
+        
+        /**
+         * Load sản phẩm bán chạy
+         */
+        async function loadTopSellingProducts() {
+            try {
+                const response = await fetch('/v1/api/admin/revenue-stats/top-selling', {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to load top selling products:', response.status);
+                    return;
+                }
+                
+                const products = await response.json();
+                
+                const container = document.getElementById('topSellingList');
+                
+                if (!products || products.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-400 py-8">Chưa có dữ liệu</p>';
+                    lucide.createIcons();
+                    return;
+                }
+                
+                // Tìm max sold để tính % cho progress bar
+                const maxSold = Math.max(...products.map(p => p.totalSold));
+                
+                // Render products
+                container.innerHTML = products.map((product, index) => {
+                    const percentage = maxSold > 0 ? (product.totalSold / maxSold * 100) : 0;
+                    const barColor = ['bg-black', 'bg-gray-600', 'bg-gray-500', 'bg-gray-400', 'bg-gray-300'][index] || 'bg-gray-300';
+                    const formattedRevenue = formatCurrency(product.totalRevenue);
+                    
+                    return `
+                        <div class="flex items-center gap-4 group cursor-pointer">
+                            <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                                ${product.thumbnail 
+                                    ? `<img src="${product.thumbnail}" alt="${product.productName}" class="w-full h-full object-cover">` 
+                                    : `<i data-lucide="package" class="w-6 h-6 text-gray-400"></i>`}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between mb-1">
+                                    <p class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition truncate max-w-[200px]">${product.productName}</p>
+                                    <p class="text-sm font-bold text-gray-900">${formattedRevenue}</p>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                    <div class="${barColor} h-1.5 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Đã bán: ${product.totalSold} sản phẩm</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                lucide.createIcons();
+                
+            } catch (error) {
+                console.error('Error loading top selling products:', error);
+            }
+        }
+        
+        // Helper functions
+        function getOrderStatusConfig(status) {
+            const configs = {
+                'PENDING': { text: 'Chờ xử lý', class: 'bg-yellow-100 text-yellow-800' },
+                'CONFIRMED': { text: 'Đã xác nhận', class: 'bg-blue-100 text-blue-800' },
+                'SHIPPING': { text: 'Đang giao', class: 'bg-purple-100 text-purple-800' },
+                'DELIVERED': { text: 'Đã giao', class: 'bg-green-100 text-green-800' },
+                'CANCELLED': { text: 'Đã hủy', class: 'bg-red-100 text-red-800' }
+            };
+            return configs[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+        }
+        
+        function formatTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'vừa xong';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' phút trước';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' giờ trước';
+            return Math.floor(seconds / 86400) + ' ngày trước';
+        }
+        
+        // Load khi trang load
+        loadRecentOrders();
+        loadTopSellingProducts();
+        
+        /**
+         * Load revenue chart data from API
+         */
+        async function loadRevenueChart(period) {
+            try {
+                const response = await fetch(`/v1/api/admin/revenue-stats/chart/${period}`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to load chart data:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // Nếu không có data, tạo mảng rỗng
+                if (!data || data.length === 0) {
+                    console.warn(`No data available for ${period}`);
+                    revenueChart.data.labels = [];
+                    revenueChart.data.datasets[0].data = [];
+                    revenueChart.update();
+                    return;
+                }
+                
+                // Format labels và data dựa trên period
+                let labels = [];
+                let values = [];
+                
+                if (period === 'week') {
+                    // 7 ngày gần nhất: Hiển thị ngày/tháng (DD/MM)
+                    data.forEach(item => {
+                        const date = new Date(item.statsDate);
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        labels.push(`${day}/${month}`);
+                        values.push(item.revenue || 0);
+                    });
+                } else if (period === 'month') {
+                    // 30 ngày gần nhất: Hiển thị 5 điểm đều trên trục X
+                    // Chọn các index: 0, 7, 14, 21, 29 (ngày 1, 8, 15, 22, 30)
+                    const displayIndices = [0, 7, 14, 21, 29];
+                    
+                    data.forEach((item, index) => {
+                        const date = new Date(item.statsDate);
+                        
+                        // Chỉ hiển thị label cho 5 điểm được chọn
+                        if (displayIndices.includes(index)) {
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            labels.push(`${day}/${month}`);
+                        } else {
+                            labels.push(''); // Empty label để vẫn giữ data point
+                        }
+                        
+                        values.push(item.revenue || 0);
+                    });
+                } else if (period === 'quarter') {
+                    // Theo quý: Data là MONTHLY của 3 tháng gần nhất
+                    const monthNames = ['', 'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 
+                                       'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 
+                                       'Tháng 11', 'Tháng 12'];
+                    
+                    data.forEach(item => {
+                        const date = new Date(item.statsDate);
+                        const monthIndex = date.getMonth() + 1;
+                        labels.push(monthNames[monthIndex]);
+                        values.push(item.revenue || 0);
+                    });
+                }
+                
+                // Update chart
+                revenueChart.data.labels = labels;
+                revenueChart.data.datasets[0].data = values;
+                revenueChart.update();
+                
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+            }
+        }
+        
+        /**
+         * Update chart when dropdown changes
+         */
+        function updateChart(period) {
+            loadRevenueChart(period);
+        }
+
+    // --- HELPER: Xử lý chuyển Tab Biểu đồ ---
+    function changeChartTab(period, btnElement) {
+        // 1. Xóa class active ở tất cả các nút
+        document.querySelectorAll('.chart-tab').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // 2. Thêm class active cho nút vừa bấm
+        btnElement.classList.add('active');
+        
+        // 3. Gọi hàm load dữ liệu cũ của bạn
+        loadRevenueChart(period);
+    }
+    </script>
+
+    <!-- Dashboard Real-time Clock Script -->
+    <script th:src="@{/js/dashboard.js}"></script>
+</div>
+</html>

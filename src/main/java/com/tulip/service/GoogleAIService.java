@@ -71,15 +71,17 @@ public class GoogleAIService {
                 )
             ),
             "generationConfig", Map.of(
-                "temperature", 0.4,
+                "temperature", 0.7,
                 "topK", 40,
                 "topP", 0.95,
-                "maxOutputTokens", 1024
+                "maxOutputTokens", 1024,
+                "responseMimeType", "application/json"
             )
         );
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Accept-Charset", "UTF-8");
         
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
         
@@ -139,5 +141,156 @@ public class GoogleAIService {
         }
         
         return "Mình đã nhận câu hỏi của bạn. Bạn có thể cho mình biết thêm: bạn đang quan tâm chính sách (đổi trả/bảo hành/vận chuyển/thanh toán) hay tư vấn size/sản phẩm nào để mình hỗ trợ đúng hơn?";
+    }
+    
+    /**
+     * Generate smart reply suggestions for rating responses
+     * @param stars Rating stars (1-5)
+     * @param content Rating content from customer
+     * @return JSON string with 3 reply suggestions
+     */
+    public String generateReplySuggestions(int stars, String content) {
+        try {
+            String prompt = buildReplySuggestionsPrompt(stars, content);
+            
+            String response = callGoogleAI(prompt);
+            
+            String extractedText = extractResponseContent(response);
+            //log.info("FULL Extracted text from AI: {}", extractedText);
+            
+            // Clean and extract JSON
+            extractedText = cleanJsonResponse(extractedText);
+            //log.info("FULL Cleaned JSON: {}", extractedText);
+            
+            // Validate JSON before returning
+            try {
+                objectMapper.readTree(extractedText);
+                //log.info("AI generated valid JSON reply suggestions");
+                return extractedText;
+            } catch (Exception e) {
+                log.warn("AI response is not valid JSON, using fallback");
+                log.warn("JSON parse error: {}", e.getMessage());
+                log.warn("JSON length: {} chars", extractedText != null ? extractedText.length() : 0);
+                log.warn("Full invalid JSON: {}", extractedText);
+                return generateFallbackSuggestions(stars);
+            }
+            
+        } catch (Exception e) {
+            log.error("Error generating reply suggestions: {}", e.getMessage());
+            log.warn("Using fallback suggestions instead");
+            return generateFallbackSuggestions(stars);
+        }
+    }
+    
+    private String buildReplySuggestionsPrompt(int stars, String content) {
+        String contentText = (content != null && !content.trim().isEmpty()) 
+            ? content 
+            : "Không có nội dung";
+            
+        String tone = (stars >= 4) 
+            ? "grateful and welcoming"
+            : "apologetic and helpful";
+            
+        return String.format("""
+            Create 3 Vietnamese customer service replies for %d-star rating: "%s"
+            
+            Tone: %s
+            Length: Max 25 words each
+            Emojis: 1-2 per reply
+            
+            Return JSON array:
+            [
+              {"type":"Professional","text":"reply 1"},
+              {"type":"Warm","text":"reply 2"},
+              {"type":"Creative","text":"reply 3"}
+            ]
+            """, stars, contentText, tone);
+    }
+    
+    private String cleanJsonResponse(String response) {
+        if (response == null || response.trim().isEmpty()) {
+            log.warn("Empty response from AI");
+            return "[]";
+        }
+        
+        response = response.trim();
+        
+        // Remove markdown code blocks
+        if (response.startsWith("```json")) {
+            response = response.substring(7);
+        } else if (response.startsWith("```")) {
+            response = response.substring(3);
+        }
+        if (response.endsWith("```")) {
+            response = response.substring(0, response.length() - 3);
+        }
+        
+        response = response.trim();
+        
+        // Find JSON array in the response
+        int startIdx = response.indexOf('[');
+        int endIdx = response.lastIndexOf(']');
+        
+        if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+            response = response.substring(startIdx, endIdx + 1);
+        } else if (startIdx != -1) {
+            // JSON array started but not closed - try to fix it
+            log.warn("JSON array not properly closed, attempting to fix");
+            response = response.substring(startIdx);
+            
+            // Try to close incomplete JSON
+            // Count open braces
+            int openBraces = 0;
+            int closeBraces = 0;
+            int lastValidPos = response.length();
+            
+            for (int i = 0; i < response.length(); i++) {
+                char c = response.charAt(i);
+                if (c == '{') openBraces++;
+                if (c == '}') closeBraces++;
+                
+                // If we have balanced braces, mark this position
+                if (openBraces > 0 && openBraces == closeBraces) {
+                    lastValidPos = i + 1;
+                }
+            }
+            
+            // Truncate to last valid position and close array
+            if (lastValidPos < response.length()) {
+                response = response.substring(0, lastValidPos) + "]";
+                log.info("Fixed truncated JSON, new length: {}", response.length());
+            } else if (!response.endsWith("]")) {
+                response = response + "]";
+            }
+        }
+        
+        // Remove trailing comma before closing bracket (invalid JSON)
+        response = response.replaceAll(",\\s*]", "]");
+        
+        // Remove any text before [ or after ]
+        response = response.trim();
+        
+        log.debug("Cleaned response length: {}", response.length());
+        return response;
+    }
+    
+    private String generateFallbackSuggestions(int stars) {
+        if (stars >= 4) {
+            return """
+                [
+                    {"type": "Chuyên nghiệp", "text": "Cảm ơn bạn đã tin tưởng và lựa chọn TulipShop! 💝 Chúng mình rất vui khi bạn hài lòng với sản phẩm. Hẹn gặp lại bạn trong những lần mua sắm tiếp theo nhé!"},
+                    {"type": "Thân thiện", "text": "Yay! Cảm ơn bạn nhiều nha 🥰 Được bạn khen là động lực để team mình cố gắng hơn nữa đấy! Chúc bạn luôn xinh đẹp và tự tin!"},
+                    {"type": "Nhiệt tình", "text": "Wao! Cảm ơn bạn đã dành thời gian đánh giá! ⭐ Nếu có bất kỳ nhu cầu gì, đừng ngại inbox shop nhé. TulipShop luôn đồng hành cùng bạn! 💕"}
+                ]
+                """;
+        } else {
+            return """
+                [
+                    {"type": "Chuyên nghiệp", "text": "TulipShop xin lỗi vì trải nghiệm chưa được như mong đợi. 🙏 Bạn vui lòng inbox để shop hỗ trợ giải quyết vấn đề tốt nhất cho bạn nhé!"},
+                    {"type": "Thân thiện", "text": "Shop rất tiếc khi bạn chưa hài lòng 😔 Bạn có thể cho shop biết thêm chi tiết để mình khắc phục được không ạ? Shop cam kết sẽ cải thiện!"},
+                    {"type": "Nhiệt tình", "text": "Ôi không! Shop thật sự xin lỗi bạn 💔 Hãy để shop có cơ hội làm tốt hơn nhé! Inbox ngay để được hỗ trợ đổi trả hoặc giải quyết vấn đề nha!"}
+                ]
+                """;
+        }
     }
 }

@@ -12,6 +12,11 @@ public interface EmailService {
     void sendOrderUpdateEmail(Order order);
     
     /**
+     * Send rating reminder email after order is delivered
+     */
+    void sendRatingReminderEmail(Order order);
+    
+    /**
      * @deprecated Use sendOrderUpdateEmail instead
      */
     @Deprecated

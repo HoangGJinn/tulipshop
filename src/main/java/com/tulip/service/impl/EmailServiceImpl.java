@@ -361,4 +361,68 @@ public class EmailServiceImpl implements EmailService {
             </html>
     """.formatted(otp);
     }
+    
+    @Async
+    @Override
+    public void sendRatingReminderEmail(Order order) {
+        try {
+            if (order.getUser() == null || order.getUser().getEmail() == null) {
+                log.error("❌ [EMAIL] Cannot send rating reminder - Order #{} has no user email", order.getId());
+                return;
+            }
+            
+            String customerEmail = order.getUser().getEmail();
+            String customerName = "Khách hàng";
+            if (order.getUser().getProfile() != null && order.getUser().getProfile().getFullName() != null) {
+                customerName = order.getUser().getProfile().getFullName();
+            }
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(customerEmail);
+            helper.setSubject("⭐ Đánh giá sản phẩm - Tulip Shop");
+
+            // Create Thymeleaf context
+            Context context = new Context();
+            context.setVariable("customerName", customerName);
+            context.setVariable("orderDetailUrl", "http://localhost:8787/orders/" + order.getId());
+            
+            // Prepare order items data
+            java.util.List<java.util.Map<String, String>> orderItems = new java.util.ArrayList<>();
+            for (com.tulip.entity.OrderItem item : order.getOrderItems()) {
+                java.util.Map<String, String> itemData = new java.util.HashMap<>();
+                itemData.put("name", item.getSnapProductName() != null ? 
+                            item.getSnapProductName() : 
+                            (item.getProduct() != null ? item.getProduct().getName() : "Sản phẩm"));
+                itemData.put("image", item.getSnapThumbnailUrl() != null ? 
+                             item.getSnapThumbnailUrl() : "/images/placeholder.jpg");
+                
+                String variant = "";
+                if (item.getVariant() != null) {
+                    variant = item.getVariant().getColorName();
+                    if (item.getSize() != null) {
+                        variant += " - Size " + item.getSize().getCode();
+                    }
+                }
+                itemData.put("variant", variant);
+                orderItems.add(itemData);
+            }
+            context.setVariable("orderItems", orderItems);
+
+            // Process the template
+            String htmlContent = templateEngine.process("mail/rating-reminder", context);
+            helper.setText(htmlContent, true);
+
+            log.info("📧 [EMAIL] Sending rating reminder to: {} for order #{}", customerEmail, order.getId());
+            mailSender.send(message);
+            log.info("✅ [EMAIL] Rating reminder sent successfully to: {} for order #{}", customerEmail, order.getId());
+        } catch (MessagingException e) {
+            log.error("❌ [EMAIL] MessagingException sending rating reminder for order #{}. Error: {}", 
+                     order.getId(), e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("❌ [EMAIL] Unexpected error sending rating reminder for order #{}. Error: {}", 
+                     order.getId(), e.getMessage(), e);
+        }
+    }
 }

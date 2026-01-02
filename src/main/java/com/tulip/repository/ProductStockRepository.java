@@ -50,4 +50,15 @@ public interface ProductStockRepository extends JpaRepository<ProductStock, Long
     @Query("SELECT COALESCE(SUM(ps.quantity), 0) FROM ProductStock ps " +
            "WHERE ps.variant.product.id = :productId")
     int sumQuantityByProductId(@Param("productId") Long productId);
+    
+    /**
+     * Lấy tất cả stocks với variant hợp lệ (không bị xóa)
+     * Dùng cho dashboard statistics
+     */
+    @Query("SELECT ps FROM ProductStock ps " +
+           "JOIN ps.variant v " +
+           "JOIN v.product p " +
+           "WHERE p.deletedAt IS NULL " +
+           "AND p.status != 'DELETED'")
+    List<ProductStock> findAllValidStocks();
 }

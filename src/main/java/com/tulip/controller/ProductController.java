@@ -2,12 +2,9 @@ package com.tulip.controller;
 
 import com.tulip.dto.ProductCardDTO;
 import com.tulip.dto.ProductDetailDTO;
-import com.tulip.dto.RatingDTO;
-import com.tulip.dto.RatingSummaryDTO;
 import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.ProductRepository;
 import com.tulip.service.ProductService;
-import com.tulip.service.RatingService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +26,6 @@ public class ProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
-    private final RatingService ratingService;
 
     // --- CHI TIẾT SẢN PHẨM ---
     @GetMapping("/product/{id}")
@@ -88,12 +84,8 @@ public class ProductController {
             cookie.setPath("/"); // Có hiệu lực trên toàn bộ website
             response.addCookie(cookie);
 
-
-            List<RatingDTO> reviews = ratingService.getRatingsByProduct(id);
-            RatingSummaryDTO ratingSummary = ratingService.getRatingSummary(id);
-
-            model.addAttribute("reviews", reviews);
-            model.addAttribute("ratingSummary", ratingSummary);
+            // Ratings được load qua JavaScript API (rating-display.js)
+            // Không cần load ở đây để tối ưu performance
 
             return "product/product-detail";
         } catch (RuntimeException e) {
