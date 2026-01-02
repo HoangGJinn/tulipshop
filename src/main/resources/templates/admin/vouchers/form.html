@@ -163,9 +163,9 @@
             const formData = {
                 code: document.getElementById('code').value,
                 type: document.getElementById('type').value,
-                discountValue: parseFloat(document.getElementById('discountValue').value),
+                discountValue: parseFloat(document.getElementById('discountValue').value) || 0,
                 minOrderValue: document.getElementById('minOrderValue').value ? parseFloat(document.getElementById('minOrderValue').value) : null,
-                quantity: parseInt(document.getElementById('quantity').value),
+                quantity: parseInt(document.getElementById('quantity').value) || 0,
                 startAt: document.getElementById('startAt').value || null,
                 expireAt: document.getElementById('expireAt').value || null,
                 status: document.getElementById('status').checked
