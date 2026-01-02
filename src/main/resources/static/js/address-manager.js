@@ -75,7 +75,7 @@ function saveAddress() {
             if(header && token) xhr.setRequestHeader(header, token);
         },
         success: function(response) {
-            showSuccess('Thành công', 'Lưu thành công!');
+            showSuccess('Thành công', 'Địa chỉ đã được lưu.');
             setTimeout(() => location.reload(), 1000);
         },
         error: function(xhr) {
