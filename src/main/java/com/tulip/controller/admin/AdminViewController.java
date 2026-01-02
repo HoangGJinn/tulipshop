@@ -1,6 +1,8 @@
 package com.tulip.controller.admin;
 
+import com.tulip.dto.response.DashboardStatsDTO;
 import com.tulip.entity.enums.OrderStatus;
+import com.tulip.service.DashboardService;
 import com.tulip.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AdminViewController {
     
     private final OrderService orderService;
+    private final DashboardService dashboardService;
 
     // Xử lý route /admin - redirect đến dashboard
     @GetMapping
@@ -25,11 +28,31 @@ public class AdminViewController {
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        model.addAttribute("pageTitle", "DASHBOARD");
-        model.addAttribute("currentPage", "dashboard");
-        model.addAttribute("contentTemplate", "admin/dashboard/dashboard");
-        model.addAttribute("showSearch", false);
-        return "admin/layouts/layout";
+        try {
+            // Lấy số đơn hàng đang chờ xử lý
+            int pendingOrdersCount = orderService.getPendingOrders().size();
+            
+            // Lấy thống kê tổng quan
+            DashboardStatsDTO stats = dashboardService.getDashboardStats();
+            
+            model.addAttribute("pendingOrdersCount", pendingOrdersCount);
+            model.addAttribute("stats", stats);
+            model.addAttribute("pageTitle", "DASHBOARD");
+            model.addAttribute("currentPage", "dashboard");
+            model.addAttribute("contentTemplate", "admin/dashboard/dashboard");
+            model.addAttribute("showSearch", false);
+            return "admin/layouts/layout";
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Fallback với giá trị mặc định
+            model.addAttribute("pendingOrdersCount", 0);
+            model.addAttribute("stats", null);
+            model.addAttribute("pageTitle", "DASHBOARD");
+            model.addAttribute("currentPage", "dashboard");
+            model.addAttribute("contentTemplate", "admin/dashboard/dashboard");
+            model.addAttribute("showSearch", false);
+            return "admin/layouts/layout";
+        }
     }
 
     @GetMapping("/orders")

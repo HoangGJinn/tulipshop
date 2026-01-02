@@ -1,181 +1,423 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xác thực Email</title>
-    <link rel="stylesheet" th:href="@{/css/login.css}">
-    <link rel="stylesheet" th:href="@{/css/notification.css}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Xác thực Email - Tulip Shop')}"></head>
+<body class="bg-gray-50">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0f172a; /* Slate 900 */
+            --accent-color: #e11d48;  /* Rose 600 */
+            --input-border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: var(--text-main);
+        }
+
+        .login-page-wrapper {
+            min-height: 85vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        
+        .verify-container {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            padding: 40px;
+            border: 1px solid #f1f5f9;
+        }
+        
+        /* HEADER */
+        .verify-header { text-align: center; margin-bottom: 32px; }
+        
+        .verify-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 20px;
+            background-color: #f0fdf4; /* Green 50 */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #16a34a; /* Green 600 */
+            font-size: 32px;
+            transition: transform 0.3s ease;
+        }
+        .verify-container:hover .verify-icon { transform: scale(1.1) rotate(-10deg); }
+        
+        .verify-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .verify-subtitle {
+            font-size: 14px;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+        
+        /* EMAIL BADGE */
+        .email-display {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 32px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .email-display .email {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 14px;
+        }
+        .email-icon { color: var(--text-sub); font-size: 14px; }
+        
+        /* OTP INPUTS */
+        .otp-container { margin-bottom: 24px; }
+        .otp-label {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .otp-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .otp-input {
+            width: 48px;
+            height: 56px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            border: 2px solid var(--input-border);
+            border-radius: 12px;
+            background-color: #fff;
+            color: var(--primary-color);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            /* Monospace font cho số đẹp hơn */
+            font-family: 'Courier New', monospace; 
+        }
+        
+        .otp-input:focus {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+        }
+        
+        .otp-input.filled {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        
+        .otp-input.error {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+            animation: shake 0.4s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        
+        .error-message-otp {
+            color: #ef4444;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        /* BUTTONS */
+        .verify-btn {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .verify-btn:hover:not(:disabled) {
+            background-color: #000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .verify-btn:disabled { background-color: #94a3b8; cursor: not-allowed; opacity: 0.8; }
+        
+        .resend-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
+            text-align: center;
+        }
+        
+        .resend-text {
+            color: var(--text-sub);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .resend-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-color: rgba(15, 23, 42, 0.2);
+            transition: all 0.2s;
+            padding: 0;
+        }
+        .resend-btn:hover:not(:disabled) {
+            color: var(--accent-color);
+            text-decoration-color: var(--accent-color);
+        }
+        .resend-btn:disabled { color: #94a3b8; cursor: not-allowed; text-decoration: none; }
+        
+        .back-to-login { margin-top: 20px; text-align: center; }
+        .back-to-login a {
+            color: var(--text-sub);
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+        .back-to-login a:hover { color: var(--primary-color); }
+    </style>
+    
     <script src="https://cdn.jsdelivr.net/npm/validator@13.11.0/validator.min.js"></script>
     <script th:src="@{/js/notification.js}"></script>
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-box">
-            <h2 class="login-title">Xác thực Email</h2>
+    
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="login-page-wrapper">
+        <div class="verify-container">
             
-            <div th:if="${success}" class="message" th:text="${success}"></div>
-            <div th:if="${error}" class="error-message" th:text="${error}"></div>
+            <div class="verify-header">
+                <div class="verify-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 class="verify-title">Xác thực Email</h2>
+                <p class="verify-subtitle">Nhập mã OTP 6 chữ số chúng tôi vừa gửi</p>
+            </div>
             
-            <div class="info-message" style="margin-bottom: 20px; padding: 15px; background-color: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
-                <p style="margin: 0; color: #1976d2;">
-                    <strong>Mã OTP đã được gửi đến email:</strong><br>
-                    <span th:text="${email}" style="font-weight: bold;"></span>
-                </p>
-                <p style="margin: 10px 0 0 0; color: #555; font-size: 14px;">
-                    Vui lòng kiểm tra hộp thư đến (và cả thư mục spam) để lấy mã OTP 6 chữ số.
-                </p>
+            <div class="email-display">
+                <i class="fas fa-envelope email-icon"></i>
+                <span class="email" th:text="${email}">user@example.com</span>
             </div>
             
             <form id="verifyForm" onsubmit="handleVerify(event)">
                 <input type="hidden" id="email" th:value="${email}">
                 
-                <div class="form-group">
-                    <label for="otp">Mã OTP <span class="required">*</span></label>
-                    <input type="text" 
-                           id="otp" 
-                           name="otp" 
-                           placeholder="Nhập mã OTP 6 chữ số" 
-                           autofocus
-                           maxlength="6"
-                           style="text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: bold;">
-                    <div id="otpError" class="error-message" style="display: none;"></div>
+                <div class="otp-container">
+                    <div class="otp-label">Nhập mã xác thực</div>
+                    <div class="otp-inputs">
+                        <input type="text" class="otp-input" maxlength="1" data-index="0" autofocus>
+                        <input type="text" class="otp-input" maxlength="1" data-index="1">
+                        <input type="text" class="otp-input" maxlength="1" data-index="2">
+                        <input type="text" class="otp-input" maxlength="1" data-index="3">
+                        <input type="text" class="otp-input" maxlength="1" data-index="4">
+                        <input type="text" class="otp-input" maxlength="1" data-index="5">
+                    </div>
+                    <div class="error-message-otp" id="otpError">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Mã OTP không đúng</span>
+                    </div>
                 </div>
 
-                <div>
-                    <button type="submit" class="login-button" id="verifyBtn">Xác thực</button>
-                </div>
+                <button type="submit" class="verify-btn" id="verifyBtn">
+                    Xác thực ngay
+                </button>
             </form>
             
-            <button type="button" onclick="handleResendOtp('verify')" class="btn-resend" id="resendBtn" style="width: 100%; padding: 10px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; color: #555; margin-top: 15px;">
-                Gửi lại mã OTP
-            </button>
+            <div class="resend-section">
+                <div class="resend-text">Không nhận được mã?</div>
+                <button type="button" onclick="handleResendOtp('verify')" class="resend-btn" id="resendBtn">
+                    Gửi lại mã OTP mới
+                </button>
+            </div>
             
-            <div class="back-link">
-                <p><a th:href="@{/login}">Quay lại trang đăng nhập</a></p>
+            <div class="back-to-login">
+                <a th:href="@{/login}">
+                    <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
+                </a>
             </div>
         </div>
     </div>
     
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
     <script>
         const apiBaseUrl = /*[[${apiBaseUrl}]]*/ '/v1/api';
         const email = document.getElementById('email').value;
+        const otpInputs = document.querySelectorAll('.otp-input');
         
-        // Auto-focus và tự động chuyển sang ô tiếp theo khi nhập đủ 6 số
+        // Logic xử lý OTP Inputs (Focus, Paste, Backspace)
         document.addEventListener('DOMContentLoaded', function() {
-            const otpInput = document.getElementById('otp');
-            if (otpInput) {
-                otpInput.addEventListener('input', function(e) {
-                    // Chỉ cho phép nhập số
+            otpInputs.forEach((input, index) => {
+                // Input number only & Auto focus next
+                input.addEventListener('input', function(e) {
                     this.value = this.value.replace(/[^0-9]/g, '');
-                    
-                    // Giới hạn 6 ký tự
-                    if (this.value.length > 6) {
-                        this.value = this.value.slice(0, 6);
+                    if (this.value) {
+                        this.classList.add('filled');
+                        if (index < 5) otpInputs[index + 1].focus();
+                    } else {
+                        this.classList.remove('filled');
                     }
-                    
-                    // Xóa error message khi user nhập lại
                     document.getElementById('otpError').style.display = 'none';
+                    otpInputs.forEach(inp => inp.classList.remove('error'));
                 });
-            }
+                
+                // Handle Paste
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                    pasteData.split('').forEach((char, i) => {
+                        if (otpInputs[i]) {
+                            otpInputs[i].value = char;
+                            otpInputs[i].classList.add('filled');
+                        }
+                    });
+                    if (pasteData.length === 6) otpInputs[5].focus();
+                });
+                
+                // Handle Backspace
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && !this.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+            });
         });
         
-        // Xử lý verify OTP
+        function getOtpValue() {
+            return Array.from(otpInputs).map(input => input.value).join('');
+        }
+        
         async function handleVerify(event) {
             event.preventDefault();
-            
-            const otpInput = document.getElementById('otp');
             const otpError = document.getElementById('otpError');
             const verifyBtn = document.getElementById('verifyBtn');
+            const otp = getOtpValue();
             
-            const otp = otpInput.value.trim();
-            
-            // Validate bằng validator.js
-            if (!otp || !validator.isLength(otp, {min: 6, max: 6}) || !validator.isNumeric(otp)) {
-                otpError.textContent = 'Mã OTP phải là 6 chữ số';
-                otpError.style.display = 'block';
+            // Validate
+            if (!otp || otp.length !== 6 || isNaN(otp)) {
+                otpError.querySelector('span').textContent = 'Vui lòng nhập đủ 6 chữ số';
+                otpError.style.display = 'flex';
+                otpInputs.forEach(input => input.classList.add('error'));
                 return;
             }
             
-            // Disable button và hiển thị loading
             verifyBtn.disabled = true;
-            verifyBtn.textContent = 'Đang xử lý...';
+            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xác thực...';
             
             try {
                 const response = await fetch(apiBaseUrl + '/auth/verify-email', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        otp: otp
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, otp: otp })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Hiển thị thông báo thành công và redirect
-                    showSuccess('Thành công', data.message || 'Email đã được xác thực thành công!');
-                    setTimeout(() => {
-                        window.location.href = '/login?verified=true';
-                    }, 1500);
+                    showSuccess('Thành công', data.message || 'Xác thực thành công!');
+                    setTimeout(() => window.location.href = '/login?verified=true', 1500);
                 } else {
-                    // Hiển thị lỗi
-                    otpError.textContent = data.message || 'Mã OTP không đúng hoặc đã hết hạn';
-                    otpError.style.display = 'block';
-                    otpInput.focus();
-                    otpInput.select();
+                    otpError.querySelector('span').textContent = data.message || 'Mã OTP không đúng';
+                    otpError.style.display = 'flex';
+                    otpInputs.forEach(input => {
+                        input.classList.add('error');
+                        input.value = '';
+                    });
+                    otpInputs[0].focus();
                 }
             } catch (error) {
-                otpError.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
-                otpError.style.display = 'block';
+                otpError.querySelector('span').textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+                otpError.style.display = 'flex';
             } finally {
                 verifyBtn.disabled = false;
-                verifyBtn.textContent = 'Xác thực';
+                verifyBtn.innerHTML = 'Xác thực ngay';
             }
         }
         
-        // Xử lý gửi lại OTP
         async function handleResendOtp(type) {
             const resendBtn = document.getElementById('resendBtn');
-            
-            // Disable button và hiển thị loading
             resendBtn.disabled = true;
-            resendBtn.textContent = 'Đang gửi...';
+            resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
             
             try {
                 const response = await fetch(apiBaseUrl + '/auth/resend-otp?type=' + type, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        type: type
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, type: type })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    showSuccess('Thành công', data.message || 'Mã OTP đã được gửi lại!');
-                    // Xóa OTP input và focus lại
-                    document.getElementById('otp').value = '';
-                    document.getElementById('otp').focus();
+                    showSuccess('Đã gửi!', 'Kiểm tra email để lấy mã OTP mới.');
+                    // Clear inputs
+                    otpInputs.forEach(input => {
+                        input.value = '';
+                        input.classList.remove('filled', 'error');
+                    });
+                    otpInputs[0].focus();
                 } else {
-                    showError('Lỗi', data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
+                    showError('Lỗi', data.message || 'Không thể gửi lại mã.');
                 }
             } catch (error) {
-                showError('Lỗi', 'Có lỗi xảy ra. Vui lòng thử lại.');
+                showError('Lỗi', 'Lỗi kết nối server.');
             } finally {
                 resendBtn.disabled = false;
-                resendBtn.textContent = 'Gửi lại mã OTP';
+                resendBtn.innerHTML = 'Gửi lại mã OTP mới';
             }
         }
     </script>
 </body>
 </html>
-
-
