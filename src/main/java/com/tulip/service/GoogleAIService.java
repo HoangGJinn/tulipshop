@@ -140,4 +140,94 @@ public class GoogleAIService {
         
         return "Mình đã nhận câu hỏi của bạn. Bạn có thể cho mình biết thêm: bạn đang quan tâm chính sách (đổi trả/bảo hành/vận chuyển/thanh toán) hay tư vấn size/sản phẩm nào để mình hỗ trợ đúng hơn?";
     }
+    
+    /**
+     * Generate smart reply suggestions for rating responses
+     * @param stars Rating stars (1-5)
+     * @param content Rating content from customer
+     * @return JSON string with 3 reply suggestions
+     */
+    public String generateReplySuggestions(int stars, String content) {
+        try {
+            String prompt = buildReplySuggestionsPrompt(stars, content);
+            String response = callGoogleAI(prompt);
+            String extractedText = extractResponseContent(response);
+            
+            // Clean markdown code blocks if present
+            extractedText = cleanJsonResponse(extractedText);
+            
+            log.info("AI generated reply suggestions for {} stars rating", stars);
+            return extractedText;
+            
+        } catch (Exception e) {
+            log.error("Error generating reply suggestions", e);
+            return generateFallbackSuggestions(stars);
+        }
+    }
+    
+    private String buildReplySuggestionsPrompt(int stars, String content) {
+        String contentText = (content != null && !content.trim().isEmpty()) 
+            ? content 
+            : "Không có nội dung cụ thể";
+            
+        return String.format("""
+            Bạn là nhân viên CSKH chuyên nghiệp của 'TulipShop' (shop thời trang nữ cao cấp).
+            
+            Khách hàng vừa đánh giá %d sao với nội dung: "%s"
+            
+            Hãy viết 3 mẫu câu trả lời ngắn gọn (dưới 50 từ mỗi câu), lịch sự, giọng văn thân thiện, có emoji phù hợp.
+            
+            YÊU CẦU:
+            - Nếu đánh giá 4-5 sao: Cảm ơn, khuyến khích, mời quay lại
+            - Nếu đánh giá 1-3 sao: Xin lỗi, thể hiện quan tâm, đề xuất giải pháp
+            - Mỗi câu trả lời phải có phong cách khác nhau (chuyên nghiệp, thân thiện, nhiệt tình)
+            - Sử dụng emoji phù hợp nhưng không quá nhiều (1-2 emoji/câu)
+            
+            Trả về kết quả CHỈ LÀ JSON array thuần túy, KHÔNG có markdown, KHÔNG có ```json, theo định dạng:
+            [
+                {"type": "Chuyên nghiệp", "text": "..."},
+                {"type": "Thân thiện", "text": "..."},
+                {"type": "Nhiệt tình", "text": "..."}
+            ]
+            
+            CHÚ Ý: Chỉ trả về JSON array, không thêm bất kỳ text nào khác.
+            """, stars, contentText);
+    }
+    
+    private String cleanJsonResponse(String response) {
+        if (response == null) return "[]";
+        
+        // Remove markdown code blocks
+        response = response.trim();
+        if (response.startsWith("```json")) {
+            response = response.substring(7);
+        } else if (response.startsWith("```")) {
+            response = response.substring(3);
+        }
+        if (response.endsWith("```")) {
+            response = response.substring(0, response.length() - 3);
+        }
+        
+        return response.trim();
+    }
+    
+    private String generateFallbackSuggestions(int stars) {
+        if (stars >= 4) {
+            return """
+                [
+                    {"type": "Chuyên nghiệp", "text": "Cảm ơn bạn đã tin tưởng và lựa chọn TulipShop! 💝 Chúng mình rất vui khi bạn hài lòng với sản phẩm. Hẹn gặp lại bạn trong những lần mua sắm tiếp theo nhé!"},
+                    {"type": "Thân thiện", "text": "Yay! Cảm ơn bạn nhiều nha 🥰 Được bạn khen là động lực để team mình cố gắng hơn nữa đấy! Chúc bạn luôn xinh đẹp và tự tin!"},
+                    {"type": "Nhiệt tình", "text": "Wao! Cảm ơn bạn đã dành thời gian đánh giá! ⭐ Nếu có bất kỳ nhu cầu gì, đừng ngại inbox shop nhé. TulipShop luôn đồng hành cùng bạn! 💕"}
+                ]
+                """;
+        } else {
+            return """
+                [
+                    {"type": "Chuyên nghiệp", "text": "TulipShop xin lỗi vì trải nghiệm chưa được như mong đợi. 🙏 Bạn vui lòng inbox để shop hỗ trợ giải quyết vấn đề tốt nhất cho bạn nhé!"},
+                    {"type": "Thân thiện", "text": "Shop rất tiếc khi bạn chưa hài lòng 😔 Bạn có thể cho shop biết thêm chi tiết để mình khắc phục được không ạ? Shop cam kết sẽ cải thiện!"},
+                    {"type": "Nhiệt tình", "text": "Ôi không! Shop thật sự xin lỗi bạn 💔 Hãy để shop có cơ hội làm tốt hơn nhé! Inbox ngay để được hỗ trợ đổi trả hoặc giải quyết vấn đề nha!"}
+                ]
+                """;
+        }
+    }
 }

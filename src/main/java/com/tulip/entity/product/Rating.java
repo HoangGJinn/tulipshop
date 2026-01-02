@@ -52,6 +52,17 @@ public class Rating {
     @Builder.Default
     private List<RatingImage> images = new ArrayList<>();
 
+    // Admin reply fields
+    @Column(name = "admin_reply", columnDefinition = "TEXT")
+    private String adminReply;
+
+    @Column(name = "reply_time")
+    private LocalDateTime replyTime;
+
+    @Column(name = "is_visible")
+    @Builder.Default
+    private Boolean isVisible = true;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

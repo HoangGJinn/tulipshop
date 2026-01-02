@@ -33,4 +33,23 @@ public interface RatingService {
      * Lấy thông tin đơn hàng (dùng cho debug)
      */
     com.tulip.entity.Order getOrderById(Long orderId);
+    
+    /**
+     * Admin phản hồi đánh giá
+     */
+    RatingDTO replyToRating(Long ratingId, String replyContent);
+    
+    /**
+     * Admin toggle hiển thị đánh giá
+     */
+    RatingDTO toggleVisibility(Long ratingId);
+    
+    /**
+     * Lấy tất cả đánh giá cho Admin (bao gồm cả ẩn)
+     */
+    org.springframework.data.domain.Page<RatingDTO> getAllRatingsForAdmin(
+        Integer stars, 
+        Boolean hasReply, 
+        org.springframework.data.domain.Pageable pageable
+    );
 }

@@ -75,6 +75,18 @@ function renderReviewItem(review) {
           ).join('')}</div>`
         : '';
     
+    // Admin reply section
+    const adminReply = review.adminReply ? `
+        <div class="mt-3 p-3 bg-light rounded">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-store text-primary me-2"></i>
+                <strong class="text-primary">Phản hồi từ Tulip Shop</strong>
+                <span class="text-muted small ms-2">• ${formatTimeAgo(review.replyTime)}</span>
+            </div>
+            <p class="mb-0 text-dark" style="font-size: 14px;">${escapeHtml(review.adminReply)}</p>
+        </div>
+    ` : '';
+    
     return `
         <div class="card border-0 shadow-sm mb-3 review-card review-item" data-star="${review.stars}" data-has-media="${review.imageUrls && review.imageUrls.length > 0}">
             <div class="card-body p-4">
@@ -97,6 +109,8 @@ function renderReviewItem(review) {
                 <p class="text-dark mb-3" style="font-size: 14px;">${escapeHtml(review.content)}</p>
 
                 ${images}
+                
+                ${adminReply}
             </div>
         </div>
     `;
@@ -105,8 +119,13 @@ function renderReviewItem(review) {
 function formatTimeAgo(dateString) {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Reset time to compare only dates
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = nowOnly - dateOnly;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) return 'Hôm nay';
     if (diffDays === 1) return 'Hôm qua';

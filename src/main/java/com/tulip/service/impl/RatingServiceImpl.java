@@ -123,7 +123,8 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional(readOnly = true)
     public List<RatingDTO> getProductRatings(Long productId) {
-        List<Rating> ratings = ratingRepository.findByProductIdOrderByUtilityScoreDesc(productId);
+        // Chỉ lấy các đánh giá có isVisible = true cho client
+        List<Rating> ratings = ratingRepository.findByProductIdAndIsVisibleOrderByUtilityScoreDesc(productId, true);
         return ratings.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -177,7 +178,8 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional(readOnly = true)
     public RatingStatistics getProductRatingStatistics(Long productId) {
-        List<Rating> ratings = ratingRepository.findByProductIdOrderByUtilityScoreDesc(productId);
+        // Chỉ tính thống kê từ các đánh giá visible
+        List<Rating> ratings = ratingRepository.findByProductIdAndIsVisibleOrderByUtilityScoreDesc(productId, true);
         
         long total = ratings.size();
         double average = total > 0 ? ratings.stream().mapToInt(Rating::getStars).average().orElse(0.0) : 0.0;
@@ -203,6 +205,56 @@ public class RatingServiceImpl implements RatingService {
     @Transactional(readOnly = true)
     public Order getOrderById(Long orderId) {
         return orderRepository.findById(orderId).orElse(null);
+    }
+    
+    @Override
+    @Transactional
+    public RatingDTO replyToRating(Long ratingId, String replyContent) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đánh giá"));
+        
+        rating.setAdminReply(replyContent);
+        rating.setReplyTime(java.time.LocalDateTime.now());
+        
+        Rating savedRating = ratingRepository.save(rating);
+        log.info("Admin đã phản hồi đánh giá ID: {}", ratingId);
+        
+        return convertToDTO(savedRating);
+    }
+    
+    @Override
+    @Transactional
+    public RatingDTO toggleVisibility(Long ratingId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đánh giá"));
+        
+        rating.setIsVisible(!rating.getIsVisible());
+        Rating savedRating = ratingRepository.save(rating);
+        
+        log.info("Admin đã {} đánh giá ID: {}", 
+                savedRating.getIsVisible() ? "hiện" : "ẩn", ratingId);
+        
+        return convertToDTO(savedRating);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<RatingDTO> getAllRatingsForAdmin(
+            Integer stars, Boolean hasReply, org.springframework.data.domain.Pageable pageable) {
+        
+        org.springframework.data.domain.Page<Rating> ratingsPage;
+        
+        if (stars != null && hasReply != null) {
+            ratingsPage = ratingRepository.findByStarsAndHasReply(stars, hasReply, pageable);
+        } else if (stars != null) {
+            ratingsPage = ratingRepository.findByStars(stars, pageable);
+        } else if (hasReply != null) {
+            ratingsPage = ratingRepository.findByHasReply(hasReply, pageable);
+        } else {
+            ratingsPage = ratingRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+        
+        return ratingsPage.map(this::convertToDTO);
     }
 
     /**
@@ -292,6 +344,7 @@ public class RatingServiceImpl implements RatingService {
         return RatingDTO.builder()
                 .id(rating.getId())
                 .productId(rating.getProduct().getId())
+                .productName(rating.getProduct().getName())
                 .userId(rating.getUser().getId())
                 .userName(userName)
                 .userAvatar(userAvatar)
@@ -302,6 +355,9 @@ public class RatingServiceImpl implements RatingService {
                 .createdAt(rating.getCreatedAt())
                 .imageUrls(imageUrls)
                 .isHighQuality(rating.getUtilityScore() >= 40.0)
+                .adminReply(rating.getAdminReply())
+                .replyTime(rating.getReplyTime())
+                .isVisible(rating.getIsVisible())
                 .build();
     }
     

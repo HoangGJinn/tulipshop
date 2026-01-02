@@ -45,3 +45,13 @@ INSERT IGNORE INTO vouchers (code, type, discount_value, min_order_value, quanti
 ('FREESHIP', 'AMOUNT', 30000.00, 50000.00, 2000, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW()),
 ('SALE20', 'PERCENT', 20.00, 500000.00, 100, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW());
 
+-- Add admin reply fields to ratings table
+ALTER TABLE ratings 
+ADD COLUMN IF NOT EXISTS admin_reply TEXT,
+ADD COLUMN IF NOT EXISTS reply_time TIMESTAMP NULL,
+ADD COLUMN IF NOT EXISTS is_visible BOOLEAN DEFAULT TRUE;
+
+-- Add index for admin queries
+CREATE INDEX IF NOT EXISTS idx_ratings_created_at ON ratings(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ratings_stars ON ratings(stars);
+CREATE INDEX IF NOT EXISTS idx_ratings_is_visible ON ratings(is_visible);
