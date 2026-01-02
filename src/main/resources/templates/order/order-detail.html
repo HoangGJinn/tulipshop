@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head(title='Chi tiết đơn hàng - Tulip Shop')}">
+</head>
+<body>
+
+
+<!-- Custom CSS cho trang order detail -->
+<style>
+    .order-detail-page {
+        background-color: #f8f9fa;
+        min-height: 70vh;
+        padding: 40px 0;
+    }
+    .detail-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        padding: 25px;
+    }
+    .detail-header {
+        border-bottom: 2px solid #eee;
+        padding-bottom: 20px;
+        margin-bottom: 25px;
+    }
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .status-pending { background-color: #fff3cd; color: #856404; }
+    .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+    .status-shipping { background-color: #cce5ff; color: #004085; }
+    .status-delivered { background-color: #d4edda; color: #155724; }
+    .status-cancelled { background-color: #f8d7da; color: #721c24; }
+    .status-returned { background-color: #e2e3e5; color: #383d41; }
+    .status-expired { background-color: #f8d7da; color: #721c24; }
+    .payment-badge {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        }
+        .payment-success { background-color: #d4edda; color: #155724; }
+        .payment-pending { background-color: #fff3cd; color: #856404; }
+        .payment-failed { background-color: #f8d7da; color: #721c24; }
+        .payment-expired { background-color: #e2e3e5; color: #383d41; }
+        .order-item-row {
+            padding: 20px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .order-item-row:last-child {
+            border-bottom: none;
+        }
+        .item-image {
+            width: 100px;
+            height: 125px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .info-row {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 150px;
+        }
+        .summary-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="order-detail-page">
+    <div class="container">
+        <div class="mb-4">
+            <a th:href="@{/orders}" class="text-decoration-none text-dark">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách đơn hàng
+            </a>
+        </div>
+
+        <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+
+        <div th:if="${order != null}">
+            <div class="detail-card">
+                <div class="detail-header">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 class="fw-bold mb-2">Mã đơn hàng: 
+                                <span th:text="${order.orderCode != null ? order.orderCode : '#' + order.id}"></span>
+                            </h3>
+                            <div class="small text-muted mb-2">
+                                <i class="far fa-calendar me-1"></i>
+                                Đặt hàng lúc: <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span>
+                            </div>
+                            <div th:if="${order.updatedAt != null}" class="small text-muted">
+                                <i class="far fa-edit me-1"></i>
+                                Cập nhật lúc: <span th:text="${#temporals.format(order.updatedAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span>
+                            </div>
+                            <div th:if="${order.paymentExpireAt != null}" class="small mt-2">
+                                <span th:if="${order.paymentExpireAt.isAfter(T(java.time.LocalDateTime).now())}" class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>Hết hạn thanh toán: <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </span>
+                                <span th:unless="${order.paymentExpireAt.isAfter(T(java.time.LocalDateTime).now())}" class="badge bg-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Đã hết hạn thanh toán lúc: <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div th:classappend="'status-badge status-' + ${#strings.toLowerCase(order.status.toString())}"
+                                 th:text="${#strings.toUpperCase(order.status.toString())}">
+                                PENDING
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-3">Sản phẩm đã đặt</h5>
+                <div th:each="item : ${order.orderItems}" class="order-item-row">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <!-- Ưu tiên hiển thị ảnh snapshot, fallback về ảnh hiện tại -->
+                            <img th:if="${item.snapThumbnailUrl != null}"
+                                 th:src="${item.snapThumbnailUrl}"
+                                 class="item-image"
+                                 alt="Sản phẩm"
+                                 onerror="this.src='/images/placeholder.jpg'">
+                            <img th:if="${item.snapThumbnailUrl == null and item.variant != null and not #lists.isEmpty(item.variant.images)}"
+                                 th:src="${item.variant.images[0].imageUrl}"
+                                 class="item-image"
+                                 alt="Sản phẩm"
+                                 th:onerror="this.src=(${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'});">
+                            <img th:if="${item.snapThumbnailUrl == null and (item.variant == null or #lists.isEmpty(item.variant.images))}"
+                                 th:src="${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'}"
+                                 class="item-image"
+                                 alt="Sản phẩm">
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Hiển thị tên snapshot nếu có, nếu không thì tên hiện tại -->
+                            <div class="fw-bold mb-2" th:text="${item.snapProductName != null ? item.snapProductName : (item.product != null ? item.product.name : 'Sản phẩm đã bị xóa')}">
+                                Tên sản phẩm
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <span th:if="${item.variant != null}">
+                                    <span th:text="'Màu: ' + ${item.variant.colorName}">Màu: Đỏ</span>
+                                </span>
+                                <span th:if="${item.size != null}">
+                                    <span th:text="' | Size: ' + ${item.size.code}"> | Size: M</span>
+                                </span>
+                                <span th:if="${item.sku != null}">
+                                    <span th:text="' | SKU: ' + ${item.sku}"> | SKU: ABC123</span>
+                                </span>
+                            </div>
+                            <div class="small text-muted">
+                                Số lượng: <span th:text="${item.quantity}">1</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <!-- Hiển thị giá snapshot nếu có, nếu không thì giá tại thời điểm mua -->
+                            <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(item.snapPrice != null ? item.snapPrice : item.priceAtPurchase, 0, 'COMMA', 0, 'POINT') + '₫'}">
+                                0₫
+                            </div>
+                            <div class="small text-muted">
+                                Tổng: <span th:text="${#numbers.formatDecimal((item.snapPrice != null ? item.snapPrice : item.priceAtPurchase) * item.quantity, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="detail-card h-100">
+                        <h5 class="fw-bold mb-3">Thông tin đơn hàng</h5>
+                        <div class="info-row d-flex">
+                            <span class="info-label">Trạng thái:</span>
+                            <span th:classappend="'status-badge status-' + ${#strings.toLowerCase(order.status.toString())}"
+                                  th:text="${#strings.toUpperCase(order.status.toString())}">
+                                PENDING
+                            </span>
+                        </div>
+                        <div class="info-row d-flex">
+                            <span class="info-label">Phương thức thanh toán:</span>
+                            <span>
+                                <span th:if="${order.paymentMethod.toString() == 'COD'}">Thanh toán khi nhận hàng (COD)</span>
+                                <span th:if="${order.paymentMethod.toString() == 'VNPAY'}">Thanh toán qua VNPAY</span>
+                                <span th:if="${order.paymentMethod.toString() == 'MOMO'}">Thanh toán qua MOMO</span>
+                            </span>
+                        </div>
+                        <div class="info-row d-flex">
+                            <span class="info-label">Trạng thái thanh toán:</span>
+                            <span th:classappend="'payment-badge payment-' + ${#strings.toLowerCase(order.paymentStatus.toString())}">
+                                <span th:if="${order.paymentStatus.toString() == 'SUCCESS'}">Đã thanh toán</span>
+                                <span th:if="${order.paymentStatus.toString() == 'PENDING'}">Chờ thanh toán</span>
+                                <span th:if="${order.paymentStatus.toString() == 'FAILED'}">Thanh toán thất bại</span>
+                                <span th:if="${order.paymentStatus.toString() == 'EXPIRED'}">Hết hạn thanh toán</span>
+                            </span>
+                        </div>
+                        <div th:if="${order.transactionId != null}" class="info-row d-flex">
+                            <span class="info-label">Mã giao dịch:</span>
+                            <span th:text="${order.transactionId}">TXN123456</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="detail-card h-100">
+                        <h5 class="fw-bold mb-3">Thông tin vận chuyển</h5>
+                        <div class="mb-3 border-bottom pb-2">
+                            <strong>Người nhận:</strong> <br>
+                            <span th:text="${order.recipientName} + ' - ' + ${order.recipientPhone}">Tên người nhận</span>
+                        </div>
+                        <div class="mb-3 border-bottom pb-2">
+                            <strong>Địa chỉ:</strong> <br>
+                            <span class="text-muted" th:text="${order.shippingAddress}">Địa chỉ giao hàng</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Đơn vị vận chuyển:</strong> <br>
+                            <span class="badge bg-info text-dark">
+                                <i class="fas fa-truck"></i> Tulip Express
+                            </span>
+                            <span class="ms-2 badge bg-warning text-dark">
+                                STANDARD
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <h5 class="fw-bold mb-3">Tổng kết đơn hàng</h5>
+                <div class="summary-box">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tổng tiền hàng:</span>
+                        <span class="fw-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Phí vận chuyển:</span>
+                        <span class="fw-bold" th:text="${#numbers.formatDecimal(order.shippingPrice, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
+                    </div>
+                    <div th:if="${order.voucher != null}" class="d-flex justify-content-between mb-2 text-success">
+                        <span>Giảm giá (Voucher):</span>
+                        <span class="fw-bold">-<span th:text="${#numbers.formatDecimal(order.voucher.discountAmount, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span></span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-3 border-top mt-3">
+                        <span class="fs-5 fw-bold">Tổng thanh toán:</span>
+                        <span class="fs-5 fw-bold text-danger" th:text="${#numbers.formatDecimal(order.finalPrice, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
+                    </div>
+                </div>
+                
+                <!-- Nút thanh toán cho đơn chưa thanh toán -->
+                <div th:if="${order.status.toString() == 'PENDING' 
+                             and order.paymentStatus.toString() == 'PENDING' 
+                             and order.paymentUrl != null 
+                             and order.paymentExpireAt != null 
+                             and order.paymentExpireAt.isAfter(T(java.time.LocalDateTime).now())}" 
+                     class="mt-4 text-center">
+                    <a th:href="${order.paymentUrl}" 
+                       class="btn btn-primary btn-lg px-5">
+                        <i class="fas fa-credit-card me-2"></i>Tiếp tục thanh toán
+                    </a>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-clock me-1"></i>Link thanh toán còn hiệu lực đến: 
+                        <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
+                    </p>
+                </div>
+                
+                <!-- Nút mua lại cho đơn đã hủy/hết hạn -->
+                <div th:if="${order.status.toString() == 'CANCELLED' 
+                             and order.paymentStatus.toString() == 'EXPIRED'}" 
+                     class="mt-4 text-center">
+                    <form th:action="@{/orders/{orderId}/re-order(orderId=${order.id})}" 
+                          method="post" 
+                          style="display: inline-block;">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="fas fa-redo-alt me-2"></i>Mua lại đơn hàng này
+                        </button>
+                    </form>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Sản phẩm sẽ được thêm vào giỏ hàng. Vui lòng kiểm tra tồn kho trước khi thanh toán.
+                    </p>
+                </div>
+                
+                <!-- Nút mua lại cho đơn đã hoàn thành -->
+                <div th:if="${order.status.toString() == 'DELIVERED'}" 
+                     class="mt-4 text-center">
+                    <form th:action="@{/orders/{orderId}/re-order(orderId=${order.id})}" 
+                          method="post" 
+                          style="display: inline-block;">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="fas fa-redo-alt me-2"></i>Mua lại đơn hàng này
+                        </button>
+                    </form>
+                    <p class="text-success small mt-2 mb-0">
+                        <i class="fas fa-check-circle me-1"></i>
+                        Đơn hàng đã được giao thành công. Bạn có thể đặt lại đơn hàng này!
+                    </p>
+                </div>
+                
+                <!-- Thông báo cho đơn đang xử lý -->
+                <div th:if="${order.status.toString() == 'CONFIRMED' 
+                             or order.status.toString() == 'SHIPPING'}" 
+                     class="mt-4 alert alert-info text-center">
+                    <i class="fas fa-truck me-2"></i>
+                    <span th:if="${order.status.toString() == 'CONFIRMED'}">
+                        Đơn hàng đã được xác nhận và đang chuẩn bị giao hàng
+                    </span>
+                    <span th:if="${order.status.toString() == 'SHIPPING'}">
+                        Đơn hàng đang được vận chuyển đến bạn
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script th:src="@{/js/notification.js}"></script>
+<script>
+    // Hiển thị thông báo từ flash attributes
+    const successMessage = /*[[${successMessage}]]*/ null;
+    const errorMessage = /*[[${errorMessage}]]*/ null;
+    
+    if (successMessage) {
+        showSuccess('Thành công', successMessage);
+    }
+    if (errorMessage) {
+        showError('Lỗi', errorMessage);
+    }
+</script>
+
+</body>
+</html>

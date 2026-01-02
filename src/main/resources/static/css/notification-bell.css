@@ -1,0 +1,676 @@
+/**
+ * Notification Simple - Enhanced Animations
+ * Optimized for smooth performance
+ */
+
+/* --- 1. VARIABLES --- */
+:root {
+    --nt-font: 'Inter', -apple-system, sans-serif;
+    --nt-primary: #111111;
+    --nt-secondary: #666666;
+    --nt-accent: #C8102E;
+    --nt-bg: #ffffff;
+    --nt-border: #f0f0f0;
+    --nt-hover: #f9f9f9;
+    --nt-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    --nt-transition: cubic-bezier(0.4, 0, 0.2, 1);
+    --nt-transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --- OVERRIDE CSS - Fix conflicts with index.html --- */
+/* Force reset notification styles to prevent conflicts */
+.notification-widget-container,
+.notification-widget-container *:not(i):not([class*="fa-"]),
+.notification-panel,
+.notification-panel *:not(i):not([class*="fa-"]) {
+    box-sizing: border-box !important;
+    font-family: 'Inter', -apple-system, sans-serif !important;
+    line-height: normal !important;
+    text-transform: none !important;
+}
+
+/* Ensure Font Awesome icons use correct font */
+.notification-panel i[class*="fa-"],
+.notification-widget-container i[class*="fa-"] {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    display: inline-block !important;
+}
+
+.notification-panel button {
+    -webkit-appearance: button !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    overflow: visible !important;
+}
+
+.notification-panel img {
+    display: inline-block !important;
+    vertical-align: baseline !important;
+}
+
+/* Ensure panel position is not affected */
+.notification-panel {
+    position: fixed !important;
+    z-index: 10000 !important;
+}
+
+/* --- 2. CONTAINER --- */
+.notification-widget-container {
+    position: relative;
+    display: inline-block;
+    font-family: var(--nt-font);
+}
+
+/* --- 3. BELL BUTTON (Improved Animation) --- */
+.notification-bell-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--nt-primary);
+    padding: 8px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s var(--nt-transition);
+    will-change: transform;
+}
+
+.notification-bell-btn:hover {
+    transform: scale(1.1);
+}
+
+.notification-bell-btn:active {
+    transform: scale(0.95);
+}
+
+.notification-bell-btn svg {
+    transition: transform 0.3s var(--nt-transition);
+}
+
+.notification-bell-btn:hover svg {
+    animation: bellRing 0.6s ease-in-out;
+}
+
+@keyframes bellRing {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+    20%, 40%, 60%, 80% { transform: rotate(10deg); }
+}
+
+.notification-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: var(--nt-accent);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+/* --- 4. PANEL (Enhanced with Smooth Transitions) --- */
+.notification-panel {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    width: 380px;
+    max-width: 90vw;
+    height: 500px;
+    max-height: 80vh;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--nt-shadow);
+    border: 1px solid #eee;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transform-origin: top right;
+    transition: opacity 0.3s var(--nt-transition),
+    transform 0.3s var(--nt-transition-spring);
+}
+
+.notification-panel.open {
+    display: flex;
+    animation: panelFadeIn 0.4s var(--nt-transition-spring) forwards;
+}
+
+@keyframes panelFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* --- 5. FIXED TOP SECTION --- */
+.panel-fixed-top {
+    flex-shrink: 0;
+    background: #fff;
+    z-index: 10;
+    position: relative;
+}
+
+/* --- 6. HEADER --- */
+.notification-panel-header {
+    flex-shrink: 0;
+    padding: 20px 24px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    z-index: 20;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification-panel-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--nt-primary);
+}
+
+.header-count {
+    background: var(--nt-border);
+    color: var(--nt-secondary);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s var(--nt-transition);
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: var(--nt-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s var(--nt-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: var(--nt-border);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s var(--nt-transition), height 0.3s var(--nt-transition);
+}
+
+.action-btn:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+.action-btn svg {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s var(--nt-transition);
+}
+
+.action-btn:hover {
+    color: var(--nt-primary);
+}
+
+.action-btn:hover svg {
+    transform: scale(1.1);
+}
+
+.action-btn:active svg {
+    transform: scale(0.9);
+}
+
+/* --- 7. TABS (Smooth Underline Animation) --- */
+.notification-tabs {
+    flex-shrink: 0;
+    display: flex;
+    padding: 0 24px;
+    gap: 24px;
+    border-bottom: 1px solid var(--nt-border);
+    background: #fff;
+    position: relative;
+    z-index: 10;
+}
+
+.tab-btn {
+    padding: 10px 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--nt-secondary);
+    font-weight: 500;
+    position: relative;
+    transition: color 0.3s var(--nt-transition);
+}
+
+.tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--nt-primary);
+    transition: width 0.3s var(--nt-transition), left 0.3s var(--nt-transition);
+}
+
+.tab-btn:hover,
+.tab-btn.active {
+    color: var(--nt-primary);
+}
+
+.tab-btn.active::after {
+    width: 100%;
+    left: 0;
+}
+
+/* --- 8. CONTENT WRAPPER (Smooth Scroll) --- */
+.notification-content-wrapper {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background: #fff;
+    scroll-behavior: smooth;
+}
+
+.notification-content-wrapper::-webkit-scrollbar {
+    width: 4px;
+}
+
+.notification-content-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notification-content-wrapper::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 4px;
+    transition: background 0.2s var(--nt-transition);
+}
+
+.notification-content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #c0c0c0;
+}
+
+/* --- 9. TAB CONTENT --- */
+.notification-tab-content {
+    display: none;
+    animation: fadeIn 0.3s var(--nt-transition);
+}
+
+.notification-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- 10. NOTIFICATION ITEM (Enhanced Hover Effects) --- */
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s var(--nt-transition), transform 0.2s var(--nt-transition);
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    position: relative;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background: var(--nt-hover);
+    transform: translateX(2px);
+}
+
+.notification-item:active {
+    transform: translateX(0);
+}
+
+.notification-item.unread {
+    background: rgba(255, 255, 255, 1);
+}
+
+.notification-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--nt-accent);
+    transition: width 0.2s var(--nt-transition);
+}
+
+.notification-item.unread:hover::before {
+    width: 4px;
+}
+
+.notification-item-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    font-size: 16px;
+    transition: transform 0.2s var(--nt-transition);
+    overflow: hidden;
+}
+
+.notification-item:hover .notification-item-icon {
+    transform: scale(1.1);
+}
+
+.notification-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--nt-primary);
+    margin-bottom: 4px;
+    line-height: 1.3;
+    transition: color 0.2s var(--nt-transition);
+}
+
+.notification-item:hover .notification-item-title {
+    color: var(--nt-accent);
+}
+
+.notification-item-text {
+    font-size: 13px;
+    color: var(--nt-secondary);
+    line-height: 1.5;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-item-time {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+}
+
+/* --- 11. FOOTER --- */
+.notification-footer {
+    flex-shrink: 0;
+    padding: 12px;
+    text-align: center;
+    border-top: 1px solid var(--nt-border);
+    background: #fafafa;
+    transition: background 0.2s var(--nt-transition);
+}
+
+.view-all-link {
+    font-size: 12px;
+    color: var(--nt-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    position: relative;
+    transition: color 0.2s var(--nt-transition);
+}
+
+.view-all-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 1px;
+    background: var(--nt-primary);
+    transition: width 0.3s var(--nt-transition), left 0.3s var(--nt-transition);
+}
+
+.view-all-link:hover {
+    color: var(--nt-primary);
+}
+
+.view-all-link:hover::after {
+    width: 100%;
+    left: 0;
+}
+
+/* --- 12. EMPTY STATE --- */
+.notification-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--nt-secondary);
+    animation: fadeIn 0.5s var(--nt-transition);
+}
+
+.notification-empty i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.2;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* --- 13. LOAD MORE --- */
+.load-more-container {
+    padding: 10px;
+    text-align: center;
+}
+
+.load-more-btn {
+    background: none;
+    border: 1px solid var(--nt-border);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--nt-secondary);
+    transition: all 0.3s var(--nt-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.load-more-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 20px;
+    background: var(--nt-border);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s var(--nt-transition), height 0.3s var(--nt-transition);
+}
+
+.load-more-btn:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+.load-more-btn:hover {
+    border-color: var(--nt-secondary);
+    color: var(--nt-primary);
+}
+
+/* --- 14. SPINNER --- */
+.spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0,0,0,0.1);
+    border-radius: 50%;
+    border-top-color: var(--nt-primary);
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- 15. TOAST (Improved Entry/Exit Animations) --- */
+.notification-toast-container {
+    position: fixed;
+    top: 90px;
+    right: 30px;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.notification-toast {
+    pointer-events: auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    min-width: 320px;
+    max-width: 380px;
+    cursor: pointer;
+    animation: toastEnter 0.5s var(--nt-transition-spring);
+    transition: transform 0.2s var(--nt-transition), box-shadow 0.2s var(--nt-transition);
+}
+
+@keyframes toastEnter {
+    0% {
+        opacity: 0;
+        transform: translateX(400px);
+    }
+    60% {
+        transform: translateX(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.notification-toast:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.notification-toast.toast-exit {
+    animation: toastExit 0.3s var(--nt-transition) forwards;
+}
+
+@keyframes toastExit {
+    to {
+        opacity: 0;
+        transform: translateX(400px);
+    }
+}
+
+/* --- 16. MOBILE RESPONSIVE --- */
+@media (max-width: 576px) {
+    .notification-panel {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 80vh;
+        transform-origin: bottom center;
+    }
+
+    .notification-panel.open {
+        animation: panelSlideUp 0.4s var(--nt-transition-spring) forwards;
+    }
+
+    @keyframes panelSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .notification-toast-container {
+        left: 20px;
+        right: 20px;
+        top: 70px;
+    }
+
+    .notification-toast {
+        min-width: auto;
+        max-width: 100%;
+    }
+}
+
+/* --- 17. ACCESSIBILITY & PERFORMANCE --- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* GPU Acceleration for smooth animations */
+.notification-panel,
+.notification-item,
+.notification-toast,
+.tab-btn::after {
+    will-change: transform, opacity;
+}

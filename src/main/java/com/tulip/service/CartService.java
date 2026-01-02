@@ -11,6 +11,9 @@ public interface CartService {
     // Lấy danh sách hiển thị
     List<CartItemDTO> getCartItems(Long userId);
 
+    // Lấy danh sách hiển thị (lọc theo IDs)
+    List<CartItemDTO> getCartItems(Long userId, List<Long> itemIds);
+
     // Cập nhật số lượng
     void updateQuantity(Long userId, Long cartItemId, int quantity);
 
@@ -22,4 +25,13 @@ public interface CartService {
 
     // Tính tổng tiền tạm tính
     java.math.BigDecimal getTotalPrice(Long userId);
+
+    // Tính tổng tiền tạm tính (lọc theo IDs)
+    java.math.BigDecimal getTotalPrice(Long userId, List<Long> itemIds);
+
+    // Xóa toàn bộ giỏ hàng
+    void clearCart(Long userId);
+
+    // Xóa các items đã mua khỏi giỏ
+    void removeItems(Long userId, List<Long> itemIds);
 }

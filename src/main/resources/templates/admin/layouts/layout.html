@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - TulipShop Admin' : 'TulipShop Admin'}">TulipShop Admin</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind CSS Configuration
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#000000',
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                            950: '#000000',
+                        },
+                        'accent-red': {
+                            DEFAULT: '#ef4444',
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        },
+                        'accent-yellow': {
+                            DEFAULT: '#eab308',
+                            50: '#fefce8',
+                            100: '#fef9c3',
+                            200: '#fef08a',
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            700: '#a16207',
+                            800: '#854d0e',
+                            900: '#713f12',
+                        },
+                        'accent-green': {
+                            DEFAULT: '#10b981',
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                    },
+                    fontFamily: {
+                        'condensed': ['Oswald', 'Impact', 'Arial Black', 'sans-serif'],
+                        'mono': ['Space Mono', 'Courier New', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --sidebar-expanded: 260px;
+            --sidebar-collapsed: 80px;
+        }
+
+        body { background-color: #f9fafb; }
+
+        /* Sidebar Transition */
+        #sidebar {
+            width: var(--sidebar-expanded);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        /* Adjust Main Content based on Sidebar */
+        #main-content {
+            margin-left: var(--sidebar-expanded);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #sidebar.collapsed + #main-content {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Hide text when collapsed */
+        #sidebar.collapsed .nav-text,
+        #sidebar.collapsed .sidebar-header-text,
+        #sidebar.collapsed .user-info {
+            display: none;
+        }
+
+        #sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* Logo styles */
+        .sidebar-logo-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            height: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #sidebar.collapsed .sidebar-logo-container {
+            justify-content: center;
+        }
+
+        .sidebar-logo-full,
+        .sidebar-logo-icon {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-logo-full {
+            height: 60px;
+            width: auto;
+            max-width: 150px;
+            object-fit: contain;
+        }
+
+        .sidebar-logo-icon {
+            height: 60px;
+            width: 60px;
+            object-fit: contain;
+        }
+
+        /* Show full logo when expanded */
+        #sidebar:not(.collapsed) .sidebar-logo-full {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            visibility: visible;
+        }
+
+        #sidebar:not(.collapsed) .sidebar-logo-icon {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.7);
+            visibility: hidden;
+        }
+
+        /* Show icon logo when collapsed */
+        #sidebar.collapsed .sidebar-logo-full {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.7);
+            visibility: hidden;
+        }
+
+        #sidebar.collapsed .sidebar-logo-icon {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            visibility: visible;
+        }
+
+        .nav-item-active {
+            background-color: #f3f4f6;
+            color: #000;
+            border-left: 4px solid #000;
+        }
+
+        /* Mobile specific */
+        @media (max-width: 1024px) {
+            #main-content { margin-left: 0 !important; }
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.mobile-open { transform: translateX(0); width: var(--sidebar-expanded); }
+        }
+    </style>
+</head>
+<body class="text-slate-700 antialiased">
+<div class="flex min-h-screen">
+
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/20 z-30 hidden backdrop-blur-sm"></div>
+
+    <aside id="sidebar" class="fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 flex flex-col">
+        <a href="/" class="h-16 flex items-center px-6 border-b border-gray-50 overflow-hidden relative hover:bg-gray-50 transition-colors" title="Về trang chủ shop">
+            <div class="sidebar-logo-container">
+                <img src="/images/logo.png" alt="Logo" class="sidebar-logo-full" />
+                <img src="/images/flower-logo.png" alt="Logo Icon" class="sidebar-logo-icon" />
+            </div>
+            <div class="lg:hidden ml-auto absolute right-4 top-1/2 -translate-y-1/2">
+                <i data-lucide="x" class="cursor-pointer w-5 h-5" onclick="event.stopPropagation(); toggleSidebar()"></i>
+            </div>
+        </a>
+
+        <div class="p-3 uppercase text-[10px] font-semibold text-gray-400 tracking-wider sidebar-header-text">Apps</div>
+        <nav class="flex-1 overflow-y-auto px-3 space-y-1">
+            <ul class="space-y-1">
+                <li th:each="item : ${ {
+                    {'dashboard', 'layout-dashboard', 'Dashboard'},
+                    {'orders', 'shopping-bag', 'Orders'},
+                    {'products', 'package', 'Products'},
+                    {'inventory', 'warehouse', 'Quản lý kho'},
+                    {'customers', 'users', 'Customers'},
+                    {'staff', 'user-cog', 'Staffs'},
+                    {'catalog', 'book-open', 'Catalog'},
+                    {'vouchers', 'ticket', 'Vouchers'},
+                    {'notifications', 'bell', 'Notifications'},
+                    {'content', 'layout', 'Web Content'},
+                    {'account', 'circle-user', 'Account'}
+                } }">
+                    <a th:href="@{'/admin/' + ${item[0]}}"
+                       class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
+                       th:classappend="${currentPage == item[0]} ? 'nav-item-active' : ''">
+                        <i th:data-lucide="${item[1]}" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                        <span class="text-sm font-medium nav-text" th:text="${item[2]}"></span>
+                    </a>
+                </li>
+            </ul>
+            <div class="px-3 py-2">
+                <div class="border-t border-gray-200 my-2"></div>
+                <a href="/" target="_blank" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group">
+                    <i data-lucide="external-link" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                    <span class="text-sm font-medium nav-text">Xem Shop</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <div class="user-info overflow-hidden">
+                    <p class="text-xs font-bold truncate">MANAGER</p>
+                    <p class="text-[10px] text-gray-500 truncate">manager@tulipshop.com</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div id="main-content" class="flex-1 flex flex-col min-w-0">
+
+        <header class="h-16 bg-white border-b border-gray-200 sticky top-0 z-20 px-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button class="p-2 text-gray-400 hover:text-black relative">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-2 right-2.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
+                </button>
+                <button class="p-2 text-gray-400 hover:text-black">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                <div class="flex items-center gap-2 ml-2 pl-2 border-l border-gray-100">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold">M</div>
+                    <div class="hidden sm:block text-right">
+                        <p class="text-[10px] font-bold leading-none">MANAGER</p>
+                        <p class="text-[10px] text-gray-400">manager</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-6 lg:p-10">
+            <div th:if="${contentTemplate != null and contentTemplate != ''}" th:replace="~{${contentTemplate}}"></div>
+            <div th:if="${contentTemplate == null or contentTemplate == ''}" class="min-h-[400px] flex items-center justify-center">
+                <div class="w-8 h-8 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+            </div>
+        </main>
+
+        <footer class="mt-auto p-6 border-t border-gray-100 flex justify-between text-[11px] text-gray-400 uppercase tracking-wider">
+            <span>Copyright © 2025 <b class="text-gray-600">TulipShop</b> All rights reserved.</span>
+            <div class="flex gap-4">
+                <a href="#">Term & Conditions</a>
+                <a href="#">Privacy & Policy</a>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- Include notification and confirm modal -->
+<div th:replace="~{admin/fragments/common :: notification}"></div>
+<div th:replace="~{admin/fragments/common :: confirmModal}"></div>
+<div th:replace="~{admin/fragments/common :: scripts}"></div>
+
+<script>
+    lucide.createIcons();
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        if (window.innerWidth >= 1024) {
+            // Desktop: Toggle collapsed state
+            sidebar.classList.toggle('collapsed');
+        } else {
+            // Mobile: Toggle slide-in
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('hidden');
+        }
+    }
+
+    // Close sidebar on overlay click (mobile)
+    document.getElementById('sidebar-overlay').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('mobile-open');
+        document.getElementById('sidebar-overlay').classList.add('hidden');
+    });
+</script>
+</body>
+</html>

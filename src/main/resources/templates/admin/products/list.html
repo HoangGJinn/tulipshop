@@ -1,0 +1,260 @@
+<div th:fragment="content">
+    <!-- Thêm một cột trống cuối cùng cho phần button Sửa/Xóa -->
+    <div th:replace="~{admin/fragments/common :: tableLayout(
+        title='Product Collection',
+        addBtnText='Thêm Sản Phẩm',
+        searchPlaceholder='TÌM THEO TÊN, SKU...',
+        tableHeaders=${tableHeaders}
+    )}"></div>
+
+    <script th:inline="javascript">
+        // 1. Hàm fetch dữ liệu từ API
+        async function loadProductData() {
+            try {
+                const response = await fetch('/v1/api/admin/products');
+                if (!response.ok) throw new Error('Failed to fetch products');
+
+                const products = await response.json();
+                const tbody = document.getElementById('table-body-data');
+                const countLabel = document.getElementById('data-count');
+
+                if (!products || products.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="p-20 text-center">
+                                <p class="text-[10px] tracking-[0.5em] uppercase text-gray-400">Chưa có sản phẩm nào</p>
+                            </td>
+                        </tr>
+                    `;
+                    countLabel.innerText = '0 Items';
+                    return;
+                }
+
+                countLabel.innerText = `${products.length} Items`;
+                tbody.innerHTML = products.map(p => `
+                    <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-none">
+                        <td class="p-6">
+                            <img src="${p.image || '/images/placeholder.jpg'}"
+                                 class="w-12 h-16 object-cover border border-black shadow-sm"
+                                 onerror="this.src='/images/placeholder.jpg'" />
+                        </td>
+                        <td class="p-6">
+                            <div class="font-black uppercase text-xs tracking-wider">${p.name || 'N/A'}</div>
+                            <div class="text-[9px] text-gray-400 uppercase mt-1 italic tracking-widest">${p.sku || 'N/A'}</div>
+                        </td>
+                        <td class="p-6 text-[10px] font-bold uppercase text-gray-500">${p.category || 'Chưa phân loại'}</td>
+                        <td class="p-6 font-black italic tracking-tighter text-base">
+                            ${new Intl.NumberFormat('vi-VN').format(p.price || 0)}₫
+                        </td>
+                        <td class="p-6">
+                            <span class="text-xs font-bold ${p.stock <= 5 ? 'text-red-500' : 'text-black'}">
+                                ${p.stock || 0}
+                            </span>
+                        </td>
+                        <td class="p-6">
+                            <select onchange="updateProductStatus(${p.id}, this.value)" 
+                                    class="text-[9px] font-bold uppercase px-2 py-1 rounded border ${getStatusClass(p.status)}">
+                                <option value="ACTIVE" ${p.status === 'ACTIVE' ? 'selected' : ''}>Hoạt động</option>
+                                <option value="HIDDEN" ${p.status === 'HIDDEN' ? 'selected' : ''}>Ẩn</option>
+                            </select>
+                        </td>
+                        <td class="p-6 text-right">
+                            <div class="flex justify-end gap-3">
+                                <button onclick="viewAuditHistory(${p.id})" 
+                                        class="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:underline transition-colors"
+                                        title="Xem lịch sử">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                                <a href="/admin/products/form?id=${p.id}"
+                                   class="text-[10px] font-black uppercase tracking-widest hover:underline hover:text-blue-600 transition-colors">
+                                   Sửa
+                                </a>
+                                <button onclick="deleteProduct(${p.id})"
+                                   class="text-[10px] font-black uppercase tracking-widest text-red-500 hover:underline transition-colors">
+                                   Xóa
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('table-body-data').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-20 text-center">
+                            <p class="text-[10px] tracking-[0.5em] uppercase text-red-500">Lỗi tải dữ liệu hệ thống</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // 2. Hàm xóa sản phẩm
+        function deleteProduct(id) {
+            showConfirmModal(
+                'Xóa sản phẩm',
+                'Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác.',
+                async function() {
+                    try {
+                        const response = await fetch(`/v1/api/admin/products/${id}`, { method: 'DELETE' });
+                        if (response.ok) {
+                            showNotification('success', 'Thành công', 'Đã xóa sản phẩm khỏi hệ thống');
+                            loadProductData(); // Reload danh sách
+                        } else {
+                            const error = await response.json();
+                            showNotification('error', 'Lỗi', error.message || 'Không thể xóa sản phẩm vào lúc này');
+                        }
+                    } catch (error) {
+                        showNotification('error', 'Lỗi', 'Có lỗi xảy ra khi kết nối máy chủ');
+                    }
+                }
+            );
+        }
+
+        // 3. Hàm cập nhật trạng thái sản phẩm
+        async function updateProductStatus(productId, newStatus) {
+            try {
+                const response = await fetch(`/v1/api/admin/products/${productId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (response.ok) {
+                    showNotification('success', 'Thành công', 'Đã cập nhật trạng thái sản phẩm');
+                    loadProductData();
+                } else {
+                    const error = await response.json();
+                    showNotification('error', 'Lỗi', error.message || 'Không thể cập nhật trạng thái');
+                    loadProductData(); // Reload để reset select
+                }
+            } catch (error) {
+                showNotification('error', 'Lỗi', 'Có lỗi xảy ra khi kết nối máy chủ');
+                loadProductData();
+            }
+        }
+
+        // 4. Hàm xem lịch sử thay đổi
+        async function viewAuditHistory(productId) {
+            try {
+                const response = await fetch(`/api/admin/product-audit/product/${productId}`);
+                if (!response.ok) throw new Error('Failed to fetch audit history');
+                
+                const history = await response.json();
+                
+                if (history.length === 0) {
+                    showNotification('info', 'Thông báo', 'Chưa có lịch sử thay đổi cho sản phẩm này');
+                    return;
+                }
+                
+                // Tạo HTML cho modal hiển thị lịch sử
+                const historyHtml = history.map(h => `
+                    <div class="border-b border-gray-200 pb-4 mb-4 last:border-0">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold uppercase ${getChangeTypeColor(h.changeType)}">
+                                ${getChangeTypeLabel(h.changeType)}
+                            </span>
+                            <span class="text-[9px] text-gray-400">
+                                ${new Date(h.changedAt).toLocaleString('vi-VN')}
+                            </span>
+                        </div>
+                        ${h.oldName ? `
+                            <div class="text-xs mb-1">
+                                <span class="text-gray-500">Tên:</span>
+                                <span class="line-through text-red-500">${h.oldName}</span>
+                                <span class="mx-2">→</span>
+                                <span class="text-green-600 font-bold">${h.newName}</span>
+                            </div>
+                        ` : ''}
+                        ${h.oldPrice ? `
+                            <div class="text-xs mb-1">
+                                <span class="text-gray-500">Giá:</span>
+                                <span class="line-through text-red-500">${new Intl.NumberFormat('vi-VN').format(h.oldPrice)}₫</span>
+                                <span class="mx-2">→</span>
+                                <span class="text-green-600 font-bold">${new Intl.NumberFormat('vi-VN').format(h.newPrice)}₫</span>
+                            </div>
+                        ` : ''}
+                        <div class="text-[9px] text-gray-400 mt-2">
+                            <i class="fas fa-user"></i> ${h.changedBy}
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Hiển thị modal
+                showModal('Lịch sử thay đổi', historyHtml);
+                
+            } catch (error) {
+                showNotification('error', 'Lỗi', 'Không thể tải lịch sử thay đổi');
+            }
+        }
+
+        // Helper functions
+        function getStatusClass(status) {
+            switch(status) {
+                case 'ACTIVE': return 'bg-green-100 text-green-700 border-green-300';
+                case 'HIDDEN': return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+                case 'DELETED': return 'bg-red-100 text-red-700 border-red-300';
+                default: return 'bg-gray-100 text-gray-700 border-gray-300';
+            }
+        }
+
+        function getChangeTypeColor(type) {
+            switch(type) {
+                case 'NAME_CHANGE': return 'text-blue-600';
+                case 'PRICE_CHANGE': return 'text-orange-600';
+                case 'BOTH': return 'text-purple-600';
+                default: return 'text-gray-600';
+            }
+        }
+
+        function getChangeTypeLabel(type) {
+            switch(type) {
+                case 'NAME_CHANGE': return 'Thay đổi tên';
+                case 'PRICE_CHANGE': return 'Thay đổi giá';
+                case 'BOTH': return 'Thay đổi tên & giá';
+                default: return 'Thay đổi';
+            }
+        }
+
+        function showModal(title, content) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+                    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-black uppercase tracking-wider">${title}</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-black">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        ${content}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // 5. Hàm tìm kiếm (Gắn với ID tableSearch từ common.html)
+        function handleSearch() {
+            const searchTerm = document.getElementById('tableSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#table-body-data tr');
+
+            rows.forEach(row => {
+                // Kiểm tra nếu là dòng dữ liệu (không phải dòng "Chưa có sản phẩm")
+                if (row.cells.length > 1) {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                }
+            });
+        }
+
+        // 4. Hàm điều hướng khi bấm nút "Thêm Sản Phẩm"
+        function openAddDialog() {
+            window.location.href = '/admin/products/form';
+        }
+
+        // Khởi tạo dữ liệu khi trang load xong
+        document.addEventListener('DOMContentLoaded', loadProductData);
+    </script>
+</div>

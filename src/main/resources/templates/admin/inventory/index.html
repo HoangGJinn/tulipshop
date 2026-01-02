@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/css/inventory.css}">
+</head>
+<body>
+
+<div th:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="flex justify-between items-end">
+            <div>
+                <h1 class="text-4xl font-black italic tracking-tighter mb-2">Quản lý kho</h1>
+                <p class="text-sm text-gray-500 uppercase tracking-widest">Inventory Management</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="exportToExcel()" 
+                        class="flex items-center gap-2 border border-black px-4 py-2 text-sm font-bold uppercase tracking-wider hover:bg-gray-50 transition-all">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Xuất Excel</span>
+                </button>
+                <button onclick="openBulkInitModal()" 
+                        class="flex items-center gap-2 border border-black px-4 py-2 text-sm font-bold uppercase tracking-wider bg-black text-white hover:bg-gray-800 transition-all">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Khởi tạo kho</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Banners -->
+        <div id="alert-container" class="space-y-3">
+            <!-- Uninitialized SKUs Alert -->
+            <div id="uninitialized-alert" 
+                 class="alert-banner hidden border-l-4 border-yellow-500 bg-yellow-50 p-4"
+                 data-filter-type="uninitialized">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600"></i>
+                        <div>
+                            <p class="text-sm font-bold text-yellow-800">
+                                <span id="uninitialized-count">0</span> SKU chưa khởi tạo kho
+                            </p>
+                            <p class="text-xs text-yellow-700 mt-1">Các biến thể sản phẩm này chưa có thông tin tồn kho</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="filterByAlert('uninitialized')" 
+                                class="text-xs font-bold uppercase tracking-wider text-yellow-800 hover:underline">
+                            Xem chi tiết
+                        </button>
+                        <button onclick="dismissAlert('uninitialized-alert')" 
+                                class="text-yellow-600 hover:text-yellow-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Alert -->
+            <div id="low-stock-alert" 
+                 class="alert-banner hidden border-l-4 border-red-500 bg-red-50 p-4"
+                 data-filter-type="low-stock">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                        <div>
+                            <p class="text-sm font-bold text-red-800">
+                                <span id="low-stock-count">0</span> SKU sắp hết hàng
+                            </p>
+                            <p class="text-xs text-red-700 mt-1">Các sản phẩm này có số lượng tồn kho thấp</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="filterByAlert('low-stock')" 
+                                class="text-xs font-bold uppercase tracking-wider text-red-800 hover:underline">
+                            Xem chi tiết
+                        </button>
+                        <button onclick="dismissAlert('low-stock-alert')" 
+                                class="text-red-600 hover:text-red-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Controls -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-[200px]">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        <input type="text" 
+                               id="search-input" 
+                               placeholder="Tìm theo tên sản phẩm hoặc SKU..."
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-black"
+                               onkeyup="handleSearch()">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <select id="status-filter" 
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-black"
+                            onchange="handleFilter()">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="IN_STOCK">Còn hàng</option>
+                        <option value="LOW_STOCK">Sắp hết</option>
+                        <option value="OUT_OF_STOCK">Hết hàng</option>
+                    </select>
+                    <select id="category-filter" 
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-black"
+                            onchange="handleFilter()">
+                        <option value="">Tất cả danh mục</option>
+                        <!-- Categories will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3 text-xs text-gray-500 uppercase tracking-wider">
+                <span id="visible-count">0</span> / <span id="total-count">0</span> SKU
+            </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <table class="w-full inventory-table">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Hình ảnh</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Sản phẩm</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">SKU</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Biến thể</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Giá</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Tồn kho</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Đã đặt</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Khả dụng</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Trạng thái</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table-body">
+                    <!-- Loading state -->
+                    <tr>
+                        <td colspan="10" class="p-20 text-center">
+                            <div class="w-8 h-8 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+                        </td>
+                    </tr>
+                    <!-- 
+                    Table rows will be dynamically generated with this structure:
+                    <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-none" 
+                        data-stock-id="{stockId}"
+                        data-category="{categoryName}"
+                        data-status="{status}">
+                        <td class="p-6">
+                            <img src="{imageUrl}" class="w-12 h-16 object-cover border border-black shadow-sm" />
+                        </td>
+                        <td class="p-6">
+                            <div class="font-black uppercase text-xs tracking-wider">{productName}</div>
+                            <div class="text-[9px] text-gray-400 uppercase mt-1">{categoryName}</div>
+                        </td>
+                        <td class="p-6 text-[10px] font-mono text-gray-600">{sku}</td>
+                        <td class="p-6">
+                            <div class="text-xs">{colorName}</div>
+                            <div class="text-[10px] text-gray-500">{sizeName}</div>
+                        </td>
+                        <td class="p-6 font-black italic tracking-tighter">{price}₫</td>
+                        <td class="p-6">
+                            <span class="editable-stock cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                                  data-stock-id="{stockId}"
+                                  data-physical="{physicalStock}"
+                                  data-reserved="{reservedStock}">
+                                {physicalStock}
+                            </span>
+                        </td>
+                        <td class="p-6 text-gray-600">{reservedStock}</td>
+                        <td class="p-6">
+                            <span class="available-stock font-bold">{availableStock}</span>
+                        </td>
+                        <td class="p-6">
+                            <span class="status-badge px-2 py-1 text-xs font-bold uppercase rounded">
+                                {status}
+                            </span>
+                        </td>
+                        <td class="p-6 text-right">
+                            <div class="flex justify-end gap-3">
+                                <button onclick="openHistoryModal({stockId})" 
+                                        class="text-[10px] font-black uppercase tracking-widest hover:underline">
+                                    Lịch sử
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-between items-center">
+            <div class="text-sm text-gray-500">
+                Hiển thị <span id="page-start">0</span> - <span id="page-end">0</span> trong tổng số <span id="page-total">0</span> SKU
+            </div>
+            <div class="flex gap-2">
+                <button onclick="previousPage()" 
+                        id="prev-btn"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                    Trước
+                </button>
+                <div id="page-numbers" class="flex gap-2">
+                    <!-- Page numbers will be inserted here -->
+                </div>
+                <button onclick="nextPage()" 
+                        id="next-btn"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                    Sau
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock History Modal -->
+    <div id="history-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Lịch sử thay đổi kho</h3>
+                    <p class="modal-subtitle" id="history-product-name"></p>
+                </div>
+                <button onclick="closeHistoryModal()" class="modal-close">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Thời gian</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Trước</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Sau</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Thay đổi</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Người thực hiện</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Lý do</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- History records will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Initialization Modal -->
+    <div id="bulk-init-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Khởi tạo kho hàng loạt</h3>
+                    <p class="modal-subtitle">Nhập số lượng tồn kho ban đầu cho các SKU mới</p>
+                </div>
+                <button onclick="closeBulkInitModal()" class="modal-close">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="bulk-init-list">
+                    <!-- Uninitialized variants will be listed here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeBulkInitModal()" 
+                        class="px-6 py-2.5 text-sm font-bold uppercase tracking-wider border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                    Hủy
+                </button>
+                <button onclick="submitBulkInit()" 
+                        class="px-6 py-2.5 text-sm font-bold uppercase tracking-wider bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    Khởi tạo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toasts will be inserted here -->
+    </div>
+
+    <!-- Load JavaScript -->
+    <script th:src="@{/js/inventory.js}"></script>
+    <script>
+        // Initialize icons after page load
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<div th:fragment="header">
+    <!-- Header Main -->
+    <header id="site-header" class="header-main">
+        <div class="header-main__height">
+            <div class="header-container">
+                <div class="header-wrapper">
+                    <!-- Logo Section -->
+                    <div class="header-logo-section">
+                        <span class="hamburger-menu hidden-md hidden-lg" id="menu-toggle">
+                            <i class="fas fa-bars"></i>
+                        </span>
+                        <a th:href="@{/}" class="logo-shop">
+                            <img th:src="@{/images/logo.png}" alt="Tulip Shop" class="logo-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                            <span class="logo-text" style="display: none;">TULIP SHOP</span>
+                        </a>
+                    </div>
+
+                    <!-- Navigation Section -->
+                    <div class="header-nav-section hidden-xs hidden-sm">
+                        <nav class="main-nav">
+                            <ul class="nav-list">
+                                <li class="nav-item">
+                                    <a th:href="@{/}" title="New in">New in</a>
+                                </li>
+                                <li class="nav-item parent-nav">
+                                    <a class="nav-link" href="/products">
+                                        Sản phẩm <i class="fas fa-chevron-down nav-chevron"></i>
+                                    </a>
+                                    <div class="mega-menu-container">
+                                        <div class="container" style="padding-top: 1rem; padding-bottom: 1rem;">
+                                            <div class="row">
+                                                <div class="col-lg-4 mega-col-border">
+                                                    <h6 class="mega-list-title">Danh mục</h6>
+                                                    <ul class="list-unstyled mega-menu-list">
+                                                        <li><a href="/products?category=ao-kieu">Áo kiểu</a></li>
+                                                        <li><a href="/products?category=ao-thun">Áo thun</a></li>
+                                                        <li><a href="/products?category=dam">Đầm</a></li>
+                                                        <li><a href="/products?category=chan-vay">Chân váy</a></li>
+                                                        <li><a href="/products?category=quan">Quần</a></li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-lg-4 mega-col-border">
+                                                    <h6 class="mega-list-title">Ưu đãi</h6>
+                                                    <ul class="list-unstyled mega-menu-list">
+                                                        <li><a href="#">Tặng 50K thành viên mới</a></li>
+                                                        <li><a href="#">Flash Sale tháng 12</a></li>
+                                                        <li><a href="#">Mua 1 tặng 1</a></li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-lg-4">
+                                                    <h6 class="mega-list-title">Trending</h6>
+                                                    <ul class="list-unstyled mega-menu-list">
+                                                        <li><a href="#">Phối Blazer với Đầm</a></li>
+                                                        <li><a href="#">Quần suông hack dáng</a></li>
+                                                        <li><a href="#">Áo thun năng động</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="nav-item">
+                                    <a th:href="@{/about}" title="Về chúng tôi">Về chúng tôi</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a th:href="@{/contact}" title="Liên hệ">Liên hệ</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                    <!-- Actions Section (Search, User, Cart) -->
+                    <div class="header-actions-section">
+                        <ul class="header-actions">
+                                    <!-- Search Icon -->
+                                    <li>
+                                        <button type="button" class="header-action-btn search-trigger" onclick="toggleSearchPanel()" aria-label="Tìm kiếm" style="position: relative; z-index: 100; cursor: pointer;">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </li>
+
+                                    <!-- User Menu -->
+                                    <li class="user-menu-item">
+                                        <!-- Hiển thị khi đã đăng nhập -->
+                                        <div sec:authorize="isAuthenticated()" class="user-dropdown">
+                                            <div class="header-account-wrapper" id="user-menu-toggle">
+                                                <div class="header-account-icon">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <span class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.name}">User</span>
+                                            </div>
+                                            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                                <a th:href="@{/account}" class="dropdown-item">
+                                                    <i class="fas fa-user-circle"></i>
+                                                    <span>Tài khoản</span>
+                                                </a>
+                                                <th:block sec:authorize="hasRole('ADMIN')">
+                                                    <a th:href="@{/admin/dashboard}" class="dropdown-item">
+                                                        <i class="fas fa-cog"></i>
+                                                        <span>Quản trị</span>
+                                                    </a>
+                                                </th:block>
+                                                <a th:href="@{/wishlist}" class="dropdown-item">
+                                                    <i class="fas fa-heart"></i>
+                                                    <span>Yêu thích</span>
+                                                </a>
+                                                <a th:href="@{/orders}" class="dropdown-item">
+                                                    <i class="fas fa-shopping-bag"></i>
+                                                    <span>Đơn hàng của tôi</span>
+                                                </a>
+                                                <a th:href="@{/logout}" class="dropdown-item logout-item">
+                                                    <i class="fas fa-sign-out-alt"></i>
+                                                    <span>Đăng xuất</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <!-- Hiển thị khi chưa đăng nhập -->
+                                        <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="header-account-wrapper">
+                                            <div class="header-account-icon">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        </a>
+                                    </li>
+
+                                    <!-- Cart Icon -->
+                                    <li>
+                                        <a th:href="@{/cart}" class="header-cart-wrapper">
+                                            <div class="header-cart-icon">
+                                                <i class="fas fa-shopping-bag"></i>
+                                                <span class="cart-count">0</span>
+                                            </div>
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <div th:replace="~{fragments/notification :: notification}"></div>
+                                    </li>
+                                </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Overlay (outside header) -->
+    <div id="searchOverlay" class="search-overlay">
+        <div class="search-overlay-content">
+            <div class="search-header">
+                <button class="btn-close-search" onclick="toggleSearchPanel()" aria-label="Đóng">
+                    <i class="fas fa-times"></i>
+                    <span>Đóng</span>
+                </button>
+            </div>
+
+            <div class="search-box-wrapper">
+                <form action="/products" method="get" class="search-form">
+                    <i class="fas fa-search search-icon-left"></i>
+                    <input type="text" id="searchInput" name="search" class="search-input"
+                           placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+                    <button type="submit" class="btn-search-submit" aria-label="Tìm kiếm">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div id="searchResults" class="search-results">
+                <div class="default-suggestions">
+                    <p class="suggestions-title">Gợi ý cho bạn</p>
+                    <div class="suggestions-tags">
+                        <a href="/products?category=dam" class="suggestion-tag">Đầm dạo phố</a>
+                        <a href="/products?category=ao-kieu" class="suggestion-tag">Áo kiểu</a>
+                        <a href="/products?category=quan" class="suggestion-tag">Quần ống suông</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="site-menu menu-mobile" id="mobile-menu">
+        <div class="site-menu__container">
+            <span class="close-menumb" id="close-menu">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="site-menu__box">
+                <ul class="site-menu__list">
+                    <li class="nav-item">
+                        <a th:href="@{/}">Trang chủ</a>
+                    </li>
+                    <li class="nav-item nav-child">
+                        <a th:href="@{/products}">Sản phẩm <i class="fas fa-chevron-down"></i></a>
+                        <ul class="submenu-mb submb-lv2">
+                            <li class="nav-item"><a th:href="@{/products(category='ao-so-mi')}">Áo sơ mi</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='ao-kieu')}">Áo kiểu</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='ao-thun')}">Áo thun</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='dam')}">Đầm</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='vay')}">Váy</a></li>
+                            <li class="nav-item"><a th:href="@{/products(category='quan')}">Quần</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/about}">Về chúng tôi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/contact}">Liên hệ</a>
+                    </li>
+                    <!-- User menu trong mobile -->
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/account}">
+                            <i class="fas fa-user-circle"></i> Tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/orders}">
+                            <i class="fas fa-shopping-bag"></i> Đơn hàng của tôi
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/logout}">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

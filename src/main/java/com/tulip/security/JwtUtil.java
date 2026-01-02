@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
@@ -145,6 +147,59 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+    // Validate JWT token từ HTTP request
+    // Extract token từ Authorization header hoặc cookie, sau đó validate
+    public Boolean validateJwtToken(HttpServletRequest request, UserDetails userDetails) {
+        if (userDetails == null) {
+            return false;
+        }
+        
+        try {
+            // Lấy JWT token từ header hoặc cookie
+            String jwt = extractTokenFromRequest(request);
+            
+            if (jwt == null) {
+                return false;
+            }
+            
+            // Validate token bằng các hàm có sẵn
+            String tokenType = extractTokenType(jwt);
+            if (!"ACCESS".equals(tokenType)) {
+                return false;
+            }
+            
+            // Validate token với userDetails (hàm này đã kiểm tra hết hạn bên trong)
+            return validateToken(jwt, userDetails);
+            
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Extract JWT token từ HTTP request
+     * Ưu tiên đọc từ Authorization header, nếu không có thì đọc từ cookie
+     */
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        // 1. Ưu tiên đọc từ Authorization header (cho API)
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        
+        // 2. Nếu không có header, đọc từ cookie (cho web)
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        
+        return null;
     }
 }
 

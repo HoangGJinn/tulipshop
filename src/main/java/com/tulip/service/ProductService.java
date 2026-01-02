@@ -13,7 +13,6 @@ public interface ProductService {
     ProductDetailDTO getProductDetail(Long productId);
     ProductCardDTO convertToCardDTO(Product p);
     List<ProductCardDTO> getFilteredProducts(String categorySlug, String sort, String color, String size, Double minPrice, Double maxPrice);
-    Long createProduct(ProductCreateDTO dto);
     void addVariant(Long productId, String colorName, String colorCode);
     void updateVariantStock(Long variantId, Map<String, Integer> stockData);
     void deleteVariant(Long variantId);
@@ -21,4 +20,15 @@ public interface ProductService {
     List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId);
     List<ProductCardDTO> getViewedProducts(List<Long> productIds);
 
+    List<Product> findProductsWithDeepDiscount();
+
+    ProductCompositeDTO getProductByIdAsDTO(Long id);
+
+    void updateProduct(Long id, ProductCompositeDTO productDTO);
+    
+    /**
+     * Soft delete - Xóa mềm sản phẩm
+     * Kiểm tra tồn kho trước khi xóa
+     */
+    void deleteProduct(Long productId);
 }

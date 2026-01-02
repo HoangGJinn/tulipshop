@@ -1,8 +1,10 @@
 package com.tulip.controller;
 
 import com.tulip.dto.CartItemDTO;
+import com.tulip.security.JwtUtil;
 import com.tulip.service.CartService;
 import com.tulip.service.impl.CustomUserDetails;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +22,7 @@ import java.util.Map;
 public class CartController {
 
     private final CartService cartService;
+    private final JwtUtil jwtUtil;
 
     // 1. Xem trang giỏ hàng
     @GetMapping("/cart")
@@ -34,7 +37,7 @@ public class CartController {
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalPrice", totalPrice);
 
-        return "cart"; // Trả về file templates/cart.html
+        return "order/cart"; // Trả về file templates/order/cart.html
     }
 
     // 2. API Thêm vào giỏ (AJAX)
@@ -42,9 +45,22 @@ public class CartController {
     @ResponseBody
     public ResponseEntity<?> addToCart(@RequestParam Long stockId,
                                        @RequestParam int quantity,
-                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                       @AuthenticationPrincipal CustomUserDetails userDetails,
+                                       HttpServletRequest request) {
+        // Kiểm tra đăng nhập trước
         if (userDetails == null) {
-            return ResponseEntity.status(401).body("Vui lòng đăng nhập để mua hàng");
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+            return ResponseEntity.status(401).body(errorResponse);
+        }
+        
+        // Validate JWT token bằng method có sẵn trong JwtUtil
+        if (!jwtUtil.validateJwtToken(request, userDetails)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+            return ResponseEntity.status(401).body(errorResponse);
         }
 
         try {
@@ -59,7 +75,10 @@ public class CartController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
@@ -68,13 +87,30 @@ public class CartController {
     @ResponseBody
     public ResponseEntity<?> updateQuantity(@RequestParam Long itemId,
                                             @RequestParam int quantity,
-                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) return ResponseEntity.status(401).build();
+                                            @AuthenticationPrincipal CustomUserDetails userDetails,
+                                            HttpServletRequest request) {
+        // Validate JWT token bằng method có sẵn trong JwtUtil
+        if (userDetails == null || !jwtUtil.validateJwtToken(request, userDetails)) {
+            return ResponseEntity.status(401).body("Token không hợp lệ hoặc đã hết hạn");
+        }
 
         try {
             cartService.updateQuantity(userDetails.getUserId(), itemId, quantity);
             BigDecimal newTotal = cartService.getTotalPrice(userDetails.getUserId());
-            return ResponseEntity.ok(newTotal);
+            
+            // Lấy lại item để tính subtotal mới
+            List<CartItemDTO> items = cartService.getCartItems(userDetails.getUserId());
+            CartItemDTO updatedItem = items.stream()
+                    .filter(item -> item.getId().equals(itemId))
+                    .findFirst()
+                    .orElse(null);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalPrice", newTotal);
+            response.put("subTotal", updatedItem != null ? updatedItem.getSubTotal() : BigDecimal.ZERO);
+            response.put("totalItems", cartService.countItems(userDetails.getUserId()));
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -84,10 +120,26 @@ public class CartController {
     @DeleteMapping("/v1/api/cart/remove/{itemId}")
     @ResponseBody
     public ResponseEntity<?> removeItem(@PathVariable Long itemId,
-                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) return ResponseEntity.status(401).build();
+                                        @AuthenticationPrincipal CustomUserDetails userDetails,
+                                        HttpServletRequest request) {
+        // Validate JWT token bằng method có sẵn trong JwtUtil
+        if (userDetails == null || !jwtUtil.validateJwtToken(request, userDetails)) {
+            return ResponseEntity.status(401).body("Token không hợp lệ hoặc đã hết hạn");
+        }
 
-        cartService.removeFromCart(userDetails.getUserId(), itemId);
-        return ResponseEntity.ok("Đã xóa");
+        try {
+            cartService.removeFromCart(userDetails.getUserId(), itemId);
+            BigDecimal newTotal = cartService.getTotalPrice(userDetails.getUserId());
+            int totalItems = cartService.countItems(userDetails.getUserId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalPrice", newTotal);
+            response.put("totalItems", totalItems);
+            response.put("isEmpty", totalItems == 0);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

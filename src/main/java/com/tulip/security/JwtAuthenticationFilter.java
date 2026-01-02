@@ -62,8 +62,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // 3. Xác định loại endpoint
         String path = request.getRequestURI();
-        boolean isAuthEndpoint = path.equals("/login") || path.equals("/register") || path.equals("/logout");
-        boolean isApiEndpoint = path.startsWith("/v1/api/auth") || path.startsWith("/v1/api/store");
+        boolean isAuthEndpoint = path.equals("/login") || path.equals("/register") || path.equals("/logout") 
+                || path.equals("/forgot-password") || path.equals("/reset-password");
+        boolean isPublicApiEndpoint = path.startsWith("/v1/api/auth/login") || 
+                                     path.startsWith("/v1/api/auth/register") ||
+                                     path.startsWith("/v1/api/auth/forgot-password") ||
+                                     path.startsWith("/v1/api/auth/reset-password") ||
+                                     path.startsWith("/v1/api/auth/resend-otp") ||
+                                     path.startsWith("/v1/api/auth/verify-email") ||
+                                     path.startsWith("/v1/api/store");
         boolean isStaticResource = path.startsWith("/static") || path.startsWith("/css") || 
                                    path.startsWith("/js") || path.startsWith("/images") ||
                                    path.startsWith("/h2-console");
@@ -73,7 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                      path.startsWith("/contact");
         
         // 4. Skip hoàn toàn các endpoint không cần authentication
-        if (isAuthEndpoint || isApiEndpoint || isStaticResource) {
+        if (isAuthEndpoint || isPublicApiEndpoint || isStaticResource) {
             filterChain.doFilter(request, response);
             return;
         }

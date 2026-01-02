@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Kết quả thanh toán | Tulip Shop')}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center p-5">
+                    <!-- Icon Success/Error -->
+                    <div class="mb-4">
+                        <div th:if="${success}" class="text-success" style="font-size: 80px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div th:if="${!success}" class="text-danger" style="font-size: 80px;">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                    </div>
+
+                    <!-- Message -->
+                    <h3 class="mb-3" th:classappend="${success ? 'text-success' : 'text-danger'}" th:text="${message}">
+                        Kết quả thanh toán
+                    </h3>
+
+                        <!-- Order Code -->
+                    <div th:if="${orderCode != null or orderId != null}" class="mb-4">
+                        <p class="text-muted mb-2">Mã đơn hàng của bạn:</p>
+                        <p class="h5 fw-bold" th:text="${orderCode != null ? orderCode : '#' + orderId}">
+                            <span th:if="${orderCode != null}" th:text="${orderCode}">TULIP-15012025-12345-5678</span>
+                            <span th:if="${orderCode == null}" th:text="'#' + ${orderId}">#12345</span>
+                        </p>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div th:if="${success}" class="alert alert-success" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Đơn hàng của bạn đã được xác nhận. Chúng tôi sẽ liên hệ với bạn sớm nhất để xác nhận đơn hàng.
+                    </div>
+                    <div th:if="${!success}" class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Thanh toán không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ nếu vấn đề vẫn tiếp tục.
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4">
+                        <a th:href="@{/}" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                        <a th:if="${orderId != null}" th:href="@{/orders/{id}(id=${orderId})}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2"></i>Xem đơn hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
+
+
+
+

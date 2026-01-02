@@ -1,0 +1,182 @@
+<div th:fragment="content" class="flex flex-col h-full bg-white relative overflow-hidden">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between p-8 border-b border-gray-100 bg-white/80 backdrop-blur-xl z-10">
+        <div class="flex items-center gap-4">
+            <a href="/admin/vouchers"
+                class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-black hover:text-white transition-all">
+                <i class="fas fa-arrow-left text-xs"></i>
+            </a>
+            <div>
+                <h1 class="text-xl font-black uppercase tracking-tighter" th:text="${pageTitle}">QUẢN LÝ VOUCHER</h1>
+                <p class="text-[10px] tracking-[0.3em] uppercase text-gray-400 mt-1">Cấu hình khuyến mãi</p>
+            </div>
+        </div>
+
+        <button onclick="document.querySelector('form').requestSubmit()" type="button" id="saveBtn"
+            class="group relative overflow-hidden bg-black text-white px-8 py-3 transition-all hover:pr-12">
+            <span
+                class="relative z-10 font-bold text-xs uppercase tracking-[0.2em] group-hover:tracking-[0.3em] transition-all duration-300">Lưu
+                Thay Đổi</span>
+            <div
+                class="absolute right-0 top-0 h-full w-10 flex items-center justify-center transform translate-x-full group-hover:translate-x-0 transition-transform duration-300">
+                <i class="fas fa-save text-xs"></i>
+            </div>
+        </button>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+        <div class="max-w-3xl mx-auto">
+            <form onsubmit="saveVoucher(event)" class="space-y-12">
+                <input type="hidden" id="id" th:value="${voucher.id}">
+
+                <!-- CODE Section -->
+                <div class="space-y-6">
+                    <div
+                        class="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
+                        <span>01</span>
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                        <span>Thông tin cơ bản</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Mã Voucher
+                                *</label>
+                            <input type="text" id="code" th:value="${voucher.code}" required
+                                class="w-full bg-gray-50 border-none p-4 font-bold uppercase placeholder-gray-300 focus:ring-0 text-sm"
+                                placeholder="VD: SUMMERSALE2025" oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Loại giảm
+                                giá</label>
+                            <select id="type"
+                                class="w-full bg-gray-50 border-none p-4 font-medium text-sm focus:ring-0">
+                                <option value="PERCENT" th:selected="${voucher.type?.name() == 'PERCENT'}">Theo phần
+                                    trăm (%)</option>
+                                <option value="AMOUNT" th:selected="${voucher.type?.name() == 'AMOUNT'}">Theo số tiền
+                                    (VND)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Giá trị giảm
+                                *</label>
+                            <input type="number" id="discountValue" th:value="${voucher.discountValue}" required
+                                class="w-full bg-gray-50 border-none p-4 font-medium text-sm focus:ring-0"
+                                placeholder=" VD: 10 hoặc 50000">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Đơn hàng tối
+                                thiểu</label>
+                            <input type="number" id="minOrderValue" th:value="${voucher.minOrderValue}"
+                                class="w-full bg-gray-50 border-none p-4 font-medium text-sm focus:ring-0"
+                                placeholder="0 nếu không yêu cầu">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantity & Time Section -->
+                <div class="space-y-6">
+                    <div
+                        class="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
+                        <span>02</span>
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                        <span>Giới hạn & Thời gian</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Tổng số
+                                lượng</label>
+                            <input type="number" id="quantity" th:value="${voucher.quantity}" required
+                                class="w-full bg-gray-50 border-none p-4 font-medium text-sm focus:ring-0"
+                                placeholder="100">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Đã sử
+                                dụng</label>
+                            <input type="number" id="usedCount" th:value="${voucher.usedCount ?: 0}"
+                                class="w-full bg-gray-50 border-none p-4 font-medium text-sm focus:ring-0 text-gray-400"
+                                readonly>
+                        </div>
+                        <div class="space-y-2 flex items-center pt-8">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="status" th:checked="${voucher.status}"
+                                    class="w-4 h-4 text-black border-gray-300 rounded focus:ring-black">
+                                <span class="text-xs font-bold uppercase">Kích hoạt</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Bắt đầu</label>
+                            <input type="datetime-local" id="startAt" th:value="${voucher.startAt}"
+                                class="w-full bg-gray-50 border-none p-4 font-medium text-sm focus:ring-0">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Kết thúc</label>
+                            <input type="datetime-local" id="expireAt" th:value="${voucher.expireAt}"
+                                class="w-full bg-gray-50 border-none p-4 font-medium text-sm focus:ring-0">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        async function saveVoucher(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="text-xs font-bold uppercase tracking-widest">Saving...</span>';
+            btn.disabled = true;
+
+            const data = {
+                id: document.getElementById('id').value || null,
+                code: document.getElementById('code').value,
+                type: document.getElementById('type').value,
+                discountValue: document.getElementById('discountValue').value,
+                minOrderValue: document.getElementById('minOrderValue').value || 0,
+                quantity: document.getElementById('quantity').value || 0,
+                usedCount: document.getElementById('usedCount').value || 0,
+                status: document.getElementById('status').checked,
+                startAt: document.getElementById('startAt').value || null,
+                expireAt: document.getElementById('expireAt').value || null
+            };
+
+            try {
+                const id = document.getElementById('id').value;
+                const isUpdate = id && id.trim() !== '';
+                const url = isUpdate ? `/v1/api/admin/vouchers/${id}` : '/v1/api/admin/vouchers';
+                const method = isUpdate ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    window.location.href = '/admin/vouchers';
+                    return;
+                }
+
+                const result = await res.json().catch(() => null);
+                alert('Lỗi: ' + (result?.error || result?.message || 'Không thể lưu voucher'));
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (err) {
+                console.error(err);
+                alert('Có lỗi xảy ra');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</div>

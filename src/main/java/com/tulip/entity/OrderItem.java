@@ -47,4 +47,14 @@ public class OrderItem {
 
     @Column(name = "price_at_purchase")
     private BigDecimal priceAtPurchase; // Quan trọng: Giá tại thời điểm mua
+
+    // Snapshot fields - Đóng băng thông tin sản phẩm tại thời điểm đặt hàng
+    @Column(name = "snap_product_name")
+    private String snapProductName;
+
+    @Column(name = "snap_price")
+    private BigDecimal snapPrice;
+
+    @Column(name = "snap_thumbnail_url")
+    private String snapThumbnailUrl;
 }

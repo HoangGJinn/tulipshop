@@ -9,6 +9,7 @@ import com.tulip.entity.product.ProductStock;
 import com.tulip.entity.product.ProductVariantImage;
 import com.tulip.repository.*;
 import com.tulip.service.CartService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,8 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductStockRepository productStockRepository;
     private final UserRepository userRepository;
+    private final EntityManager entityManager;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     @Transactional
@@ -45,20 +48,57 @@ public class CartServiceImpl implements CartService {
         ProductStock stock = productStockRepository.findById(stockId)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại hoặc đã hết hàng"));
 
-        if (stock.getQuantity() < quantity) {
-            throw new RuntimeException("Số lượng tồn kho không đủ (Còn lại: " + stock.getQuantity() + ")");
+        // if (stock.getQuantity() < quantity) {
+        // throw new RuntimeException("Số lượng tồn kho không đủ (Còn lại: " +
+        // stock.getQuantity() + ")");
+        // }
+        //
+        // // 3. Kiểm tra xem sản phẩm này đã có trong giỏ chưa
+        // Optional<CartItem> existingItem =
+        // cartItemRepository.findByCartIdAndStockId(cart.getId(), stockId);
+        //
+        // if (existingItem.isPresent()) {
+        // // Nếu có rồi -> Cộng dồn số lượng
+        // CartItem item = existingItem.get();
+        // item.setQuantity(item.getQuantity() + quantity);
+        // cartItemRepository.save(item);
+        // } else {
+        // // Nếu chưa -> Tạo mới
+        // CartItem newItem = CartItem.builder()
+        // .cart(cart)
+        // .stock(stock)
+        // .quantity(quantity)
+        // .build();
+        // cartItemRepository.save(newItem);
+        // }
+
+        // Bước 1: Tính hàng đang giữ bởi người khác (Reserved)
+        Integer reservedStock = orderItemRepository.calculateReservedStock(stockId);
+        if (reservedStock == null)
+            reservedStock = 0;
+
+        // Bước 2: Tính hàng thực sự có thể bán (ATS)
+        int availableToSell = stock.getQuantity() - reservedStock;
+
+        // Bước 3: Kiểm tra
+        // Lấy số lượng hiện tại trong giỏ (nếu có) để cộng dồn kiểm tra
+        Optional<CartItem> existingItemOpt = cartItemRepository.findByCartIdAndStockId(cart.getId(), stockId);
+        int currentInCart = existingItemOpt.map(CartItem::getQuantity).orElse(0);
+
+        // Tổng muốn mua = Đang có trong giỏ + Muốn thêm mới
+        int totalDemand = currentInCart + quantity;
+
+        if (totalDemand > availableToSell) {
+            throw new RuntimeException("Sản phẩm này chỉ còn " + availableToSell + " món khả dụng (Kho: "
+                    + stock.getQuantity() + ", Đang giao dịch: " + reservedStock + ")");
         }
+        // --- KẾT THÚC SỬA LOGIC ---
 
-        // 3. Kiểm tra xem sản phẩm này đã có trong giỏ chưa
-        Optional<CartItem> existingItem = cartItemRepository.findByCartIdAndStockId(cart.getId(), stockId);
-
-        if (existingItem.isPresent()) {
-            // Nếu có rồi -> Cộng dồn số lượng
-            CartItem item = existingItem.get();
+        if (existingItemOpt.isPresent()) {
+            CartItem item = existingItemOpt.get();
             item.setQuantity(item.getQuantity() + quantity);
             cartItemRepository.save(item);
         } else {
-            // Nếu chưa -> Tạo mới
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .stock(stock)
@@ -66,15 +106,30 @@ public class CartServiceImpl implements CartService {
                     .build();
             cartItemRepository.save(newItem);
         }
+
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CartItemDTO> getCartItems(Long userId) {
         Cart cart = cartRepository.findByUserIdWithItems(userId).orElse(null);
-        if (cart == null) return new ArrayList<>();
+        if (cart == null)
+            return new ArrayList<>();
 
         return cart.getCartItems().stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CartItemDTO> getCartItems(Long userId, List<Long> itemIds) {
+        Cart cart = cartRepository.findByUserIdWithItems(userId).orElse(null);
+        if (cart == null || itemIds == null || itemIds.isEmpty())
+            return getCartItems(userId);
+
+        return cart.getCartItems().stream()
+                .filter(item -> itemIds.contains(item.getId()))
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -91,10 +146,26 @@ public class CartServiceImpl implements CartService {
         if (quantity <= 0) {
             cartItemRepository.delete(item); // Xóa nếu số lượng = 0
         } else {
-            // Check tồn kho
-            if (quantity > item.getStock().getQuantity()) {
-                throw new RuntimeException("Vượt quá số lượng tồn kho");
+            // // Check tồn kho
+            // if (quantity > item.getStock().getQuantity()) {
+            // throw new RuntimeException("Vượt quá số lượng tồn kho");
+            // }
+            // item.setQuantity(quantity);
+            // cartItemRepository.save(item);
+            // --- SỬA LOGIC CHECK TỒN KHO KHI UPDATE ---
+            ProductStock stock = item.getStock();
+
+            Integer reservedStock = orderItemRepository.calculateReservedStock(stock.getId());
+            if (reservedStock == null)
+                reservedStock = 0;
+
+            int availableToSell = stock.getQuantity() - reservedStock;
+
+            if (quantity > availableToSell) {
+                throw new RuntimeException("Vượt quá số lượng khả dụng (Còn lại: " + availableToSell + ")");
             }
+            // ------------------------------------------
+
             item.setQuantity(quantity);
             cartItemRepository.save(item);
         }
@@ -113,19 +184,53 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public int countItems(Long userId) {
         Cart cart = cartRepository.findByUserIdWithItems(userId).orElse(null);
-        if (cart == null) return 0;
+        if (cart == null)
+            return 0;
         return cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum();
     }
 
     @Override
     @Transactional(readOnly = true)
     public BigDecimal getTotalPrice(Long userId) {
+        return getTotalPrice(userId, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalPrice(Long userId, List<Long> itemIds) {
         Cart cart = cartRepository.findByUserIdWithItems(userId).orElse(null);
-        if (cart == null) return BigDecimal.ZERO;
+        if (cart == null)
+            return BigDecimal.ZERO;
 
         return cart.getCartItems().stream()
+                .filter(item -> itemIds == null || itemIds.isEmpty() || itemIds.contains(item.getId()))
                 .map(CartItem::getSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Override
+    @Transactional
+    public void clearCart(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        if (cart != null && cart.getId() != null) {
+            // Xóa tất cả cart items
+            cartItemRepository.deleteAllByCartId(cart.getId());
+            // Flush để đảm bảo thay đổi được commit ngay lập tức
+            entityManager.flush();
+            entityManager.clear(); // Clear persistence context để tránh stale data
+        }
+    }
+
+    @Override
+    @Transactional
+    public void removeItems(Long userId, List<Long> itemIds) {
+        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        if (cart != null && itemIds != null && !itemIds.isEmpty()) {
+            List<CartItem> itemsToDelete = cartItemRepository.findByCartIdAndIdIn(cart.getId(), itemIds);
+            cartItemRepository.deleteAll(itemsToDelete);
+            entityManager.flush();
+            entityManager.clear();
+        }
     }
 
     // Helper: Convert Entity -> DTO
@@ -154,6 +259,7 @@ public class CartServiceImpl implements CartService {
 
         return CartItemDTO.builder()
                 .id(item.getId())
+                .stockId(stock.getId())
                 .productId(product.getId())
                 .productName(product.getName())
                 .productImage(img)

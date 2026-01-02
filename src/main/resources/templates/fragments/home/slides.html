@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="slides">
+    <!-- Section 2: Product Slides - Split Layout Design -->
+    <!-- Product Slide 1: The MVP Crew -->
+    <section class="product-slide" data-product="1">
+        <!-- Left Column: Showcase -->
+        <div class="showcase-col">
+            <div class="bg-grid"></div>
+            <div class="crosshair-line crosshair-horizontal"></div>
+            <div class="crosshair-line crosshair-diagonal"></div>
+            <h2 class="bg-text">TULIPSHOP</h2>
+            <div class="product-cutout-wrapper">
+                <div id="canvas-container-1"
+                     class="canvas-container"
+                     data-model-src="/assets/models/ao1.glb"
+                     data-model-scale="3.0"
+                     data-model-y="-0.5"></div>
+            </div>
+            <div class="product-info-top">
+                <h1 class="product-title">Váy xếp ly không tay</h1>
+                <p class="product-price-top">VND 2.000.000đ</p>
+                <button class="quick-view-btn-showcase">XEM NGAY</button>
+            </div>
+            <div class="shop-all-spinner">
+                <svg class="spinner-svg" viewBox="0 0 100 100">
+                    <defs>
+                        <path id="circle-path" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"></path>
+                    </defs>
+                    <text class="spinner-text" fill="currentColor" font-family="mono" font-size="10">
+                        <textPath href="#circle-path">SHOP ALL • SHOP ALL • SHOP ALL •</textPath>
+                    </text>
+                </svg>
+            </div>
+        </div>
+        <!-- Right Column: Lifestyle -->
+        <div class="lifestyle-col">
+            <img src="https://res.cloudinary.com/diawi4gde/image/upload/v1765866465/tulip-fashion/n8bx5adwsesqr7i6647r.jpg?w=700&h=900&fit=crop" alt="Model wearing The MVP Crew" class="model-bg" loading="lazy">
+            <div class="gradient-overlay"></div>
+            <div class="marquee-container">
+                <div class="marquee-text">
+                    <span>NGUYEN THANH VINH DEP TRAI</span>
+                    <span>FRENCH TERRY COTTON 3D EMBROIDERY</span>
+                </div>
+            </div>
+            <div class="number-badge">
+                <div class="number-border">//</div>
+                <span class="number-text">3</span>
+            </div>
+            <div class="hotspot-lifestyle">
+                <div class="hotspot-dot-lifestyle"></div>
+                <div class="hotspot-pulse"></div>
+            </div>
+            <a href="/product/10" class="glass-card"
+               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;">
+
+                <div class="glass-card-thumbnail" style="flex-shrink: 0;">
+                    <img src="https://res.cloudinary.com/diawi4gde/image/upload/v1765866827/84437958b_b_06_500_ndzwii.jpg?w=100&h=100&fit=crop"
+                         alt="The MVP Crew thumbnail" loading="lazy"
+                         style="display: block;"> </div>
+
+                <div class="glass-card-info" style="flex-grow: 1;">
+                    <h3 class="glass-card-title">Váy xếp ly không tay</h3>
+                    <p class="glass-card-price">VND 2.000.000đ</p>
+                </div>
+
+                <div class="glass-card-icon">
+                    <span>↗</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Product Slide 2: Sprint Quarter Zip -->
+    <section class="product-slide" data-product="2">
+        <div class="showcase-col">
+            <div class="bg-grid"></div>
+            <div class="crosshair-line crosshair-horizontal"></div>
+            <div class="crosshair-line crosshair-diagonal"></div>
+            <h2 class="bg-text">TULIPSHOP</h2>
+            <div class="product-cutout-wrapper">
+                <div id="canvas-container-2"
+                     class="canvas-container"
+                     data-model-src="/assets/models/ao2.glb"
+                     data-model-scale="2.5"
+                     data-model-y="-0.5"></div>
+            </div>
+            <div class="product-info-top">
+                <h1 class="product-title"> Áo khoác giáng sinh noel</h1>
+                <p class="product-price-top">VND 260.000đ</p>
+                <button class="quick-view-btn-showcase">XEM NGAY</button>
+            </div>
+            <div class="shop-all-spinner">
+                <svg class="spinner-svg" viewBox="0 0 100 100">
+                    <defs>
+                        <path id="circle-path-2" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"></path>
+                    </defs>
+                    <text class="spinner-text" fill="currentColor" font-family="mono" font-size="10">
+                        <textPath href="#circle-path-2">SHOP ALL • SHOP ALL • SHOP ALL •</textPath>
+                    </text>
+                </svg>
+            </div>
+        </div>
+        <div class="lifestyle-col">
+            <img src="https://res.cloudinary.com/diawi4gde/image/upload/v1765951646/Gemini_Generated_Image_l6k78dl6k78dl6k7_vqcjyx.png?w=700&h=900&fit=crop" alt="Model wearing Sprint Quarter Zip" class="model-bg" loading="lazy">
+            <div class="gradient-overlay"></div>
+            <div class="marquee-container">
+                <div class="marquee-text">
+                    <span>NGUYEN THANH VINH VO DICH BO DOI</span>
+                    <span>EMBOSSED METAL ZIPPER 3D RUBBER PATCH</span>
+                </div>
+            </div>
+            <div class="number-badge">
+                <div class="number-border">//</div>
+                <span class="number-text">3</span>
+            </div>
+            <div class="hotspot-lifestyle">
+                <div class="hotspot-dot-lifestyle"></div>
+                <div class="hotspot-pulse"></div>
+            </div>
+            <div class="glass-card">
+                <div class="glass-card-thumbnail">
+                    <img src="https://res.cloudinary.com/diawi4gde/image/upload/v1765953429/z7334675740884_dcc1914e97f6ac0ee1b909b281bccb64_ig23kt.jpg?w=100&h=100&fit=crop" alt="Sprint Quarter Zip thumbnail" loading="lazy">
+                </div>
+                <div class="glass-card-info">
+                    <h3 class="glass-card-title"> Áo khoác giáng sinh noel</h3>
+                    <p class="glass-card-price">VND 160.000đ</p>
+                </div>
+                <div class="glass-card-icon">
+                    <span>↗</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="footer-slide">
+        <div class="footer-visuals">
+            <div class="visual-left">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop" alt="Abstract dark" class="visual-img grayscale">
+                <div class="spinner-container">
+                    <svg class="spinner-svg" viewBox="0 0 100 100">
+                        <path d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" id="footerCircle"></path>
+                        <text fill="currentColor">
+                            <textPath href="#footerCircle">SHOP ALL • SHOP ALL • SHOP ALL •</textPath>
+                        </text>
+                    </svg>
+                    <span class="material-icons arrow-icon">arrow_outward</span>
+                </div>
+            </div>
+            <div class="visual-right group">
+                <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1000&auto=format&fit=crop" alt="Models" class="visual-img">
+                <div class="product-card-floating">
+                    <div class="card-thumb">
+                        <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop" alt="Tee">
+                    </div>
+                    <div class="card-info">
+                        <h3>Commerce Champion Tee</h3>
+                        <p>USD $34.00</p>
+                    </div>
+                    <span class="material-icons card-arrow">arrow_forward</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-strip">
+            <div class="strip-pattern"></div>
+            <div class="strip-text">Performance Pack</div>
+            <div class="strip-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="footer-info">
+            <div class="info-content">
+                <p class="info-text">
+                    Join the <span class="highlight">Supply</span> commerce community. Our store runs on <a href="#" class="link-highlight">Hydrogen</a>, Tulip's React-based headless commerce stack, deployed on <a href="#" class="link-highlight">Oxygen</a>.
+                </p>
+                <div class="info-social-cta">
+                    <h4>Give Supply a shout out on social</h4>
+                    <a href="#" class="social-link-cta">
+                        Tag us @Tulip when you share
+                        <span class="material-icons">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="social-grid">
+                <a href="#" class="social-item">
+                    <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                </a>
+                <a href="#" class="social-item">
+                    <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+                </a>
+                <a href="#" class="social-item">
+                    <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path></svg>
+                </a>
+                <a href="#" class="social-item">
+                    <span class="material-icons">link</span>
+                </a>
+            </div>
+
+            <div class="footer-links-grid">
+                <a href="#">FAQs</a>
+                <a href="#">Shipping and returns</a>
+                <a href="#">Terms of service</a>
+                <a href="#">Privacy policy</a>
+            </div>
+        </div>
+    </section>
+</th:block>
+</body>
+</html>

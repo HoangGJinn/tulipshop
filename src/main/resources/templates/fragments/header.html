@@ -7,6 +7,8 @@
     <title th:text="${title}">Tulip Shop</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
@@ -38,172 +40,189 @@
 
 <!-- Header Fragment -->
 <div th:fragment="header">
+    <!-- Toast Notification Container -->
+    <div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000;"></div>
+
     <!-- Header Main -->
     <header id="site-header" class="header-main">
         <div class="header-main__height">
-            <div class="header-mobile">
-                <div class="container">
-                    <div class="row header-row">
-                        <div class="col-xs-4 col-sm-6 col-md-2 col-lg-2">
-                            <div class="header-mobile__left">
-                                <span class="hamburger-menu hidden-md hidden-lg" id="menu-toggle">
-                                    <i class="fas fa-bars"></i>
-                                </span>
-                                <a th:href="@{/}" class="logo-shop">
-                                    <span class="logo-text">TULIP SHOP</span>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-xs-4 col-sm-8 col-md-7 col-lg-8 hidden-xs hidden-sm position-menu">
-                            <div class="header-desktop__nav">
-                                <nav class="main-nav me-auto">
-                                    <ul class="clearfix">
-                                        <li class="position-relative">
-                                            <a th:href="@{/}" title="New in">New in</a>
-                                        </li>
-                                        <li class="nav-item parent-nav position-static h-100 d-flex align-items-center">
-                                            <a class="nav-link" href="/products" style="cursor: pointer; font-weight: 500;">
-                                                Sản phẩm <i class="fas fa-chevron-down ms-1" style="font-size: 8px; opacity: 0.5;"></i>
-                                            </a>
-
-                                            <div class="mega-menu-container bg-white shadow-sm">
-                                                <div class="container py-4">
-                                                    <div class="row">
-                                                        <div class="col-lg-3 col-md-3 px-3">
-                                                            <a href="#" class="mega-img-wrapper d-block position-relative text-decoration-none">
-                                                                <img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/mega-image_2-1.jpg?v=663" class="img-fluid w-100" alt="Banner">
-                                                                <div class="img-overlay"></div>
-                                                                <span class="buy-now-text">Mua ngay</span>
-                                                            </a>
-                                                        </div>
-
-                                                        <div class="col-lg-3 col-md-3 px-3">
-                                                            <a href="#" class="mega-img-wrapper d-block position-relative text-decoration-none">
-                                                                <img src="https://cdn.hstatic.net/themes/1000197303/1001389401/14/mega-image_1-2.jpg?v=663" class="img-fluid w-100" alt="Banner">
-                                                                <div class="img-overlay"></div>
-                                                                <span class="buy-now-text">Mua ngay</span>
-                                                            </a>
-                                                        </div>
-
-                                                        <div class="col-lg-6 col-md-6 ps-4">
-                                                            <div class="row h-100">
-
-                                                                <div class="col-4 mega-col-border">
-                                                                    <h6 class="mega-list-title">Ưu đãi</h6>
-                                                                    <ul class="list-unstyled mega-menu-list">
-                                                                        <li><a href="#">Tặng 50K thành viên mới</a></li>
-                                                                        <li><a href="#">Flash Sale tháng 12</a></li>
-                                                                        <li><a href="#">Mua 1 tặng 1</a></li>
-                                                                    </ul>
-                                                                </div>
-
-                                                                <div class="col-4 mega-col-border">
-                                                                    <h6 class="mega-list-title">Sản phẩm</h6>
-                                                                    <ul class="list-unstyled mega-menu-list">
-                                                                        <li><a href="/products?category=ao-kieu">Áo kiểu</a></li>
-                                                                        <li><a href="/products?category=ao-thun">Áo thun</a></li>
-                                                                        <li><a href="/products?category=dam">Đầm</a></li>
-                                                                        <li><a href="/products?category=chan-vay">Chân váy</a></li>
-                                                                        <li><a href="/products?category=quan">Quần</a></li>
-                                                                    </ul>
-                                                                </div>
-
-                                                                <div class="col-4"> <h6 class="mega-list-title">Trending</h6>
-                                                                    <ul class="list-unstyled mega-menu-list">
-                                                                        <li><a href="#">Phối Blazer với Đầm</a></li>
-                                                                        <li><a href="#">Quần suông hack dáng</a></li>
-                                                                        <li><a href="#">Áo thun năng động</a></li>
-                                                                    </ul>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <a th:href="@{/about}" title="Về chúng tôi">Về chúng tôi</a>
-                                        </li>
-                                        <li>
-                                            <a th:href="@{/contact}" title="Liên hệ">Liên hệ</a>
-                                        </li>
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-
-                        <div class="col-xs-4 col-sm-6 col-md-3 col-lg-2">
-                            <div class="header-mobile__right">
-                                <ul class="header-actions">
-                                    <li>
-                                        <a href="javascript:void(0)" class="text-dark me-3 search-trigger" onclick="toggleSearchPanel()">
-                                            <i class="fas fa-search"></i>
-                                        </a>
-
-                                        <div id="searchOverlay" class="search-overlay">
-                                            <div class="container">
-                                                <div class="text-end pt-3">
-                                                    <button class="btn-close-search" onclick="toggleSearchPanel()">
-                                                        <i class="fas fa-times"></i> ĐÓNG
-                                                    </button>
-                                                </div>
-
-                                                <div class="search-box-wrapper text-center mt-3">
-                                                    <form action="/products" method="get" class="position-relative">
-                                                        <input type="text" id="searchInput" name="search" class="form-control search-input"
-                                                               placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
-                                                        <button type="submit" class="btn-search-submit"><i class="fas fa-search"></i></button>
-                                                    </form>
-                                                </div>
-
-                                                <div id="searchResults" class="search-results mt-4">
-                                                    <div class="default-suggestions text-center">
-                                                        <p class="text-muted small text-uppercase mb-3">Gợi ý cho bạn</p>
-                                                        <div class="d-flex justify-content-center gap-3 flex-wrap">
-                                                            <a href="/products?category=dam" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Đầm dạo phố</a>
-                                                            <a href="/products?category=ao-kieu" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Áo kiểu</a>
-                                                            <a href="/products?category=quan" class="btn btn-outline-light text-dark border rounded-pill btn-sm">Quần ống suông</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li class="user-menu-item">
-                                        <!-- Hiển thị khi đã đăng nhập -->
-                                        <div sec:authorize="isAuthenticated()" class="user-dropdown">
-                                            <a href="#" class="header-account-icon" id="user-menu-toggle">
-                                                <i class="fas fa-user"></i>
-                                                <span class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.name}">User</span>
-                                            </a>
-                                            <div class="user-dropdown-menu" id="user-dropdown-menu">
-                                                <a th:href="@{/account}" class="dropdown-item">
-                                                    <i class="fas fa-user-circle"></i> Tài khoản
-                                                </a>
-                                                <a th:href="@{/logout}" class="dropdown-item logout-item">
-                                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <!-- Hiển thị khi chưa đăng nhập -->
-                                        <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="header-account-icon">
-                                            <i class="fas fa-user"></i>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a th:href="@{/cart}" class="header-cart-icon">
-                                            <i class="fas fa-shopping-bag"></i>
-                                            <span class="cart-count">0</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+            <div class="header-container">
+                <div class="header-wrapper">
+                    
+                    <!-- Logo Section -->
+                    <div class="header-logo-section">
+                        <span class="hamburger-menu hidden-md hidden-lg" id="menu-toggle">
+                            <i class="fas fa-bars"></i>
+                        </span>
+                        <a th:href="@{/}" class="logo-shop">
+                            <img th:src="@{/images/logo.png}" alt="Tulip Shop" class="logo-image" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                            <span class="logo-text" style="display: none;">TULIP SHOP</span>
+                        </a>
                     </div>
+
+                    <!-- Navigation Section -->
+                    <div class="header-nav-section hidden-xs hidden-sm">
+                        <nav class="main-nav">
+                            <ul class="nav-list">
+                                <li class="nav-item">
+                                    <a th:href="@{/}" title="New in">New in</a>
+                                </li>
+                                <li class="nav-item parent-nav">
+                                    <a class="nav-link" href="/products">
+                                        Sản phẩm <i class="fas fa-chevron-down nav-chevron"></i>
+                                    </a>
+                                    <div class="mega-menu-container">
+                                        <div class="container" style="padding-top: 1rem; padding-bottom: 1rem;">
+                                            <div class="row">
+                                                <div class="col-lg-4 mega-col-border">
+                                                    <h6 class="mega-list-title">Danh mục</h6>
+                                                    <ul class="list-unstyled mega-menu-list">
+                                                        <li><a href="/products?category=ao-kieu">Áo kiểu</a></li>
+                                                        <li><a href="/products?category=ao-thun">Áo thun</a></li>
+                                                        <li><a href="/products?category=dam">Đầm</a></li>
+                                                        <li><a href="/products?category=chan-vay">Chân váy</a></li>
+                                                        <li><a href="/products?category=quan">Quần</a></li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-lg-4 mega-col-border">
+                                                    <h6 class="mega-list-title">Ưu đãi</h6>
+                                                    <ul class="list-unstyled mega-menu-list">
+                                                        <li><a href="#">Tặng 50K thành viên mới</a></li>
+                                                        <li><a href="#">Flash Sale tháng 12</a></li>
+                                                        <li><a href="#">Mua 1 tặng 1</a></li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-lg-4">
+                                                    <h6 class="mega-list-title">Trending</h6>
+                                                    <ul class="list-unstyled mega-menu-list">
+                                                        <li><a href="#">Phối Blazer với Đầm</a></li>
+                                                        <li><a href="#">Quần suông hack dáng</a></li>
+                                                        <li><a href="#">Áo thun năng động</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="nav-item">
+                                    <a th:href="@{/about}" title="Về chúng tôi">Về chúng tôi</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a th:href="@{/contact}" title="Liên hệ">Liên hệ</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                    <!-- Actions Section -->
+                    <div class="header-actions-section">
+                        <ul class="header-actions">
+                            <!-- Search Icon -->
+                            <li>
+                                <button type="button" class="header-action-btn search-trigger" onclick="toggleSearchPanel()" aria-label="Tìm kiếm">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </li>
+
+                            <!-- User Menu -->
+                            <li class="user-menu-item">
+                                <!-- Hiển thị khi đã đăng nhập -->
+                                <div sec:authorize="isAuthenticated()" class="user-dropdown">
+                                    <div class="header-account-wrapper" id="user-menu-toggle">
+                                        <div class="header-account-icon">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <span class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.name}">User</span>
+                                    </div>
+                                    <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                        <a th:href="@{/account}" class="dropdown-item">
+                                            <i class="fas fa-user-circle"></i>
+                                            <span>Tài khoản</span>
+                                        </a>
+                                        <a th:href="@{/wishlist}" class="dropdown-item">
+                                            <i class="fas fa-heart"></i>
+                                            <span>Yêu thích</span>
+                                        </a>
+                                        <th:block sec:authorize="hasRole('ADMIN')">
+                                            <a th:href="@{/admin/dashboard}" class="dropdown-item">
+                                                <i class="fas fa-cog"></i>
+                                                <span>Quản trị</span>
+                                            </a>
+                                        </th:block>
+                                        <a th:href="@{/orders}" class="dropdown-item">
+                                            <i class="fas fa-shopping-bag"></i>
+                                            <span>Đơn hàng của tôi</span>
+                                        </a>
+                                        <a th:href="@{/logout}" class="dropdown-item logout-item">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                            <span>Đăng xuất</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- Hiển thị khi chưa đăng nhập -->
+                                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="header-account-wrapper">
+                                    <div class="header-account-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <!-- Cart Icon -->
+                            <li>
+                                <a th:href="@{/cart}" class="header-cart-wrapper" aria-label="Giỏ hàng">
+                                    <div class="header-cart-icon">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span class="cart-count">0</span>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <li>
+                                <div th:replace="~{fragments/notification :: notification}"></div>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                    
                 </div>
             </div>
         </div>
     </header>
+
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="search-overlay">
+        <div class="search-overlay-content">
+            <div class="search-header">
+                <button class="btn-close-search" onclick="toggleSearchPanel()" aria-label="Đóng">
+                    <i class="fas fa-times"></i>
+                    <span>Đóng</span>
+                </button>
+            </div>
+
+            <div class="search-box-wrapper">
+                <form action="/products" method="get" class="search-form">
+                    <i class="fas fa-search search-icon-left"></i>
+                    <input type="text" id="searchInput" name="search" class="search-input"
+                           placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+                    <button type="submit" class="btn-search-submit" aria-label="Tìm kiếm">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div id="searchResults" class="search-results">
+                <div class="default-suggestions">
+                    <p class="suggestions-title">Gợi ý cho bạn</p>
+                    <div class="suggestions-tags">
+                        <a href="/products?category=dam" class="suggestion-tag">Đầm dạo phố</a>
+                        <a href="/products?category=ao-kieu" class="suggestion-tag">Áo kiểu</a>
+                        <a href="/products?category=quan" class="suggestion-tag">Quần ống suông</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Mobile Menu -->
     <div class="site-menu menu-mobile" id="mobile-menu">
@@ -233,10 +252,25 @@
                     <li class="nav-item">
                         <a th:href="@{/contact}">Liên hệ</a>
                     </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0);" onclick="toggleSearchPanel()">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </a>
+                    </li>
                     <!-- User menu trong mobile -->
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a th:href="@{/account}">
                             <i class="fas fa-user-circle"></i> Tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/wishlist}">
+                            <i class="fas fa-heart"></i> Yêu thích
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a th:href="@{/orders}">
+                            <i class="fas fa-shopping-bag"></i> Đơn hàng của tôi
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
@@ -253,6 +287,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Bootstrap JS - Load trước các script khác -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Bootstrap Test Script -->
+    <script th:src="@{/js/bootstrap-test.js}"></script>
+
+    <!-- Toast Notification Script -->
+    <script th:src="@{/js/toast-notification.js}"></script>
+
+    <script th:src="@{/js/header.js}" defer></script>
 </div>
 
 <!-- Header Scripts Fragment -->
@@ -261,7 +306,7 @@
     document.getElementById('menu-toggle')?.addEventListener('click', function() {
         document.getElementById('mobile-menu').classList.add('active');
     });
-    
+
     document.getElementById('close-menu')?.addEventListener('click', function() {
         document.getElementById('mobile-menu').classList.remove('active');
     });
@@ -269,11 +314,13 @@
     // User dropdown menu toggle
     const userMenuToggle = document.getElementById('user-menu-toggle');
     const userDropdownMenu = document.getElementById('user-dropdown-menu');
-    
+
     if (userMenuToggle && userDropdownMenu) {
         userMenuToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            userDropdownMenu.classList.toggle('active');
+            if (!e.target.closest('.user-name-link') && !e.target.classList.contains('user-name')) {
+                e.preventDefault();
+                userDropdownMenu.classList.toggle('active');
+            }
         });
 
         // Đóng dropdown khi click bên ngoài
@@ -319,9 +366,6 @@
         showSlide(index - 1);
     }
 
-
-
-
     // Auto-play slider (optional)
     if (slides.length > 0) {
         setInterval(function() {
@@ -336,6 +380,13 @@
     window.changeSlide = changeSlide;
     window.currentSlide = currentSlide;
 </script>
+
+<!-- Notification Script - Load before header-scripts ends -->
+<script th:src="@{/js/notification.js}"></script>
+<script th:src="@{/js/wishlist.js}"></script>
+
+<!-- Notification Script Fragment (for backward compatibility) -->
+<script th:fragment="notification-script" th:src="@{/js/notification.js}"></script>
 
 </body>
 </html>

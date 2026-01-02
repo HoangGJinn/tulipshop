@@ -1,0 +1,114 @@
+/* Toast Notification Styles */
+.toast {
+    position: fixed !important;
+    top: 25px !important;
+    right: 30px !important;
+    border-radius: 12px;
+    background: #fff !important;
+    padding: 20px 35px 20px 25px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #47d864;
+    overflow: hidden;
+    transform: translateX(calc(100% + 100px)) !important;
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35),
+    opacity 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35),
+    visibility 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35) !important;
+    z-index: 99999 !important;
+    max-width: 400px;
+    min-width: 300px;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    display: block !important;
+}
+
+.toast.active {
+    transform: translateX(0%) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.toast .toast-content {
+    display: flex;
+    align-items: center;
+}
+
+.toast .check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px;
+    min-width: 35px;
+    background-color: #47d864;
+    color: #fff;
+    font-size: 18px;
+    border-radius: 50%;
+}
+
+.toast .message {
+    display: flex;
+    flex-direction: column;
+    margin: 0 20px;
+    flex: 1;
+}
+
+.toast .message .text-1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+.toast .message .text-2 {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
+}
+
+.toast .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    padding: 5px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.toast .progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: #f2f2f2;
+}
+
+.toast .progress:before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    background-color: #47d864;
+}
+
+/* Đây là phần quan trọng để thanh progress chạy */
+.toast.active .progress:before {
+    animation: progress var(--duration, 5000ms) linear forwards;
+}
+
+@keyframes progress {
+    100% { right: 100%; }
+}
+
+/* Màu sắc theo trạng thái */
+.toast.success { border-left-color: #47d864; }
+.toast.success .check { background-color: #47d864; }
+.toast.success .progress:before { background-color: #47d864; }
+
+.toast.error { border-left-color: #ff355b; }
+.toast.error .check { background-color: #ff355b; }
+.toast.error .progress:before { background-color: #ff355b; }
+
+.toast.attention { border-left-color: #ffc107; }
+.toast.attention .check { background-color: #ffc107; }
+.toast.attention .progress:before { background-color: #ffc107; }

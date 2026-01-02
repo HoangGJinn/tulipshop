@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="tableLayout(title, addBtnText, searchPlaceholder, tableHeaders)">
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900" th:text="${title}">Title</h1>
+            <p class="text-sm text-gray-500" id="data-count">0 Items</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <input type="text" 
+                       id="tableSearch" 
+                       th:placeholder="${searchPlaceholder}"
+                       class="border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-black w-64"
+                       onkeyup="if(typeof handleSearch === 'function') handleSearch()">
+            </div>
+            <button onclick="if(typeof openAddDialog === 'function') openAddDialog()" 
+                    class="flex items-center gap-2 border border-gray-300 rounded px-4 py-2 text-sm font-medium hover:bg-gray-50 bg-black text-white">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span th:text="${addBtnText}">Add</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th th:each="header : ${tableHeaders}" 
+                        class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500"
+                        th:text="${header}"></th>
+                </tr>
+            </thead>
+            <tbody id="table-body-data">
+                <tr>
+                    <td th:colspan="${#lists.size(tableHeaders)}" class="p-20 text-center">
+                        <div class="w-8 h-8 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script th:inline="javascript">
+        // Khởi tạo lại icons sau khi fragment được load
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</div>
+
+<!-- Confirm Modal Fragment -->
+<div th:fragment="confirmModal" id="confirmModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all">
+        <div class="p-6 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-black uppercase tracking-tight" id="confirmModalTitle">Xác nhận</h3>
+            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-sm text-gray-600" id="confirmModalMessage">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+        </div>
+        <div class="p-6 border-t border-gray-100 flex gap-3 justify-end">
+            <button type="button" onclick="closeConfirmModal()" 
+                    class="px-6 py-2.5 text-sm font-bold uppercase tracking-wider border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                Hủy
+            </button>
+            <button type="button" id="confirmModalButton"
+                    class="px-6 py-2.5 text-sm font-bold uppercase tracking-wider bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
+                Xác nhận
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Container -->
+<div th:fragment="notification" id="notification-container"></div>
+
+<div th:fragment="scripts">
+    <!-- Lucide Icons -->
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- Notification System -->
+    <link rel="stylesheet" th:href="@{/css/notification.css}">
+    <!-- Toast Notification Script - Load FIRST -->
+    <script th:src="@{/js/toast-notification.js}"></script>
+    <script th:src="@{/js/notification.js}"></script>
+
+    <!-- Animation styles for toast -->
+    <script>
+        // Add animation styles if not exists
+        if (!document.getElementById('toast-animation-styles')) {
+            const style = document.createElement('style');
+            style.id = 'toast-animation-styles';
+            style.textContent = `
+                @keyframes slide-in-right {
+                    from {
+                        opacity: 0;
+                        transform: translateX(100%);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+                .animate-slide-in-right {
+                    animation: slide-in-right 0.3s ease-out;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    </script>
+
+    <!-- Confirm Modal Scripts -->
+    <script>
+        let confirmCallback = null;
+
+        function showConfirmModal(title, message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const titleEl = document.getElementById('confirmModalTitle');
+            const messageEl = document.getElementById('confirmModalMessage');
+            const confirmBtn = document.getElementById('confirmModalButton');
+
+            if (titleEl) titleEl.textContent = title;
+            if (messageEl) messageEl.textContent = message;
+            
+            confirmCallback = onConfirm;
+            
+            if (modal) {
+                modal.classList.remove('hidden');
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            confirmCallback = null;
+        }
+
+        // Xử lý khi click confirm
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmBtn = document.getElementById('confirmModalButton');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    if (confirmCallback && typeof confirmCallback === 'function') {
+                        confirmCallback();
+                    }
+                    closeConfirmModal();
+                });
+            }
+
+            // Đóng modal khi click ra ngoài
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeConfirmModal();
+                    }
+                });
+            }
+        });
+    </script>
+</div>
+
+</body>
+</html>

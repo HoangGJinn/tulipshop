@@ -2,6 +2,9 @@ package com.tulip.repository;
 
 import com.tulip.entity.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -11,7 +14,10 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     // Tìm item trong giỏ hàng cụ thể với stock cụ thể (để cộng dồn số lượng)
     Optional<CartItem> findByCartIdAndStockId(Long cartId, Long stockId);
 
-    void deleteByCartId(Long cartId);
-    // Trong CartItemRepository.java
-    void deleteAllByCartId(Long cartId);// Dùng để xóa sạch giỏ hàng sau khi mua
+    // Xóa tất cả cart items của một cart
+    @Modifying
+    @Query("DELETE FROM CartItem ci WHERE ci.cart.id = :cartId")
+    void deleteAllByCartId(@Param("cartId") Long cartId);
+
+    java.util.List<CartItem> findByCartIdAndIdIn(Long cartId, java.util.List<Long> ids);
 }

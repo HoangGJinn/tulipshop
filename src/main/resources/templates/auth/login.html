@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/header :: head('Đăng nhập - Tulip Shop')}"></head>
+
+<body class="login-page-body">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .login-page-body {
+            display: block !important;
+        }
+        .login-page-wrapper {
+            min-height: calc(100vh - 160px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .password-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .password-input-wrapper input {
+            padding-right: 45px;
+            width: 100%;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.3s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toggle-password:hover {
+            color: #d4a373;
+        }
+    </style>
+
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="login-page-wrapper">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-image-section">
+                    <img th:src="@{/images/banner-login.webp}" alt="Fashion Banner">
+                </div>
+
+                <div class="login-form-section">
+                    <div class="form-header">
+                        <h2 class="login-title">Đăng nhập</h2>
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="input-group">
+                            <label>Email / Số điện thoại</label>
+                            <input type="text" name="email" placeholder="Nhập email của bạn" />
+                        </div>
+
+                        <div class="input-group">
+                            <label>Mật khẩu</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="loginPassword" name="password" placeholder="••••••••" />
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('loginPassword')">
+                                    <i class="fas fa-eye" id="loginPasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-options">
+                            <div class="validation-message">
+                                <span th:if="${error}" class="error-text" th:text="${error}"></span>
+                                <span th:if="${message}" class="success-text" th:text="${message}"></span>
+                            </div>
+
+                            <a th:href="@{/forgot-password}" class="forgot-link">Quên mật khẩu?</a>
+                        </div>
+
+                        <button type="submit" class="login-button">ĐĂNG NHẬP</button>
+
+                        <div class="social-login-wrapper">
+                            <p>Hoặc tiếp tục với</p>
+                            <a href="/oauth2/authorization/google" class="social-btn google">
+                                <i class="fab fa-google"></i> Google
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="login-footer">
+                        Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(inputId + 'Icon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+
+</html>

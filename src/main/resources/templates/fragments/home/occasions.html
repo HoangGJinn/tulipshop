@@ -1,0 +1,25 @@
+<div th:fragment="occasions">
+    <section class="tw-container tw-mx-auto tw-px-4 tw-mb-16">
+        <div class="tw-flex tw-justify-center tw-gap-8 tw-mb-8 tw-text-sm tw-uppercase tw-tracking-widest">
+            <button onclick="loadOccasion('di-lam', this)" class="occasion-btn tw-font-bold tw-border-b-2 tw-border-black tw-pb-1 tw-transition-colors">
+                Đồ đi làm
+            </button>
+            <button onclick="loadOccasion('di-choi', this)" class="occasion-btn tw-text-gray-500 hover:tw-text-black tw-transition-colors tw-border-b-2 tw-border-transparent hover:tw-border-gray-300">
+                Đồ đi chơi
+            </button>
+            <button onclick="loadOccasion('di-tiec', this)" class="occasion-btn tw-text-gray-500 hover:tw-text-black tw-transition-colors tw-border-b-2 tw-border-transparent hover:tw-border-gray-300">
+                Đồ đi tiệc
+            </button>
+        </div>
+
+        <div id="occasion-grid" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-6 tw-min-h-[300px]">
+            <div class="tw-col-span-full tw-text-center tw-py-10 tw-text-gray-400">Đang tải...</div>
+        </div>
+
+        <div class="tw-text-center tw-mt-10">
+            <button class="!tw-border tw-border-black tw-px-8 tw-py-3 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest hover:tw-bg-black hover:tw-text-white tw-transition tw-duration-300">
+                Xem tất cả
+            </button>
+        </div>
+    </section>
+</div>

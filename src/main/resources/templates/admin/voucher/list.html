@@ -1,0 +1,91 @@
+<div th:fragment="content">
+    <div th:replace="~{admin/fragments/common :: tableLayout(
+        title='Quản lý Voucher',
+        addBtnText='Tạo Voucher',
+        searchPlaceholder='TÌM THEO MÃ...',
+        tableHeaders=${tableHeaders}
+    )}"></div>
+
+    <script th:inline="javascript">
+        async function loadData() {
+            try {
+                const response = await fetch('/v1/api/admin/vouchers');
+                if (!response.ok) throw new Error('Failed to fetch data');
+
+                const data = await response.json();
+                const tbody = document.getElementById('table-body-data');
+                const countLabel = document.getElementById('data-count');
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-20 text-center"><p class="text-[10px] tracking-[0.5em] uppercase text-gray-400">Chưa có voucher nào</p></td></tr>`;
+                    countLabel.innerText = '0 Items';
+                    return;
+                }
+
+                countLabel.innerText = `${data.length} Items`;
+                tbody.innerHTML = data.map(item => `
+                    <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-none">
+                        <td class="p-6 font-black uppercase tracking-wider text-xs text-blue-600">${item.code}</td>
+                        <td class="p-6 text-[10px] uppercase font-bold text-gray-500">${item.type}</td>
+                        <td class="p-6 font-bold">
+                            ${item.type === 'PERCENT' ? item.discountValue + '%' : new Intl.NumberFormat('vi-VN').format(item.discountValue || 0) + '₫'}
+                        </td>
+                        <td class="p-6 text-xs text-gray-600">
+                             > ${new Intl.NumberFormat('vi-VN').format(item.minOrderValue || 0)}₫
+                        </td>
+                         <td class="p-6 text-[10px] uppercase text-gray-500">
+                           ${item.expireAt || 'Không hạn'}
+                        </td>
+                         <td class="p-6">
+                            <span class="text-[10px] uppercase font-bold ${item.status ? 'text-green-500' : 'text-red-500'}">
+                                ${item.status ? 'Active' : 'Expired/Disabled'}
+                            </span>
+                             <div class="text-[9px] text-gray-400 mt-1">
+                                Used: ${item.usedCount}/${item.quantity}
+                            </div>
+                        </td>
+                        <td class="p-6 text-right">
+                             <div class="flex justify-end gap-4">
+                                <a href="/admin/vouchers/form?id=${item.id}" class="text-[10px] font-black uppercase tracking-widest hover:underline hover:text-blue-600 transition-colors">Sửa</a>
+                                <button onclick="deleteItem(${item.id})" class="text-[10px] font-black uppercase tracking-widest text-red-500 hover:underline transition-colors">Xóa</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function deleteItem(id) {
+            if (!confirm("Bạn có chắc muốn vô hiệu hóa voucher này?")) return;
+            fetch(`/v1/api/admin/vouchers/${id}`, { method: 'DELETE' })
+                .then(async (res) => {
+                    if (res.ok) {
+                        loadData();
+                        return;
+                    }
+                    const data = await res.json().catch(() => null);
+                    alert(data?.error || data?.message || 'Không thể vô hiệu hóa voucher lúc này');
+                });
+        }
+
+        function openAddDialog() {
+            window.location.href = '/admin/vouchers/form';
+        }
+
+        // Search simple implementation
+        function handleSearch() {
+            const searchTerm = document.getElementById('tableSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#table-body-data tr');
+            rows.forEach(row => {
+                if (row.cells.length > 1) {
+                    const text = row.cells[0].textContent.toLowerCase(); // Search by Code
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</div>
