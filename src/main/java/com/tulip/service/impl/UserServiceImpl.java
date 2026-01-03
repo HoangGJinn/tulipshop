@@ -3,6 +3,7 @@ package com.tulip.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.tulip.dto.UserProfileDTO;
+
 import com.tulip.entity.Role;
 import com.tulip.entity.User;
 import com.tulip.entity.UserProfile;
@@ -39,7 +40,7 @@ public class UserServiceImpl implements UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
-    
+
     @Override
     @Transactional
     public User register(String email, String rawPassword, String fullName, String phone) {
@@ -62,12 +63,12 @@ public class UserServiceImpl implements UserService {
         user.setProfile(profile);
 
         user = userRepository.save(user);
-        
+
         // Gửi OTP để xác thực email
         String otp = otpService.generateOtp(email);
         emailService.sendOTPToEmail(email, otp, "verify");
         log.info("OTP sent to email: {}", email);
-        
+
         return user;
     }
 
@@ -107,9 +108,7 @@ public class UserServiceImpl implements UserService {
                                 "folder", "tulipshop/avatars",
                                 "public_id", "user_" + user.getId(),
                                 "overwrite", true,
-                                "resource_type", "image"
-                        )
-                );
+                                "resource_type", "image"));
                 String avatarUrl = (String) uploadResult.get("secure_url");
                 profile.setAvatar(avatarUrl);
             } catch (IOException e) {
@@ -120,40 +119,40 @@ public class UserServiceImpl implements UserService {
 
         userProfileRepository.save(profile);
     }
-    
+
     @Override
     @Transactional
     public boolean verifyEmail(String email, String otp) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Email không tồn tại"));
-        
+
         // Kiểm tra OTP
         if (!otpService.validateOtp(email, otp)) {
             return false;
         }
-        
+
         // Nếu OTP đúng, cập nhật emailVerifiedAt
         if (user.getEmailVerifiedAt() == null) {
             user.setEmailVerifiedAt(LocalDateTime.now());
             userRepository.save(user);
             log.info("Email verified successfully for: {}", email);
         }
-        
+
         return true;
     }
-    
+
     @Override
     public void resendOtp(String email, String type) {
         if (!userRepository.existsByEmail(email)) {
             throw new IllegalStateException("Email không tồn tại");
         }
-        
+
         // Xác định key cho OTP dựa trên type
         String otpKey = "reset".equals(type) ? "reset_" + email : email;
-        
+
         // Xóa OTP cũ nếu có
         otpService.clearOtp(otpKey);
-        
+
         // Tạo và gửi OTP mới
         String otp = otpService.generateOtp(otpKey);
         emailService.sendOTPToEmail(email, otp, type);
@@ -165,19 +164,20 @@ public class UserServiceImpl implements UserService {
     public void sendPasswordResetOtp(String email, String type) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
-        
+
         // Kiểm tra user có phải đăng ký bằng LOCAL không
         if ("reset".equals(type) && !"LOCAL".equals(user.getAuthProvider())) {
             String provider = "GOOGLE".equals(user.getAuthProvider()) ? "Google" : "OAuth2";
-            throw new IllegalStateException("Tài khoản này được đăng ký bằng " + provider + ". Vui lòng đăng nhập bằng " + provider + ".");
+            throw new IllegalStateException(
+                    "Tài khoản này được đăng ký bằng " + provider + ". Vui lòng đăng nhập bằng " + provider + ".");
         }
-        
+
         // Xác định key cho OTP dựa trên type
         String otpKey = "reset".equals(type) ? "reset_" + email : email;
-        
+
         // Xóa OTP cũ nếu có
         otpService.clearOtp(otpKey);
-        
+
         // Tạo và gửi OTP mới
         String otp = otpService.generateOtp(otpKey);
         emailService.sendOTPToEmail(email, otp, type);
@@ -190,23 +190,24 @@ public class UserServiceImpl implements UserService {
         // Kiểm tra email có tồn tại không
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
-        
+
         // Kiểm tra user có phải đăng ký bằng LOCAL không
         if (!"LOCAL".equals(user.getAuthProvider())) {
             String provider = "GOOGLE".equals(user.getAuthProvider()) ? "Google" : "OAuth2";
-            throw new IllegalStateException("Tài khoản này được đăng ký bằng " + provider + ". Vui lòng đăng nhập bằng " + provider + ".");
+            throw new IllegalStateException(
+                    "Tài khoản này được đăng ký bằng " + provider + ". Vui lòng đăng nhập bằng " + provider + ".");
         }
-        
+
         // Validate OTP
         if (!otpService.validateOtp("reset_" + email, otp)) {
             throw new IllegalStateException("Mã OTP không đúng hoặc đã hết hạn");
         }
-        
+
         // Validate password mới
         if (newPassword == null || newPassword.trim().isEmpty() || newPassword.length() < 6) {
             throw new IllegalStateException("Mật khẩu mới phải có ít nhất 6 ký tự");
         }
-        
+
         // Cập nhật mật khẩu mới
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
@@ -219,28 +220,29 @@ public class UserServiceImpl implements UserService {
         // Kiểm tra email có tồn tại không
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
-        
+
         // Kiểm tra user có phải đăng ký bằng LOCAL không
         if (!"LOCAL".equals(user.getAuthProvider())) {
             String provider = "GOOGLE".equals(user.getAuthProvider()) ? "Google" : "OAuth2";
-            throw new IllegalStateException("Tài khoản này được đăng ký bằng " + provider + ". Không thể thay đổi mật khẩu.");
+            throw new IllegalStateException(
+                    "Tài khoản này được đăng ký bằng " + provider + ". Không thể thay đổi mật khẩu.");
         }
-        
+
         // Kiểm tra mật khẩu cũ
         if (user.getPasswordHash() == null || !passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
             throw new IllegalStateException("Mật khẩu cũ không đúng");
         }
-        
+
         // Validate mật khẩu mới
         if (newPassword == null || newPassword.trim().isEmpty() || newPassword.length() < 6) {
             throw new IllegalStateException("Mật khẩu mới phải có ít nhất 6 ký tự");
         }
-        
+
         // Kiểm tra mật khẩu mới không được trùng với mật khẩu cũ
         if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
             throw new IllegalStateException("Mật khẩu mới phải khác mật khẩu cũ");
         }
-        
+
         // Cập nhật mật khẩu mới
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
@@ -253,12 +255,12 @@ public class UserServiceImpl implements UserService {
         // Kiểm tra email có tồn tại không
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Email không tồn tại trong hệ thống"));
-        
+
         // Validate mật khẩu mới
         if (newPassword == null || newPassword.trim().isEmpty() || newPassword.length() < 6) {
             throw new IllegalStateException("Mật khẩu mới phải có ít nhất 6 ký tự");
         }
-        
+
         // Cập nhật mật khẩu mới
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
@@ -270,7 +272,7 @@ public class UserServiceImpl implements UserService {
     public Map<String, Object> getPasswordInfo(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         Map<String, Object> info = new HashMap<>();
         // Đảm bảo authProvider không null (mặc định là LOCAL)
         String authProvider = user.getAuthProvider();
@@ -279,7 +281,47 @@ public class UserServiceImpl implements UserService {
         }
         info.put("authProvider", authProvider);
         info.put("hasPassword", user.getPasswordHash() != null && !user.getPasswordHash().isEmpty());
-        
+
         return info;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<com.tulip.dto.response.CustomerDTO> getAllCustomers(String keyword) {
+        java.util.List<User> users;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            users = userRepository.searchWithProfile(keyword.trim());
+        } else {
+            users = userRepository.findAllWithProfile();
+        }
+
+        return users.stream()
+                .map(com.tulip.dto.response.CustomerDTO::fromEntity)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void updateUserStatus(Long userId, Boolean status) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setStatus(status);
+        userRepository.save(user);
+        log.info("User {} status updated to {}", userId, status);
+    }
+
+    @Override
+    @Transactional
+    public void updateUserRole(Long userId, String roleName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            Role role = Role.valueOf(roleName);
+            user.setRole(role);
+            userRepository.save(user);
+            log.info("User {} role updated to {}", userId, roleName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid role: " + roleName);
+        }
     }
 }

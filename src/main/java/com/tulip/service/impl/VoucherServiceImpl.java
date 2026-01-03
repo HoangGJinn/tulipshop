@@ -39,6 +39,12 @@ public class VoucherServiceImpl implements VoucherService {
         if (voucher.getCode() != null) {
             voucher.setCode(voucher.getCode().toUpperCase());
         }
+
+        // Initialize usedCount for new vouchers
+        if (voucher.getId() == null && voucher.getUsedCount() == null) {
+            voucher.setUsedCount(0);
+        }
+
         return voucherRepository.save(voucher);
     }
 
@@ -70,10 +76,6 @@ public class VoucherServiceImpl implements VoucherService {
         if (v.getStartAt() != null && now.isBefore(v.getStartAt()))
             return false;
         if (v.getExpireAt() != null && now.isAfter(v.getExpireAt()))
-            return false;
-
-        // Check quantity
-        if (v.getQuantity() != null && v.getUsedCount() != null && v.getQuantity() <= v.getUsedCount())
             return false;
 
         // Check min order value
