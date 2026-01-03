@@ -9,6 +9,8 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,41 +27,59 @@ public class GoogleAIService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String prompt = buildPrompt(userMessage, context);
-                String response = callGoogleAI(prompt);
-                return extractResponseContent(response);
+                // Giảm temperature để AI tập trung vào facts, bớt lan man
+                return extractResponseContent(callGoogleAI(prompt, 0.4));
             } catch (Exception e) {
                 log.error("Error calling Google AI API", e);
-                return generateFallbackResponse(userMessage);
+                // Khi API lỗi, dùng fallback thông minh với context
+                return generateFallbackResponseWithContext(userMessage, context);
             }
         });
     }
     
     private String buildPrompt(String userMessage, String context) {
         return String.format("""
-            Bạn là nhân viên tư vấn thân thiện của Tulip Shop (shop thời trang nữ).
-
-            QUY TẮC BẮT BUỘC:
-            - Chỉ trả lời dựa trên thông tin trong mục THÔNG TIN SHOP VÀ CHÍNH SÁCH.
-            - Không được tự bịa chính sách, số liệu, giá, thời gian.
-            - Nếu thiếu dữ liệu để trả lời chắc chắn, hãy hỏi lại 1-2 câu ngắn để làm rõ (ví dụ: chiều cao/cân nặng, mẫu sản phẩm, khu vực giao hàng).
-            - Nếu khách hỏi chính sách/size, ưu tiên trích dẫn ngắn gọn từ thông tin được cung cấp.
+            VAI TRÒ:
+            Bạn là "Trợ lý ảo Tulip" - nhân viên tư vấn chuyên nghiệp của Tulip Shop (thời trang nữ).
             
-            THÔNG TIN SHOP VÀ CHÍNH SÁCH (dùng để trả lời khách):
+            🎯 NHIỆM VỤ CHÍNH:
+            - Tư vấn sản phẩm ĐÚNG với dữ liệu có sẵn bên dưới
+            - Trả lời chính sách, size, giá CỦA SHOP (không tự bịa)
+            - Gợi ý outfit phù hợp với nhu cầu khách
+            
+            ⚠️ QUY TẮC VÀNG (BẮT BUỘC TUÂN THỦ):
+            1. CHỈ TRẢ LỜI DỰA VÀO "DỮ LIỆU SHOP" BẾN DƯỚI
+            2. Nếu sản phẩm KHÔNG CÓ trong danh sách → Nói "shop chưa có mẫu này" (không bịa)
+            3. Nếu hỏi giá mà không có trong data → Nói "em check lại giúp chị nhé"
+            4. Nếu hỏi vấn đề NGOÀI thời trang (toán, lập trình, tin tức...) → TỪ CHỐI LỊCH SỰ:
+               "Dạ em chỉ là trợ lý thời trang của Tulip Shop, chưa hỗ trợ được vấn đề này ạ 😊"
+            
+            📊 DỮ LIỆU SHOP (Từ Database - Dữ liệu thực):
             %s
             
-            Tin nhắn của khách hàng: %s
+            💬 TIN NHẮN KHÁCH: "%s"
             
-            Hướng dẫn trả lời:
-            - Dựa vào THÔNG TIN SHOP VÀ CHÍNH SÁCH ở trên để trả lời chính xác.
-            - Nếu khách hỏi size, hãy dùng bảng size trong thông tin shop và có thể hỏi thêm chiều cao/cân nặng để tư vấn size phù hợp.
-            - Nếu khách hỏi chính sách, trích dẫn từ thông tin shop một cách ngắn gọn.
-            - Nếu khách hỏi sản phẩm, ưu tiên gợi ý sản phẩm nếu có trong thông tin.
-            - Giọng văn thân thiện, chuyên nghiệp, như nhân viên tư vấn thực tế.
-            - Trả lời bằng tiếng Việt, ngắn gọn, dễ hiểu.
+            📝 CÁCH TRẢ LỜI:
+            - Nếu khách hỏi "có áo gì không?" → Liệt kê 3-5 MẪU CỤ THỂ từ danh sách trên
+            - Nếu hỏi giá → Trả lời CHÍNH XÁC giá trong data (có discount thì nói luôn)
+            - Nếu hỏi size → Dùng bảng size ở trên + HỎI CHIỀU CAO/CÂN NẶNG nếu khách chưa cho
+            - Nếu khách cho số đo → TƯ VẤN SIZE CỤ THỂ (S/M/L/XL)
+            - Giọng văn: Ngọt ngào, thân thiện, dùng "dạ", "ạ", "chị", "nàng"
+            - Độ dài: 2-4 câu là đủ, đừng quá dài
+            
+            ✅ VÍ DỤ TRẢ LỜI TỐT:
+            Khách: "Có áo công sở không?"
+            Bot: "Dạ có ạ! Shop đang có mấy mẫu này chị nhé:
+            1. Áo Sơ Mi Trắng Công Sở - 350k (giảm còn 280k)
+            2. Áo Kiểu Xanh Navy Thanh Lịch - 420k
+            Chị thích mẫu nào để em tư vấn size ạ? 🥰"
+            
+            BẮT ĐẦU TRẢ LỜI (chỉ trả lời nội dung, không thêm meta-text):
             """, context, userMessage);
     }
-    
-    private String callGoogleAI(String prompt) {
+
+    // Cho phép truyền temperature vào để linh hoạt
+    private String callGoogleAI(String prompt, double temperature) {
         String url = googleAIConfig.getApiUrl() + "?key=" + googleAIConfig.getApiKey();
         
         Map<String, Object> requestBody = Map.of(
@@ -71,11 +91,10 @@ public class GoogleAIService {
                 )
             ),
             "generationConfig", Map.of(
-                "temperature", 0.7,
+                "temperature", temperature, // Chỉ số sáng tạo (thấp = chính xác, cao = sáng tạo)
                 "topK", 40,
                 "topP", 0.95,
-                "maxOutputTokens", 1024,
-                "responseMimeType", "application/json"
+                "maxOutputTokens", 800 // Giới hạn độ dài trả lời cho ngắn gọn
             )
         );
         
@@ -100,6 +119,11 @@ public class GoogleAIService {
         }
     }
     
+    // Giữ nguyên logic cũ cho fallback
+    private String callGoogleAI(String prompt) {
+        return callGoogleAI(prompt, 0.7); // Mặc định cho các task sáng tạo
+    }
+
     private String extractResponseContent(String jsonResponse) {
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
@@ -117,43 +141,149 @@ public class GoogleAIService {
             }
             
             log.warn("Could not extract response from Google AI: {}", jsonResponse);
-            return "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này. Vui lòng thử lại sau.";
-            
+            return "Dạ hiện tại hệ thống đang quá tải, chị chờ em một xíu nhé!";
+
         } catch (Exception e) {
             log.error("Error parsing Google AI response", e);
-            return "Xin lỗi, có lỗi xảy ra khi xử lý phản hồi. Vui lòng thử lại.";
+            return "Dạ có chút lỗi kết nối, chị hỏi lại giúp em nha!";
         }
     }
-    
-    private String generateFallbackResponse(String userMessage) {
+
+    /**
+     * Fallback response thông minh - Sử dụng context từ database
+     * Khi Gemini API lỗi (quota, network...), vẫn trả lời được dựa trên dữ liệu thực
+     */
+    private String generateFallbackResponseWithContext(String userMessage, String context) {
         String lowerMessage = userMessage.toLowerCase();
         
-        if (lowerMessage.contains("xin chào") || lowerMessage.contains("hello") || lowerMessage.contains("hi")) {
-            return "Xin chào! Mình là trợ lý của Tulip Shop. Mình có thể hỗ trợ bạn về size, chính sách đổi trả/bảo hành, thanh toán, vận chuyển hoặc tư vấn sản phẩm.";
+        log.info("🛡️ Sử dụng fallback response với context ({} ký tự)", context != null ? context.length() : 0);
+
+        // 1. Trích xuất danh sách sản phẩm từ context
+        List<String> products = extractProductsFromContext(context);
+
+        // 2. Hỏi về sản phẩm
+        if (lowerMessage.matches(".*(có gì|bán gì|sản phẩm|mẫu|áo|váy|quần|đầm).*") && !products.isEmpty()) {
+            StringBuilder response = new StringBuilder("Dạ shop đang có mấy mẫu này ạ:\n\n");
+            int count = Math.min(5, products.size());
+            for (int i = 0; i < count; i++) {
+                response.append(products.get(i)).append("\n");
+            }
+            response.append("\nChị quan tâm mẫu nào để em tư vấn thêm nhé! 🥰");
+            return response.toString();
         }
         
-        if (lowerMessage.contains("cảm ơn") || lowerMessage.contains("thank")) {
-            return "Rất vui được giúp đỡ bạn! Nếu có câu hỏi nào khác, đừng ngần ngại hỏi nhé.";
+        // 3. Hỏi giá
+        if (lowerMessage.matches(".*(giá|bao nhiêu|nhiêu tiền).*") && !products.isEmpty()) {
+            return "Dạ em thấy có mấy sản phẩm này ạ:\n\n" +
+                   String.join("\n", products.subList(0, Math.min(3, products.size()))) +
+                   "\n\nChị thích mẫu nào ạ? 💕";
         }
         
-        if (lowerMessage.contains("giá") || lowerMessage.contains("bao nhiêu")) {
-            return "Bạn đang xem sản phẩm/mẫu nào ạ? Bạn gửi tên sản phẩm hoặc link/mã sản phẩm, mình sẽ báo giá và chương trình khuyến mãi (nếu có).";
+        // 4. Hỏi size
+        if (lowerMessage.matches(".*(size|cỡ|kích thước|chiều cao|cân nặng).*")) {
+            return """
+                Dạ về size, shop có bảng size chuẩn ạ:
+                
+                📏 S: 45-50kg, cao 1m50-1m58
+                📏 M: 51-55kg, cao 1m58-1m65
+                📏 L: 56-62kg, cao 1m65-1m70
+                📏 XL: 63-70kg, cao 1m70+
+                
+                Chị cho em biết chiều cao cân nặng để tư vấn chính xác hơn nhé! 😊
+                """;
         }
         
-        return "Mình đã nhận câu hỏi của bạn. Bạn có thể cho mình biết thêm: bạn đang quan tâm chính sách (đổi trả/bảo hành/vận chuyển/thanh toán) hay tư vấn size/sản phẩm nào để mình hỗ trợ đúng hơn?";
+        // 5. Hỏi chính sách
+        if (lowerMessage.matches(".*(đổi trả|bảo hành|vận chuyển|ship|giao hàng|thanh toán).*")) {
+            return """
+                Dạ shop có các chính sách này ạ:
+                
+                🔄 Đổi size miễn phí trong 7 ngày
+                🛡️ Bảo hành 30 ngày lỗi nhà sản xuất
+                🚚 Ship toàn quốc (1-2 ngày nội thành, 3-5 ngày tỉnh)
+                💳 COD, chuyển khoản, ví điện tử
+                
+                Chị cần biết thêm chi tiết gì không ạ? 💕
+                """;
+        }
+
+        // 6. Chào hỏi
+        if (lowerMessage.matches(".*(xin chào|hello|hi|chào).*")) {
+            if (!products.isEmpty()) {
+                return "Xin chào chị! 🥰 Em là trợ lý của Tulip Shop ạ.\n\n" +
+                       "Shop đang có nhiều mẫu đẹp lắm, chị xem qua nhé:\n" +
+                       String.join("\n", products.subList(0, Math.min(3, products.size()))) +
+                       "\n\nChị thích mẫu nào ạ?";
+            }
+            return "Xin chào chị! 🥰 Em là trợ lý của Tulip Shop. Em có thể tư vấn về sản phẩm, size, chính sách cho chị ạ!";
+        }
+
+        // 7. Fallback mặc định (có context)
+        if (!products.isEmpty()) {
+            return "Dạ em đã nhận được câu hỏi của chị! Shop đang có nhiều mẫu đẹp lắm ạ:\n\n" +
+                   String.join("\n", products.subList(0, Math.min(3, products.size()))) +
+                   "\n\nChị cần tư vấn gì thêm không ạ? 💕";
+        }
+
+        // 8. Fallback cuối cùng (không có context)
+        return "Dạ em đã nhận tin nhắn của chị rồi ạ! Chị cần tư vấn về sản phẩm, size hay chính sách nào không ạ? 😊";
     }
     
     /**
-     * Generate smart reply suggestions for rating responses
-     * @param stars Rating stars (1-5)
-     * @param content Rating content from customer
-     * @return JSON string with 3 reply suggestions
+     * Trích xuất danh sách sản phẩm từ context
      */
+    private List<String> extractProductsFromContext(String context) {
+        List<String> products = new ArrayList<>();
+        if (context == null || !context.contains("DANH SÁCH SẢN PHẨM")) {
+            return products;
+        }
+
+        try {
+            // Tìm section sản phẩm
+            int startIdx = context.indexOf("DANH SÁCH SẢN PHẨM");
+            if (startIdx == -1) return products;
+
+            String productSection = context.substring(startIdx);
+            String[] lines = productSection.split("\n");
+
+            StringBuilder currentProduct = new StringBuilder();
+            for (String line : lines) {
+                line = line.trim();
+                // Dòng bắt đầu bằng số = sản phẩm mới
+                if (line.matches("^\\d+\\..*")) {
+                    if (currentProduct.length() > 0) {
+                        products.add(currentProduct.toString().trim());
+                    }
+                    currentProduct = new StringBuilder(line);
+                } else if (line.startsWith("💰") && currentProduct.length() > 0) {
+                    // Thêm giá vào sản phẩm hiện tại
+                    currentProduct.append(" - ").append(line.replace("💰 Giá: ", ""));
+                }
+            }
+
+            // Thêm sản phẩm cuối
+            if (currentProduct.length() > 0) {
+                products.add(currentProduct.toString().trim());
+            }
+
+        } catch (Exception e) {
+            log.error("Error extracting products from context", e);
+        }
+
+        return products;
+    }
+
+    // Giữ lại old fallback cho các trường hợp không có context
+    private String generateFallbackResponse(String userMessage) {
+        return generateFallbackResponseWithContext(userMessage, "");
+    }
+
+    // --- PHẦN GỢI Ý ĐÁNH GIÁ (GIỮ NGUYÊN HOẶC TỐI ƯU NHẸ) ---
     public String generateReplySuggestions(int stars, String content) {
         try {
             String prompt = buildReplySuggestionsPrompt(stars, content);
-            
-            String response = callGoogleAI(prompt);
+            // Dùng temperature cao hơn (0.7) vì cần sáng tạo
+            String response = callGoogleAI(prompt, 0.7);
             
             String extractedText = extractResponseContent(response);
             //log.info("FULL Extracted text from AI: {}", extractedText);
@@ -293,7 +423,7 @@ public class GoogleAIService {
                 """;
         }
     }
-    
+
     /**
      * Generate product description using Gemini API with URL reference (NO Base64)
      * @param productName Product name
@@ -304,37 +434,37 @@ public class GoogleAIService {
      * @param brand Brand name
      * @return HTML formatted product description
      */
-    public String generateProductDescription(String productName, String imageUrl, 
-                                             String neckline, String material, 
+    public String generateProductDescription(String productName, String imageUrl,
+                                             String neckline, String material,
                                              String sleeveType, String brand) {
         int maxRetries = 2;
         int retryCount = 0;
         long waitTime = 2000; // Bắt đầu với 2 giây
-        
+
         while (retryCount <= maxRetries) {
             try {
-                log.info("🤖 Calling Gemini API (Attempt {}/{}) with URL: {}", 
+                log.info("🤖 Calling Gemini API (Attempt {}/{}) with URL: {}",
                         retryCount + 1, maxRetries + 1, imageUrl);
-                
-                String prompt = buildProductDescriptionPrompt(productName, imageUrl, 
+
+                String prompt = buildProductDescriptionPrompt(productName, imageUrl,
                                                              neckline, material, sleeveType, brand);
-                
+
                 // Gọi API với URL (KHÔNG dùng Base64)
                 String response = callGoogleAIWithUrlContext(prompt, imageUrl);
                 String extractedText = extractResponseContent(response);
-                
+
                 // Clean HTML response
                 extractedText = cleanHtmlResponse(extractedText);
-                
+
                 log.info("✅ AI generated product description successfully on attempt {}", retryCount + 1);
                 return extractedText;
-                
+
             } catch (Exception e) {
                 // Kiểm tra lỗi 429 (Too Many Requests)
                 if (e.getMessage() != null && e.getMessage().contains("429")) {
                     retryCount++;
                     if (retryCount <= maxRetries) {
-                        log.warn("⚠️ Rate limit exceeded (429 Too Many Requests). Waiting {}ms before retry... (Attempt {}/{})", 
+                        log.warn("⚠️ Rate limit exceeded (429 Too Many Requests). Waiting {}ms before retry... (Attempt {}/{})",
                                 waitTime, retryCount, maxRetries);
                         try {
                             Thread.sleep(waitTime);
@@ -349,20 +479,20 @@ public class GoogleAIService {
                         log.error("❌ Max retries ({}) exceeded for 429 error", maxRetries);
                     }
                 }
-                
+
                 // Nếu hết retry hoặc lỗi khác, dùng fallback
-                log.error("❌ Error generating product description after {} attempts: {}", 
+                log.error("❌ Error generating product description after {} attempts: {}",
                          retryCount + 1, e.getMessage());
                 log.info("🔄 Using template-based fallback description");
                 return generateFallbackProductDescription(productName, neckline, material, sleeveType, brand);
             }
         }
-        
+
         // Fallback cuối cùng (không nên đến đây)
         log.warn("⚠️ Reached end of retry loop, using fallback");
         return generateFallbackProductDescription(productName, neckline, material, sleeveType, brand);
     }
-    
+
     private String buildProductDescriptionPrompt(String productName, String imageUrl,
                                                  String neckline, String material,
                                                  String sleeveType, String brand) {
@@ -421,11 +551,11 @@ public class GoogleAIService {
             - Chỉ trả về HTML thuần
             - Giọng văn: Sang trọng, chuyên nghiệp, tiếng Việt
             - Ngắn gọn, súc tích để tiết kiệm tokens
-            """, 
+            """,
             productName, neckline, material, sleeveType, brand,
             neckline, sleeveType, material, imageUrl, productName);
     }
-    
+
     /**
      * Call Gemini API with image URL reference (NO Base64 inline_data)
      * Sử dụng URL trong text prompt để giảm payload size và token consumption
@@ -435,7 +565,7 @@ public class GoogleAIService {
      */
     private String callGoogleAIWithUrlContext(String prompt, String imageUrl) {
         String url = googleAIConfig.getApiUrl() + "?key=" + googleAIConfig.getApiKey();
-        
+
         // Kết hợp prompt với URL ảnh (chỉ dẫn cho AI, KHÔNG tải ảnh)
         String fullPrompt = String.format("""
             %s
@@ -445,7 +575,7 @@ public class GoogleAIService {
             Lưu ý: Hãy tạo mô tả dựa trên các thuộc tính đã cung cấp (tên, cổ áo, chất liệu, tay áo, thương hiệu).
             Không cần phân tích chi tiết ảnh, chỉ cần tham khảo để tạo nội dung phù hợp.
             """, prompt, imageUrl);
-        
+
         // Build request body - CHỈ dùng text, KHÔNG dùng inline_data hay tools
         Map<String, Object> requestBody = Map.of(
             "contents", java.util.List.of(
@@ -462,16 +592,16 @@ public class GoogleAIService {
                 "maxOutputTokens", 2048
             )
         );
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        
+
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-        
+
         try {
             log.debug("📤 Sending request to Gemini API (text-only, no Base64)");
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-            
+
             if (response.getStatusCode() == HttpStatus.OK) {
                 log.debug("✅ Received 200 OK from Gemini API");
                 return response.getBody();
@@ -487,7 +617,7 @@ public class GoogleAIService {
                 log.warn("⚠️ HttpClientErrorException: 429 Too Many Requests");
                 throw new RuntimeException("429 - Rate limit exceeded");
             }
-            log.error("❌ HttpClientErrorException calling Gemini API: {} - {}", 
+            log.error("❌ HttpClientErrorException calling Gemini API: {} - {}",
                      e.getStatusCode(), e.getMessage());
             throw new RuntimeException("API call failed: " + e.getMessage());
         } catch (Exception e) {
@@ -495,14 +625,14 @@ public class GoogleAIService {
             throw new RuntimeException("API call failed: " + e.getMessage());
         }
     }
-    
+
     private String cleanHtmlResponse(String response) {
         if (response == null || response.trim().isEmpty()) {
             return "";
         }
-        
+
         response = response.trim();
-        
+
         // Remove markdown code blocks
         if (response.startsWith("```html")) {
             response = response.substring(7);
@@ -512,11 +642,11 @@ public class GoogleAIService {
         if (response.endsWith("```")) {
             response = response.substring(0, response.length() - 3);
         }
-        
+
         return response.trim();
     }
-    
-    private String generateFallbackProductDescription(String productName, String neckline, 
+
+    private String generateFallbackProductDescription(String productName, String neckline,
                                                      String material, String sleeveType, String brand) {
         return String.format("""
             <div class='product-story'>
