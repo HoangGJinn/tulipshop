@@ -103,4 +103,31 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     default List<Product> findRandomProducts() {
         return findRandomActiveProducts();
     }
+    
+    // Lọc theo thuộc tính kỹ thuật
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "WHERE p.status = 'ACTIVE' " +
+           "AND (:neckline IS NULL OR p.neckline = :neckline) " +
+           "AND (:material IS NULL OR p.material = :material) " +
+           "AND (:sleeveType IS NULL OR p.sleeveType = :sleeveType) " +
+           "AND (:brand IS NULL OR p.brand = :brand)")
+    List<Product> findByTechnicalAttributes(
+        @Param("neckline") String neckline,
+        @Param("material") String material,
+        @Param("sleeveType") String sleeveType,
+        @Param("brand") String brand
+    );
+    
+    // Lấy danh sách giá trị unique cho mỗi thuộc tính (để hiển thị trong filter)
+    @Query("SELECT DISTINCT p.neckline FROM Product p WHERE p.neckline IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctNecklines();
+    
+    @Query("SELECT DISTINCT p.material FROM Product p WHERE p.material IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctMaterials();
+    
+    @Query("SELECT DISTINCT p.sleeveType FROM Product p WHERE p.sleeveType IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctSleeveTypes();
+    
+    @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.brand IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctBrands();
 }

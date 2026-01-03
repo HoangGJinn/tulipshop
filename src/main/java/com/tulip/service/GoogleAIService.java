@@ -293,4 +293,252 @@ public class GoogleAIService {
                 """;
         }
     }
+    
+    /**
+     * Generate product description using Gemini API with URL reference (NO Base64)
+     * @param productName Product name
+     * @param imageUrl Product image URL from Cloudinary (already optimized to 512px)
+     * @param neckline Neckline type
+     * @param material Material type
+     * @param sleeveType Sleeve type
+     * @param brand Brand name
+     * @return HTML formatted product description
+     */
+    public String generateProductDescription(String productName, String imageUrl, 
+                                             String neckline, String material, 
+                                             String sleeveType, String brand) {
+        int maxRetries = 2;
+        int retryCount = 0;
+        long waitTime = 2000; // Bắt đầu với 2 giây
+        
+        while (retryCount <= maxRetries) {
+            try {
+                log.info("🤖 Calling Gemini API (Attempt {}/{}) with URL: {}", 
+                        retryCount + 1, maxRetries + 1, imageUrl);
+                
+                String prompt = buildProductDescriptionPrompt(productName, imageUrl, 
+                                                             neckline, material, sleeveType, brand);
+                
+                // Gọi API với URL (KHÔNG dùng Base64)
+                String response = callGoogleAIWithUrlContext(prompt, imageUrl);
+                String extractedText = extractResponseContent(response);
+                
+                // Clean HTML response
+                extractedText = cleanHtmlResponse(extractedText);
+                
+                log.info("✅ AI generated product description successfully on attempt {}", retryCount + 1);
+                return extractedText;
+                
+            } catch (Exception e) {
+                // Kiểm tra lỗi 429 (Too Many Requests)
+                if (e.getMessage() != null && e.getMessage().contains("429")) {
+                    retryCount++;
+                    if (retryCount <= maxRetries) {
+                        log.warn("⚠️ Rate limit exceeded (429 Too Many Requests). Waiting {}ms before retry... (Attempt {}/{})", 
+                                waitTime, retryCount, maxRetries);
+                        try {
+                            Thread.sleep(waitTime);
+                            waitTime *= 2; // Exponential backoff: 2s -> 4s -> 8s
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            log.error("❌ Retry interrupted");
+                            break;
+                        }
+                        continue; // Thử lại
+                    } else {
+                        log.error("❌ Max retries ({}) exceeded for 429 error", maxRetries);
+                    }
+                }
+                
+                // Nếu hết retry hoặc lỗi khác, dùng fallback
+                log.error("❌ Error generating product description after {} attempts: {}", 
+                         retryCount + 1, e.getMessage());
+                log.info("🔄 Using template-based fallback description");
+                return generateFallbackProductDescription(productName, neckline, material, sleeveType, brand);
+            }
+        }
+        
+        // Fallback cuối cùng (không nên đến đây)
+        log.warn("⚠️ Reached end of retry loop, using fallback");
+        return generateFallbackProductDescription(productName, neckline, material, sleeveType, brand);
+    }
+    
+    private String buildProductDescriptionPrompt(String productName, String imageUrl,
+                                                 String neckline, String material,
+                                                 String sleeveType, String brand) {
+        return String.format("""
+            Bạn là Giám đốc Sáng tạo của thương hiệu thời trang cao cấp TulipShop.
+            
+            NHIỆM VỤ: Viết mô tả sản phẩm dựa trên các thuộc tính sau:
+            - Tên sản phẩm: %s
+            - Kiểu cổ: %s
+            - Chất liệu: %s
+            - Kiểu tay áo: %s
+            - Thương hiệu: %s
+            
+            YÊU CẦU VỀ NỘI DUNG:
+            
+            1. PHẦN MỞ ĐẦU (The Hook):
+               - Mô tả 'thần thái' của sản phẩm dựa trên tên và thuộc tính
+               - Sử dụng ngôn từ hoa mỹ, khơi gợi cảm xúc
+               - Ví dụ: "Sự mềm mại của lụa, nét thanh tao của đường cắt..."
+            
+            2. ĐIỂM NHẤN THIẾT KẾ (Highlights):
+               - Viết 3-4 dòng về sự tinh tế của kiểu cổ %s và tay áo %s
+               - Nhấn mạnh cách chúng tôn dáng người mặc
+               - Tập trung vào ưu điểm của thiết kế
+            
+            3. TRẢI NGHIỆM CHẤT LIỆU:
+               - Mô tả cảm giác khi chạm vào vải %s
+               - Đề cập: thấm hút, mịn màng, bền bỉ, thoải mái
+               - Lợi ích khi sử dụng chất liệu này
+            
+            4. GỢI Ý PHỐI ĐỒ (Styling Tips):
+               - Đóng vai Stylist tư vấn cách phối món đồ này
+               - Gợi ý phụ kiện/giày dép cho: đi làm, đi tiệc, dạo phố
+               - Tạo cảm hứng cho khách hàng
+            
+            YÊU CẦU VỀ ĐỊNH DẠNG (BẮT BUỘC):
+            - Trả về mã HTML thuần, sử dụng Bootstrap 5
+            - Cấu trúc:
+              <div class='product-story'>
+                <h3 class='text-uppercase fw-bold border-bottom pb-2 mb-3'>Câu chuyện sản phẩm</h3>
+                <p class='lead'>Phần mở đầu hấp dẫn...</p>
+                <img src='%s' class='img-fluid rounded shadow-sm my-4' alt='%s'>
+                <h4 class='fw-bold mt-4 mb-3'>Điểm nhấn thiết kế</h4>
+                <ul class='list-unstyled'>
+                  <li class='mb-2'>✨ Điểm nổi bật 1</li>
+                  <li class='mb-2'>✨ Điểm nổi bật 2</li>
+                  <li class='mb-2'>✨ Điểm nổi bật 3</li>
+                </ul>
+                <h4 class='fw-bold mt-4 mb-3'>Trải nghiệm chất liệu</h4>
+                <p>Mô tả chi tiết về chất liệu...</p>
+                <h4 class='fw-bold mt-4 mb-3'>Gợi ý phối đồ</h4>
+                <p>Styling tips cụ thể...</p>
+              </div>
+            
+            - KHÔNG thêm ```html hoặc markdown
+            - Chỉ trả về HTML thuần
+            - Giọng văn: Sang trọng, chuyên nghiệp, tiếng Việt
+            - Ngắn gọn, súc tích để tiết kiệm tokens
+            """, 
+            productName, neckline, material, sleeveType, brand,
+            neckline, sleeveType, material, imageUrl, productName);
+    }
+    
+    /**
+     * Call Gemini API with image URL reference (NO Base64 inline_data)
+     * Sử dụng URL trong text prompt để giảm payload size và token consumption
+     * @param prompt Text prompt with product details
+     * @param imageUrl Optimized Cloudinary URL (512px)
+     * @return API response JSON string
+     */
+    private String callGoogleAIWithUrlContext(String prompt, String imageUrl) {
+        String url = googleAIConfig.getApiUrl() + "?key=" + googleAIConfig.getApiKey();
+        
+        // Kết hợp prompt với URL ảnh (chỉ dẫn cho AI, KHÔNG tải ảnh)
+        String fullPrompt = String.format("""
+            %s
+            
+            📸 HÌNH ẢNH SẢN PHẨM: %s
+            
+            Lưu ý: Hãy tạo mô tả dựa trên các thuộc tính đã cung cấp (tên, cổ áo, chất liệu, tay áo, thương hiệu).
+            Không cần phân tích chi tiết ảnh, chỉ cần tham khảo để tạo nội dung phù hợp.
+            """, prompt, imageUrl);
+        
+        // Build request body - CHỈ dùng text, KHÔNG dùng inline_data hay tools
+        Map<String, Object> requestBody = Map.of(
+            "contents", java.util.List.of(
+                Map.of(
+                    "parts", java.util.List.of(
+                        Map.of("text", fullPrompt)
+                    )
+                )
+            ),
+            "generationConfig", Map.of(
+                "temperature", 0.8,
+                "topK", 40,
+                "topP", 0.95,
+                "maxOutputTokens", 2048
+            )
+        );
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        
+        try {
+            log.debug("📤 Sending request to Gemini API (text-only, no Base64)");
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            
+            if (response.getStatusCode() == HttpStatus.OK) {
+                log.debug("✅ Received 200 OK from Gemini API");
+                return response.getBody();
+            } else if (response.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                log.warn("⚠️ Received 429 Too Many Requests from Gemini API");
+                throw new RuntimeException("429 - Rate limit exceeded");
+            } else {
+                log.error("❌ Google AI API returned unexpected status: {}", response.getStatusCode());
+                throw new RuntimeException("API call failed with status: " + response.getStatusCode());
+            }
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                log.warn("⚠️ HttpClientErrorException: 429 Too Many Requests");
+                throw new RuntimeException("429 - Rate limit exceeded");
+            }
+            log.error("❌ HttpClientErrorException calling Gemini API: {} - {}", 
+                     e.getStatusCode(), e.getMessage());
+            throw new RuntimeException("API call failed: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ Unexpected error calling Gemini API", e);
+            throw new RuntimeException("API call failed: " + e.getMessage());
+        }
+    }
+    
+    private String cleanHtmlResponse(String response) {
+        if (response == null || response.trim().isEmpty()) {
+            return "";
+        }
+        
+        response = response.trim();
+        
+        // Remove markdown code blocks
+        if (response.startsWith("```html")) {
+            response = response.substring(7);
+        } else if (response.startsWith("```")) {
+            response = response.substring(3);
+        }
+        if (response.endsWith("```")) {
+            response = response.substring(0, response.length() - 3);
+        }
+        
+        return response.trim();
+    }
+    
+    private String generateFallbackProductDescription(String productName, String neckline, 
+                                                     String material, String sleeveType, String brand) {
+        return String.format("""
+            <div class='product-story'>
+                <h3 class='text-uppercase fw-bold border-bottom pb-2 mb-3'>Giới thiệu sản phẩm</h3>
+                <p class='lead'>%s - Sự lựa chọn hoàn hảo cho phong cách hiện đại và thanh lịch.</p>
+                
+                <h4 class='fw-bold mt-4 mb-3'>Đặc điểm nổi bật</h4>
+                <ul class='list-unstyled'>
+                    <li class='mb-2'>✨ Thiết kế %s tôn dáng, phù hợp với nhiều dáng người</li>
+                    <li class='mb-2'>✨ Chất liệu %s cao cấp, mang lại cảm giác thoải mái</li>
+                    <li class='mb-2'>✨ %s tinh tế, dễ dàng phối đồ</li>
+                    <li class='mb-2'>✨ Thương hiệu %s - Cam kết chất lượng</li>
+                </ul>
+                
+                <h4 class='fw-bold mt-4 mb-3'>Hướng dẫn sử dụng</h4>
+                <p>Sản phẩm phù hợp cho nhiều dịp khác nhau: đi làm, dạo phố, gặp gỡ bạn bè. 
+                Dễ dàng phối cùng quần jeans, chân váy hoặc quần tây để tạo nên phong cách riêng.</p>
+                
+                <h4 class='fw-bold mt-4 mb-3'>Chăm sóc sản phẩm</h4>
+                <p>Giặt máy ở nhiệt độ thường, không sử dụng chất tẩy mạnh. 
+                Phơi nơi thoáng mát, tránh ánh nắng trực tiếp để bảo quản màu sắc lâu dài.</p>
+            </div>
+            """, productName, neckline, material, sleeveType, brand);
+    }
 }

@@ -51,6 +51,10 @@ public class ProductServiceImpl implements ProductService {
                 .thumbnail(mainThumbnail)
                 .variants(new ArrayList<>())
                 .tags(dto.getTags())
+                .neckline(dto.getNeckline())
+                .material(dto.getMaterial())
+                .sleeveType(dto.getSleeveType())
+                .brand(dto.getBrand())
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -380,6 +384,12 @@ public class ProductServiceImpl implements ProductService {
         dto.setDescription(product.getDescription());
         dto.setTags(product.getTags());
         dto.setStatus(product.getStatus());
+        
+        // Map thuộc tính kỹ thuật
+        dto.setNeckline(product.getNeckline());
+        dto.setMaterial(product.getMaterial());
+        dto.setSleeveType(product.getSleeveType());
+        dto.setBrand(product.getBrand());
 
         // Gán URL ảnh cũ để hiển thị
         dto.setThumbnailUrl(product.getThumbnail());
@@ -439,6 +449,12 @@ public class ProductServiceImpl implements ProductService {
         product.setDiscountPrice(dto.getDiscountPrice());
         product.setDescription(dto.getDescription());
         product.setTags(dto.getTags());
+        
+        // Cập nhật thuộc tính kỹ thuật
+        product.setNeckline(dto.getNeckline());
+        product.setMaterial(dto.getMaterial());
+        product.setSleeveType(dto.getSleeveType());
+        product.setBrand(dto.getBrand());
         
         // Cập nhật trạng thái
         if (dto.getStatus() != null) {

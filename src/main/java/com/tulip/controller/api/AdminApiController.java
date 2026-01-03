@@ -45,6 +45,7 @@ public class AdminApiController {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final com.tulip.service.GoogleAIService googleAIService;
 
     // --- API: LẤY DANH SÁCH SẢN PHẨM CHO ADMIN ---
     @GetMapping("/products")
@@ -188,6 +189,41 @@ public class AdminApiController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi upload ảnh: " + e.getMessage()));
+        }
+    }
+    
+    // --- API: AI GENERATE PRODUCT DESCRIPTION ---
+    @PostMapping("/ai/generate-description")
+    public ResponseEntity<?> generateProductDescription(@RequestBody com.tulip.dto.AIDescriptionRequest request) {
+        try {
+            log.info("🤖 AI Request - Product: {}, Image URL: {}", request.getProductName(), request.getThumbnailUrl());
+            
+            // Tối ưu URL Cloudinary trước khi gửi cho AI (giảm xuống 512px để tiết kiệm tokens)
+            String optimizedImageUrl = cloudinaryService.optimizeImageForAI(request.getThumbnailUrl());
+            log.info("🔧 Optimized image URL for AI: {}", optimizedImageUrl);
+            
+            // Gọi AI với URL đã tối ưu (KHÔNG dùng Base64)
+            String htmlContent = googleAIService.generateProductDescription(
+                request.getProductName(),
+                optimizedImageUrl,  // Truyền URL thay vì MultipartFile
+                request.getNeckline(),
+                request.getMaterial(),
+                request.getSleeveType(),
+                request.getBrand()
+            );
+            
+            log.info("✅ AI generated description successfully");
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "htmlContent", htmlContent
+            ));
+        } catch (Exception e) {
+            log.error("❌ AI Generation Error: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Lỗi khi tạo nội dung: " + e.getMessage()
+            ));
         }
     }
 
