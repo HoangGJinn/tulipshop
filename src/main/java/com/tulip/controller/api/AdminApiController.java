@@ -8,6 +8,7 @@ import com.tulip.entity.Notification;
 import com.tulip.dto.NotificationDTO;
 import com.tulip.entity.product.Category;
 import com.tulip.entity.product.Product;
+import com.tulip.entity.product.ProductStatus;
 import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.ProductRepository;
 import com.tulip.repository.UserRepository;
@@ -46,6 +47,7 @@ public class AdminApiController {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final com.tulip.service.GoogleAIService googleAIService;
+    private final com.tulip.service.CategoryService categoryService;
 
     // --- API: LẤY DANH SÁCH SẢN PHẨM CHO ADMIN ---
     @GetMapping("/products")
@@ -440,6 +442,294 @@ public class AdminApiController {
             return ResponseEntity.badRequest().body(Map.of(
                 "status", "error",
                 "message", e.getMessage()
+            ));
+        }
+    }
+    
+    // ==================== CATEGORY MANAGEMENT ====================
+    
+    /**
+     * API: Lấy danh sách tất cả categories
+     * GET /v1/api/admin/categories
+     */
+    @GetMapping("/categories")
+    public ResponseEntity<?> getAllCategories() {
+        try {
+            List<Category> categories = categoryService.findAll();
+            
+            List<Map<String, Object>> data = categories.stream()
+                .map(c -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", c.getId());
+                    map.put("name", c.getName());
+                    map.put("slug", c.getSlug());
+                    map.put("parentId", c.getParent() != null ? c.getParent().getId() : null);
+                    map.put("parentName", c.getParent() != null ? c.getParent().getName() : null);
+                    map.put("hasProducts", categoryService.hasProducts(c.getId()));
+                    map.put("childrenCount", c.getChildren() != null ? c.getChildren().size() : 0);
+                    return map;
+                })
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "data", data
+            ));
+        } catch (Exception e) {
+            log.error("Lỗi lấy danh sách categories: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * API: Thêm mới category
+     * POST /v1/api/admin/categories
+     */
+    @PostMapping("/categories")
+    public ResponseEntity<?> createCategory(@RequestBody Map<String, Object> payload) {
+        try {
+            String name = (String) payload.get("name");
+            Object parentIdObj = payload.get("parentId");
+            
+            if (name == null || name.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Tên danh mục không được để trống"
+                ));
+            }
+            
+            Category category = new Category();
+            category.setName(name.trim());
+            
+            // Xử lý parent category
+            if (parentIdObj != null) {
+                Long parentId = null;
+                if (parentIdObj instanceof Integer) {
+                    parentId = ((Integer) parentIdObj).longValue();
+                } else if (parentIdObj instanceof Long) {
+                    parentId = (Long) parentIdObj;
+                } else if (parentIdObj instanceof String) {
+                    try {
+                        parentId = Long.parseLong((String) parentIdObj);
+                    } catch (NumberFormatException e) {
+                        // Ignore invalid parent ID
+                    }
+                }
+                
+                if (parentId != null && parentId > 0) {
+                    Category parent = categoryService.findById(parentId)
+                        .orElseThrow(() -> new com.tulip.exception.BusinessException("Không tìm thấy danh mục cha"));
+                    category.setParent(parent);
+                }
+            }
+            
+            Category saved = categoryService.save(category);
+            
+            log.info("✅ Đã tạo category mới: {} (ID: {})", saved.getName(), saved.getId());
+            
+            Map<String, Object> categoryData = new HashMap<>();
+            categoryData.put("id", saved.getId());
+            categoryData.put("name", saved.getName());
+            categoryData.put("slug", saved.getSlug());
+            categoryData.put("parentId", saved.getParent() != null ? saved.getParent().getId() : null);
+            categoryData.put("parentName", saved.getParent() != null ? saved.getParent().getName() : null);
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Thêm danh mục thành công",
+                "data", categoryData
+            ));
+        } catch (com.tulip.exception.BusinessException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            log.error("Lỗi tạo category: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "Lỗi: " + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * API: Cập nhật category
+     * PUT /v1/api/admin/categories/{id}
+     */
+    @PutMapping("/categories/{id}")
+    public ResponseEntity<?> updateCategory(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            Category category = categoryService.findById(id)
+                .orElseThrow(() -> new com.tulip.exception.BusinessException("Không tìm thấy danh mục"));
+            
+            String name = (String) payload.get("name");
+            if (name == null || name.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Tên danh mục không được để trống"
+                ));
+            }
+            
+            category.setName(name.trim());
+            
+            // Xử lý parent category
+            Object parentIdObj = payload.get("parentId");
+            if (parentIdObj != null) {
+                Long parentId = null;
+                if (parentIdObj instanceof Integer) {
+                    parentId = ((Integer) parentIdObj).longValue();
+                } else if (parentIdObj instanceof Long) {
+                    parentId = (Long) parentIdObj;
+                } else if (parentIdObj instanceof String) {
+                    try {
+                        parentId = Long.parseLong((String) parentIdObj);
+                    } catch (NumberFormatException e) {
+                        // Ignore invalid parent ID
+                    }
+                }
+                
+                if (parentId != null && parentId > 0) {
+                    // Kiểm tra không cho phép set parent là chính nó
+                    if (parentId.equals(id)) {
+                        return ResponseEntity.badRequest().body(Map.of(
+                            "status", "error",
+                            "message", "Không thể đặt danh mục làm cha của chính nó"
+                        ));
+                    }
+                    
+                    // Kiểm tra không cho phép set parent là con cháu của nó
+                    List<Long> childIds = categoryService.getAllChildCategoryIds(id);
+                    if (childIds.contains(parentId)) {
+                        return ResponseEntity.badRequest().body(Map.of(
+                            "status", "error",
+                            "message", "Không thể đặt danh mục con làm cha"
+                        ));
+                    }
+                    
+                    Category parent = categoryService.findById(parentId)
+                        .orElseThrow(() -> new com.tulip.exception.BusinessException("Không tìm thấy danh mục cha"));
+                    category.setParent(parent);
+                } else {
+                    category.setParent(null);
+                }
+            } else {
+                category.setParent(null);
+            }
+            
+            Category updated = categoryService.save(category);
+            
+            log.info("✅ Đã cập nhật category: {} (ID: {})", updated.getName(), updated.getId());
+            
+            Map<String, Object> categoryData = new HashMap<>();
+            categoryData.put("id", updated.getId());
+            categoryData.put("name", updated.getName());
+            categoryData.put("slug", updated.getSlug());
+            categoryData.put("parentId", updated.getParent() != null ? updated.getParent().getId() : null);
+            categoryData.put("parentName", updated.getParent() != null ? updated.getParent().getName() : null);
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Cập nhật danh mục thành công",
+                "data", categoryData
+            ));
+        } catch (com.tulip.exception.BusinessException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            log.error("Lỗi cập nhật category: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "Lỗi: " + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * API: Lấy danh sách sản phẩm theo category
+     * GET /v1/api/admin/categories/{id}/products
+     */
+    @GetMapping("/categories/{id}/products")
+    public ResponseEntity<?> getProductsByCategory(@PathVariable Long id) {
+        try {
+            // Kiểm tra category tồn tại
+            Category category = categoryService.findById(id)
+                .orElseThrow(() -> new com.tulip.exception.BusinessException("Không tìm thấy danh mục"));
+            
+            // Lấy tất cả category IDs (bao gồm cả con cháu)
+            List<Long> categoryIds = categoryService.getAllChildCategoryIds(id);
+            
+            // Lấy sản phẩm ACTIVE và HIDDEN (không lấy DELETED)
+            List<ProductStatus> activeStatuses = List.of(ProductStatus.ACTIVE, ProductStatus.HIDDEN);
+            List<Product> products = productRepository.findByStatusIn(activeStatuses).stream()
+                .filter(p -> p.getCategory() != null && categoryIds.contains(p.getCategory().getId()))
+                .collect(Collectors.toList());
+            
+            // Map sang DTO đơn giản
+            List<Map<String, Object>> productList = products.stream()
+                .map(p -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", p.getId());
+                    map.put("name", p.getName());
+                    map.put("status", p.getStatus().name());
+                    map.put("thumbnail", p.getThumbnail());
+                    map.put("categoryName", p.getCategory().getName());
+                    return map;
+                })
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "categoryName", category.getName(),
+                "productCount", productList.size(),
+                "products", productList
+            ));
+        } catch (com.tulip.exception.BusinessException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            log.error("Lỗi lấy sản phẩm theo category: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "Lỗi: " + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * API: Xóa category
+     * DELETE /v1/api/admin/categories/{id}
+     */
+    @DeleteMapping("/categories/{id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
+        try {
+            categoryService.deleteById(id);
+            
+            log.info("✅ Đã xóa category ID: {}", id);
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Xóa danh mục thành công"
+            ));
+        } catch (com.tulip.exception.BusinessException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            log.error("Lỗi xóa category: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "Lỗi: " + e.getMessage()
             ));
         }
     }

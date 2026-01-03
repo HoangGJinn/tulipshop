@@ -81,9 +81,9 @@ public class AdminViewController {
 
     @GetMapping("/categories")
     public String categories(Model model) {
-        model.addAttribute("pageTitle", "CATEGORIES");
+        model.addAttribute("pageTitle", "QUẢN LÝ DANH MỤC");
         model.addAttribute("currentPage", "categories");
-        model.addAttribute("contentTemplate", "admin/categories/categories");
+        model.addAttribute("contentTemplate", "admin/products/categories");
         model.addAttribute("showSearch", true);
         return "admin/layouts/layout";
     }
