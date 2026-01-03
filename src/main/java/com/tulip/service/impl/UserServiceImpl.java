@@ -10,6 +10,7 @@ import com.tulip.entity.UserProfile;
 import com.tulip.mapper.UserProfileMapper;
 import com.tulip.repository.UserRepository;
 import com.tulip.repository.UserProfileRepository;
+import com.tulip.repository.OrderRepository;
 import com.tulip.service.EmailService;
 import com.tulip.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
     private final Cloudinary cloudinary;
     private final UserProfileMapper userProfileMapper; // Inject mapper
@@ -323,5 +325,17 @@ public class UserServiceImpl implements UserService {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid role: " + roleName);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public com.tulip.dto.response.CustomerDetailDTO getCustomerDetail(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Get user's orders
+        java.util.List<com.tulip.entity.Order> orders = orderRepository.findByUserIdWithDetails(userId);
+
+        return com.tulip.dto.response.CustomerDetailDTO.fromEntity(user, orders);
     }
 }

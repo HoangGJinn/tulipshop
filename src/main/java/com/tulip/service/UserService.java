@@ -45,4 +45,7 @@ public interface UserService {
     void updateUserStatus(Long userId, Boolean status);
 
     void updateUserRole(Long userId, String role);
+
+    // Get customer detail with order history
+    com.tulip.dto.response.CustomerDetailDTO getCustomerDetail(Long userId);
 }

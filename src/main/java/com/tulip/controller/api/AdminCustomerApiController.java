@@ -50,4 +50,14 @@ public class AdminCustomerApiController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCustomerDetail(@PathVariable Long id) {
+        try {
+            var detail = userService.getCustomerDetail(id);
+            return ResponseEntity.ok(detail);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }
