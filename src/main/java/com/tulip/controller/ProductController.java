@@ -8,6 +8,10 @@ import com.tulip.service.ProductService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -102,7 +106,7 @@ public class ProductController {
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String priceRange, // Nhận chuỗi "0-500000"
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             Model model) {
 
         // 1. Xử lý logic khoảng giá
@@ -119,8 +123,18 @@ public class ProductController {
             }
         }
 
-        // 2. Xử lý collection parameter
-        List<ProductCardDTO> products;
+        // 2. Tạo Pageable với sắp xếp
+        Sort sortOrder = Sort.by(Sort.Direction.DESC, "id"); // Mặc định: mới nhất
+        if ("price_asc".equals(sort)) {
+            sortOrder = Sort.by(Sort.Direction.ASC, "basePrice");
+        } else if ("price_desc".equals(sort)) {
+            sortOrder = Sort.by(Sort.Direction.DESC, "basePrice");
+        }
+        
+        Pageable pageable = PageRequest.of(page, 12, sortOrder);
+
+        // 3. Xử lý collection parameter
+        Page<ProductCardDTO> productPage;
         String effectiveCategory = category;
         
         if (collection != null && !collection.isEmpty()) {
@@ -136,14 +150,22 @@ public class ProductController {
                     break;
                 case "gia-tot":
                     // Lấy sản phẩm có discount >= 50%
-                    products = productService.getFilteredProducts(null, sort, color, size, minPrice, maxPrice)
+                    List<ProductCardDTO> giatotProducts = productService.getFilteredProducts(null, sort, color, size, minPrice, maxPrice)
                         .stream()
                         .filter(p -> p.getDiscountPercent() != null && p.getDiscountPercent() >= 50)
                         .collect(Collectors.toList());
                     
+                    // Tạo Page thủ công cho collection đặc biệt
+                    int start = (int) pageable.getOffset();
+                    int end = Math.min((start + pageable.getPageSize()), giatotProducts.size());
+                    List<ProductCardDTO> pageContent = giatotProducts.subList(start, end);
+                    productPage = new org.springframework.data.domain.PageImpl<>(pageContent, pageable, giatotProducts.size());
+                    
                     model.addAttribute("categories", categoryRepository.findAll());
-                    model.addAttribute("products", products);
+                    model.addAttribute("products", productPage.getContent());
                     model.addAttribute("currentPage", page);
+                    model.addAttribute("totalPages", productPage.getTotalPages());
+                    model.addAttribute("totalElements", productPage.getTotalElements());
                     model.addAttribute("selectedCollection", collection);
                     model.addAttribute("selectedCategory", category);
                     model.addAttribute("selectedSort", sort);
@@ -154,7 +176,7 @@ public class ProductController {
                     
                 case "best-seller":
                     // Lấy sản phẩm bán chạy từ repository
-                    products = productRepository.findBestSellingProducts()
+                    List<ProductCardDTO> bestsellerProducts = productRepository.findBestSellingProducts()
                         .stream()
                         .map(productService::convertToCardDTO)
                         .collect(Collectors.toList());
@@ -162,7 +184,7 @@ public class ProductController {
                     // Áp dụng các filter khác
                     Double finalMinPrice = minPrice;
                     Double finalMaxPrice = maxPrice;
-                    products = products.stream()
+                    bestsellerProducts = bestsellerProducts.stream()
                         .filter(p -> (finalMinPrice == null || p.getPrice().doubleValue() >= finalMinPrice) &&
                                     (finalMaxPrice == null || p.getPrice().doubleValue() <= finalMaxPrice))
                         .filter(p -> color == null || color.isEmpty() || 
@@ -170,9 +192,17 @@ public class ProductController {
                         .filter(p -> size == null || size.isEmpty()) // Size filter cần logic phức tạp hơn
                         .collect(Collectors.toList());
                     
+                    // Tạo Page thủ công
+                    int startBs = (int) pageable.getOffset();
+                    int endBs = Math.min((startBs + pageable.getPageSize()), bestsellerProducts.size());
+                    List<ProductCardDTO> pageContentBs = bestsellerProducts.subList(startBs, endBs);
+                    productPage = new org.springframework.data.domain.PageImpl<>(pageContentBs, pageable, bestsellerProducts.size());
+                    
                     model.addAttribute("categories", categoryRepository.findAll());
-                    model.addAttribute("products", products);
+                    model.addAttribute("products", productPage.getContent());
                     model.addAttribute("currentPage", page);
+                    model.addAttribute("totalPages", productPage.getTotalPages());
+                    model.addAttribute("totalElements", productPage.getTotalElements());
                     model.addAttribute("selectedCollection", collection);
                     model.addAttribute("selectedCategory", category);
                     model.addAttribute("selectedSort", sort);
@@ -189,15 +219,17 @@ public class ProductController {
             }
         }
 
-        // 3. Gọi Service để lọc (cho các collection thông thường)
-        products = productService.getFilteredProducts(
-            effectiveCategory, sort, color, size, minPrice, maxPrice
+        // 4. Gọi Service để lọc với phân trang (cho các collection thông thường)
+        productPage = productService.getFilteredProductsWithPagination(
+            effectiveCategory, sort, color, size, minPrice, maxPrice, pageable
         );
 
-        // 4. Truyền dữ liệu ra View
+        // 5. Truyền dữ liệu ra View
         model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("products", products);
+        model.addAttribute("products", productPage.getContent());
         model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("totalElements", productPage.getTotalElements());
 
         // Giữ lại các tham số filter để hiển thị trên giao diện
         model.addAttribute("selectedCollection", collection != null ? collection : "all");

@@ -51,33 +51,63 @@ public class AdminApiController {
 
     // --- API: LẤY DANH SÁCH SẢN PHẨM CHO ADMIN ---
     @GetMapping("/products")
-    public ResponseEntity<List<Map<String, Object>>> getProducts() {
-        // Admin thấy tất cả sản phẩm ACTIVE và HIDDEN (không thấy DELETED)
-        List<com.tulip.entity.product.ProductStatus> visibleStatuses = List.of(
-            com.tulip.entity.product.ProductStatus.ACTIVE,
-            com.tulip.entity.product.ProductStatus.HIDDEN
-        );
-        List<Product> products = productRepository.findByStatusIn(visibleStatuses);
-        
-        List<Map<String, Object>> productList = products.stream().map(p -> {
-            Map<String, Object> productMap = new HashMap<>();
-            productMap.put("id", p.getId());
-            productMap.put("name", p.getName());
-            productMap.put("sku", "SKU-" + p.getId());
-            productMap.put("image", p.getThumbnail() != null ? p.getThumbnail() : "/images/placeholder.jpg");
-            productMap.put("category", p.getCategory() != null ? p.getCategory().getName() : "Chưa phân loại");
-            productMap.put("price", p.getBasePrice().doubleValue());
-            productMap.put("status", p.getStatus() != null ? p.getStatus().name() : "ACTIVE");
-            // Tính tổng stock
-            int totalStock = p.getVariants().stream()
-                .flatMap(v -> v.getStocks().stream())
-                .mapToInt(s -> s.getQuantity())
-                .sum();
-            productMap.put("stock", totalStock);
-            return productMap;
-        }).collect(Collectors.toList());
-        
-        return ResponseEntity.ok(productList);
+    public ResponseEntity<?> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        try {
+            // Admin thấy tất cả sản phẩm ACTIVE và HIDDEN (không thấy DELETED)
+            List<com.tulip.entity.product.ProductStatus> visibleStatuses = List.of(
+                com.tulip.entity.product.ProductStatus.ACTIVE,
+                com.tulip.entity.product.ProductStatus.HIDDEN
+            );
+            
+            // Tạo Pageable với sắp xếp
+            Sort sort = sortDir.equalsIgnoreCase("asc") 
+                ? Sort.by(sortBy).ascending() 
+                : Sort.by(sortBy).descending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            
+            // Lấy dữ liệu phân trang
+            Page<Product> productPage = productRepository.findByStatusIn(visibleStatuses, pageable);
+            
+            List<Map<String, Object>> productList = productPage.getContent().stream().map(p -> {
+                Map<String, Object> productMap = new HashMap<>();
+                productMap.put("id", p.getId());
+                productMap.put("name", p.getName());
+                productMap.put("sku", "SKU-" + p.getId());
+                productMap.put("image", p.getThumbnail() != null ? p.getThumbnail() : "/images/placeholder.jpg");
+                productMap.put("category", p.getCategory() != null ? p.getCategory().getName() : "Chưa phân loại");
+                productMap.put("price", p.getBasePrice().doubleValue());
+                productMap.put("status", p.getStatus() != null ? p.getStatus().name() : "ACTIVE");
+                // Tính tổng stock
+                int totalStock = p.getVariants().stream()
+                    .flatMap(v -> v.getStocks().stream())
+                    .mapToInt(s -> s.getQuantity())
+                    .sum();
+                productMap.put("stock", totalStock);
+                return productMap;
+            }).collect(Collectors.toList());
+            
+            // Trả về với metadata phân trang
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", productList);
+            response.put("currentPage", productPage.getNumber());
+            response.put("totalPages", productPage.getTotalPages());
+            response.put("totalElements", productPage.getTotalElements());
+            response.put("pageSize", productPage.getSize());
+            response.put("hasNext", productPage.hasNext());
+            response.put("hasPrevious", productPage.hasPrevious());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Lỗi lấy danh sách sản phẩm: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "Lỗi: " + e.getMessage()
+            ));
+        }
     }
     
     // --- API: CẬP NHẬT TRẠNG THÁI SẢN PHẨM ---

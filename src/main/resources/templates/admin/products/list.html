@@ -8,29 +8,39 @@
     )}"></div>
 
     <script th:inline="javascript">
-        // 1. Hàm fetch dữ liệu từ API
-        async function loadProductData() {
+        // Pagination state
+        let currentPage = 0;
+        let totalPages = 0;
+        let pageSize = 12;
+        
+        // 1. Hàm fetch dữ liệu từ API với phân trang
+        async function loadProductData(page = 0) {
             try {
-                const response = await fetch('/v1/api/admin/products');
+                const response = await fetch(`/v1/api/admin/products?page=${page}&size=${pageSize}&sortBy=id&sortDir=desc`);
                 if (!response.ok) throw new Error('Failed to fetch products');
 
-                const products = await response.json();
+                const data = await response.json();
+                const products = data.content;
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+                
                 const tbody = document.getElementById('table-body-data');
                 const countLabel = document.getElementById('data-count');
 
                 if (!products || products.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="p-20 text-center">
+                            <td colspan="7" class="p-20 text-center">
                                 <p class="text-[10px] tracking-[0.5em] uppercase text-gray-400">Chưa có sản phẩm nào</p>
                             </td>
                         </tr>
                     `;
                     countLabel.innerText = '0 Items';
+                    updatePagination();
                     return;
                 }
 
-                countLabel.innerText = `${products.length} Items`;
+                countLabel.innerText = `${data.totalElements} Items (Trang ${currentPage + 1}/${totalPages})`;
                 tbody.innerHTML = products.map(p => `
                     <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-none">
                         <td class="p-6">
@@ -77,16 +87,101 @@
                         </td>
                     </tr>
                 `).join('');
+                
+                updatePagination();
             } catch (error) {
                 console.error('Error loading products:', error);
                 document.getElementById('table-body-data').innerHTML = `
                     <tr>
-                        <td colspan="6" class="p-20 text-center">
+                        <td colspan="7" class="p-20 text-center">
                             <p class="text-[10px] tracking-[0.5em] uppercase text-red-500">Lỗi tải dữ liệu hệ thống</p>
                         </td>
                     </tr>
                 `;
             }
+        }
+        
+        // Hàm cập nhật UI phân trang
+        function updatePagination() {
+            let paginationContainer = document.getElementById('pagination-container');
+            if (!paginationContainer) {
+                // Tạo container nếu chưa có - tìm table container
+                const tableContainer = document.querySelector('.bg-white.border.border-gray-200.rounded-lg');
+                if (!tableContainer) {
+                    console.error('Cannot find table container');
+                    return;
+                }
+                const container = document.createElement('div');
+                container.id = 'pagination-container';
+                container.className = 'flex justify-center items-center gap-2 mt-6 pb-4';
+                tableContainer.parentElement.appendChild(container);
+                paginationContainer = container;
+            }
+            
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Previous button
+            html += `
+                <button data-page="${currentPage - 1}" 
+                        ${currentPage === 0 ? 'disabled' : ''}
+                        class="pagination-btn px-3 py-1 text-xs font-bold uppercase border border-black ${currentPage === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-black hover:text-white'} transition-colors">
+                    ‹ Trước
+                </button>
+            `;
+            
+            // Page numbers
+            const startPage = Math.max(0, currentPage - 2);
+            const endPage = Math.min(totalPages - 1, currentPage + 2);
+            
+            if (startPage > 0) {
+                html += `<button data-page="0" class="pagination-btn px-3 py-1 text-xs font-bold border border-black hover:bg-black hover:text-white transition-colors">1</button>`;
+                if (startPage > 1) {
+                    html += `<span class="px-2 text-gray-400">...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                    <button data-page="${i}" 
+                            class="pagination-btn px-3 py-1 text-xs font-bold border border-black ${i === currentPage ? 'bg-black text-white' : 'hover:bg-black hover:text-white'} transition-colors">
+                        ${i + 1}
+                    </button>
+                `;
+            }
+            
+            if (endPage < totalPages - 1) {
+                if (endPage < totalPages - 2) {
+                    html += `<span class="px-2 text-gray-400">...</span>`;
+                }
+                html += `<button data-page="${totalPages - 1}" class="pagination-btn px-3 py-1 text-xs font-bold border border-black hover:bg-black hover:text-white transition-colors">${totalPages}</button>`;
+            }
+            
+            // Next button
+            html += `
+                <button data-page="${currentPage + 1}" 
+                        ${currentPage >= totalPages - 1 ? 'disabled' : ''}
+                        class="pagination-btn px-3 py-1 text-xs font-bold uppercase border border-black ${currentPage >= totalPages - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-black hover:text-white'} transition-colors">
+                    Sau ›
+                </button>
+            `;
+            
+            paginationContainer.innerHTML = html;
+            
+            // Gắn event listener cho các button
+            paginationContainer.querySelectorAll('.pagination-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (!this.disabled) {
+                        const page = parseInt(this.getAttribute('data-page'));
+                        loadProductData(page);
+                    }
+                });
+            });
         }
 
         // 2. Hàm xóa sản phẩm
@@ -99,7 +194,7 @@
                         const response = await fetch(`/v1/api/admin/products/${id}`, { method: 'DELETE' });
                         if (response.ok) {
                             showNotification('success', 'Thành công', 'Đã xóa sản phẩm khỏi hệ thống');
-                            loadProductData(); // Reload danh sách
+                            loadProductData(currentPage); // Reload trang hiện tại
                         } else {
                             const error = await response.json();
                             showNotification('error', 'Lỗi', error.message || 'Không thể xóa sản phẩm vào lúc này');
@@ -122,15 +217,15 @@
                 
                 if (response.ok) {
                     showNotification('success', 'Thành công', 'Đã cập nhật trạng thái sản phẩm');
-                    loadProductData();
+                    loadProductData(currentPage);
                 } else {
                     const error = await response.json();
                     showNotification('error', 'Lỗi', error.message || 'Không thể cập nhật trạng thái');
-                    loadProductData(); // Reload để reset select
+                    loadProductData(currentPage); // Reload để reset select
                 }
             } catch (error) {
                 showNotification('error', 'Lỗi', 'Có lỗi xảy ra khi kết nối máy chủ');
-                loadProductData();
+                loadProductData(currentPage);
             }
         }
 
@@ -255,6 +350,8 @@
         }
 
         // Khởi tạo dữ liệu khi trang load xong
-        document.addEventListener('DOMContentLoaded', loadProductData);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProductData(0);
+        });
     </script>
 </div>
