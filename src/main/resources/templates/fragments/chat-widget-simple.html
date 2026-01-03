@@ -107,6 +107,12 @@
             flex-direction: column;
             overflow: hidden;
             border: 1px solid #e1e8ed;
+            /* Ngăn touch events leak ra ngoài */
+            touch-action: none;
+        }
+        
+        .chat-window.open {
+            display: flex;
         }
         
         .chat-header {
@@ -152,8 +158,12 @@
         .chat-messages {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px;
             background: #f8f9fa;
+            /* Ngăn scroll leak ra ngoài - chỉ scroll trong khung chat */
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
         }
         
         .message {
@@ -397,7 +407,20 @@
             }
             
             initEventListeners() {
-                this.chatBubble.addEventListener('click', () => this.toggleChat());
+                console.log('Initializing event listeners...');
+                console.log('Chat bubble:', this.chatBubble);
+                console.log('Chat window:', this.chatWindow);
+                
+                if (!this.chatBubble || !this.chatWindow) {
+                    console.error('Chat elements not found!');
+                    return;
+                }
+                
+                this.chatBubble.addEventListener('click', () => {
+                    console.log('Chat bubble clicked!');
+                    this.toggleChat();
+                });
+                
                 this.closeChat.addEventListener('click', () => this.closeChatWindow());
                 this.sendButton.addEventListener('click', () => this.sendMessage());
                 this.messageInput.addEventListener('keypress', (e) => {
@@ -410,6 +433,26 @@
                 this.chatMessages.addEventListener('DOMNodeInserted', () => {
                     this.scrollToBottom();
                 });
+                
+                // Ngăn scroll page chỉ khi wheel event xảy ra trong chat window
+                if (this.chatWindow) {
+                    this.chatWindow.addEventListener('wheel', (e) => {
+                        const scrollTop = this.chatMessages.scrollTop;
+                        const scrollHeight = this.chatMessages.scrollHeight;
+                        const clientHeight = this.chatMessages.clientHeight;
+                        
+                        // Nếu đang scroll lên và đã ở đầu
+                        if (e.deltaY < 0 && scrollTop === 0) {
+                            e.preventDefault();
+                        }
+                        // Nếu đang scroll xuống và đã ở cuối
+                        else if (e.deltaY > 0 && scrollTop + clientHeight >= scrollHeight) {
+                            e.preventDefault();
+                        }
+                    }, { passive: false });
+                }
+                
+                console.log('Event listeners initialized!');
             }
             
             async initSession() {
@@ -454,16 +497,20 @@
             }
             
             toggleChat() {
+                console.log('Toggle chat called, current isOpen:', this.isOpen);
                 this.isOpen = !this.isOpen;
+                console.log('New isOpen:', this.isOpen);
                 
                 if (this.isOpen) {
                     this.chatWindow.classList.add('open');
                     this.chatBubble.style.display = 'none';
                     this.messageInput.focus();
                     this.markMessagesAsRead();
+                    console.log('Chat window opened');
                 } else {
                     this.chatWindow.classList.remove('open');
                     this.chatBubble.style.display = 'flex';
+                    console.log('Chat window closed');
                 }
             }
             
