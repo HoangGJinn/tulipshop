@@ -41,6 +41,19 @@ public class Product {
     @Column(name = "tags")
     private String tags;
 
+    // Thuộc tính kỹ thuật cho bộ lọc
+    @Column(name = "neckline")
+    private String neckline; // Kiểu cổ áo
+    
+    @Column(name = "material")
+    private String material; // Chất liệu
+    
+    @Column(name = "sleeve_type")
+    private String sleeveType; // Kiểu tay áo
+    
+    @Column(name = "brand")
+    private String brand; // Nhãn hiệu
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ProductVariant> variants = new ArrayList<>();

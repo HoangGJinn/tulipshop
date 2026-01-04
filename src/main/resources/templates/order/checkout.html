@@ -157,19 +157,22 @@
                         </div>
 
                         <!-- Voucher UI -->
-                        <div class="mb-2">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">
+                                <i class="fas fa-ticket-alt me-1"></i>Mã giảm giá
+                            </label>
                             <div class="input-group input-group-sm mb-2">
                                 <input type="text" class="form-control" id="voucher-code-input"
-                                    placeholder="Mã voucher">
-                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
-                                    data-bs-target="#voucherModal" id="btn-show-vouchers">
-                                    <i class="fas fa-ticket-alt"></i> Chọn
+                                    placeholder="Nhập hoặc chọn mã" style="text-transform: uppercase;">
+                                <button class="btn btn-outline-primary" type="button" id="btn-show-vouchers"
+                                    data-bs-toggle="modal" data-bs-target="#voucherModal">
+                                    <i class="fas fa-list-ul me-1"></i>Chọn
                                 </button>
-                                <button class="btn btn-outline-secondary" type="button" id="btn-apply-voucher">Áp
-                                    dụng</button>
+                                <button class="btn btn-primary" type="button" id="btn-apply-voucher">
+                                    <i class="fas fa-check"></i>
+                                </button>
                             </div>
-                            <div id="voucher-message" class="small mt-1"></div>
-                            <!-- Hidden input -->
+                            <div id="voucher-message" class="small"></div>
                             <input type="hidden" name="voucherCode" id="hiddenVoucherCode" form="checkoutForm">
                         </div>
 
@@ -199,203 +202,159 @@
 
     <div th:replace="~{fragments/footer :: footer}"></div>
 
-    <!-- Voucher Modal -->
-    <div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <!-- Voucher Selection Modal -->
+    <div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-ticket-alt text-primary me-2"></i>Voucher khả dụng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-gradient"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h5 class="modal-title text-white" id="voucherModalLabel">
+                        <i class="fas fa-ticket-alt me-2"></i>Chọn Voucher
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
+                    <!-- Loading State -->
                     <div id="voucher-loading" class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Đang tải...</span>
                         </div>
-                        <p class="mt-2 text-muted">Đang tải voucher...</p>
+                        <p class="mt-2 text-muted mb-0">Đang tải voucher...</p>
                     </div>
+
+                    <!-- Empty State -->
                     <div id="voucher-empty" class="text-center py-5" style="display: none;">
-                        <i class="fas fa-ticket-alt text-muted mb-3" style="font-size: 3rem;"></i>
-                        <p class="text-muted">Không có voucher nào khả dụng cho đơn hàng này.</p>
+                        <i class="fas fa-ticket-alt text-muted mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="text-muted mb-0">Không có voucher nào khả dụng</p>
                     </div>
-                    <div id="voucher-list" class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto; display: none;">
-                        <!-- Vouchers will be loaded here dynamically -->
+
+                    <!-- Voucher List -->
+                    <div id="voucher-list" class="list-group list-group-flush"
+                        style="display: none; max-height: 400px; overflow-y: auto;">
+                        <!-- Vouchers will be rendered here -->
                     </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <small class="text-muted me-auto">
+                        <i class="fas fa-info-circle me-1"></i>Chọn voucher để áp dụng
+                    </small>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Custom CSS for Voucher Cards -->
+    <style>
+        .voucher-card {
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .voucher-card:hover:not(.voucher-disabled) {
+            background-color: #f8f9fa;
+            transform: translateX(3px);
+        }
+
+        .voucher-card.voucher-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .voucher-card.voucher-disabled .voucher-select-btn {
+            display: none;
+        }
+
+        /* Voucher Type Colors */
+        .voucher-freeship {
+            border-left-color: #17a2b8 !important;
+        }
+
+        .voucher-freeship .voucher-badge {
+            background: linear-gradient(135deg, #17a2b8, #0dcaf0);
+        }
+
+        .voucher-percent {
+            border-left-color: #28a745 !important;
+        }
+
+        .voucher-percent .voucher-badge {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .voucher-amount {
+            border-left-color: #fd7e14 !important;
+        }
+
+        .voucher-amount .voucher-badge {
+            background: linear-gradient(135deg, #fd7e14, #ffc107);
+        }
+
+        .voucher-badge {
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .voucher-discount {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .voucher-code {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+    </style>
+
+    <script th:src="@{/js/notification.js}"></script>
     <script th:inline="javascript">
         document.addEventListener("DOMContentLoaded", function () {
+            // ===============================
+            // 1. DOM Elements
+            // ===============================
             const addressRadios = document.querySelectorAll('.js-address-option');
             const deliveryRadios = document.querySelectorAll('.js-delivery-option');
-
             const shippingFeeEl = document.getElementById('shipping-fee-display');
             const finalPriceEl = document.getElementById('final-price-display');
             const estimatedTimeEl = document.getElementById('estimated-time-display');
             const shipLabelEl = document.getElementById('shipping-method-label');
 
-            function updatePricing() {
-                // 1. Lấy giá trị đang chọn
-                let addressId = null;
-                addressRadios.forEach(r => { if (r.checked) addressId = r.value; });
-
-                let deliveryType = "STANDARD";
-                deliveryRadios.forEach(r => { if (r.checked) deliveryType = r.value; });
-
-                if (!addressId) return;
-
-                // UI Loading...
-                shipLabelEl.innerText = (deliveryType === 'FAST') ? 'Hỏa Tốc' : 'Tiết Kiệm';
-                shippingFeeEl.innerHTML = '<span class="spinner-border spinner-border-sm text-secondary"></span>';
-
-                // 2. Gọi API
-                fetch(`/checkout/api/calculate-fee?addressId=${addressId}&deliveryType=${deliveryType}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Err');
-                        return response.json();
-                    })
-                    .then(data => {
-                        // 3. Format tiền tệ VNĐ
-                        const formatter = new Intl.NumberFormat('vi-VN', {
-                            style: 'currency',
-                            currency: 'VND'
-                        });
-
-                        // Cập nhật UI
-                        shippingFeeEl.innerText = formatter.format(data.shippingFee).replace('₫', 'đ');
-                        estimatedTimeEl.innerText = data.estimatedTime;
-
-                        // STORE SERVER PRICE (Cart + Ship)
-                        currentServerFinalPrice = data.finalPrice;
-                        // Update cart total
-                        if (data.cartTotal !== undefined) {
-                            currentCartTotal = parseFloat(data.cartTotal) || 0;
-                        }
-
-                        // Recalculate with voucher if valid
-                        if (typeof recalcFinalPrice === 'function') {
-                            recalcFinalPrice();
-                        } else {
-                            finalPriceEl.innerText = formatter.format(data.finalPrice).replace('₫', 'đ');
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        shippingFeeEl.innerText = '---';
-                    });
-            }
-
-            // Gắn sự kiện change
-            addressRadios.forEach(el => el.addEventListener('change', updatePricing));
-            deliveryRadios.forEach(el => el.addEventListener('change', updatePricing));
-
-            // --- Voucher Logic ---
+            // Voucher Elements
             const btnApplyVoucher = document.getElementById('btn-apply-voucher');
             const voucherInput = document.getElementById('voucher-code-input');
             const voucherMsg = document.getElementById('voucher-message');
             const hiddenVoucher = document.getElementById('hiddenVoucherCode');
             const discountRow = document.getElementById('discount-row');
             const discountDisplay = document.getElementById('discount-amount-display');
+            const btnShowVouchers = document.getElementById('btn-show-vouchers');
 
-            // Initialize with value from server
+            // Modal Elements
+            const voucherModalEl = document.getElementById('voucherModal');
+            let voucherModal = null;
+            if (voucherModalEl && typeof bootstrap !== 'undefined') {
+                voucherModal = new bootstrap.Modal(voucherModalEl);
+            }
+            const voucherListEl = document.getElementById('voucher-list');
+            const voucherLoadingEl = document.getElementById('voucher-loading');
+            const voucherEmptyEl = document.getElementById('voucher-empty');
+
+            // ===============================
+            // 2. State Variables
+            // ===============================
             let currentServerFinalPrice = /*[[${finalPrice}]]*/ 0;
             let currentDiscount = 0;
             let currentCartTotal = /*[[${totalPrice}]]*/ 0;
 
-            // Override Init value (cần lấy giá trị ban đầu từ HTML rendered)
-            // Cách đơn giản: đợi updatePricing chạy lần đầu hoặc parse.
-            // Tuy nhiên updatePricing chưa chạy init.
-            // Ta sẽ chạy updatePricing() 1 lần khi load.
-            updatePricing();
-
-            // --- Voucher Modal Logic ---
-            const voucherModal = new bootstrap.Modal(document.getElementById('voucherModal'));
-            const voucherListEl = document.getElementById('voucher-list');
-            const voucherLoadingEl = document.getElementById('voucher-loading');
-            const voucherEmptyEl = document.getElementById('voucher-empty');
-            const btnShowVouchers = document.getElementById('btn-show-vouchers');
-
-            // Function to load and display vouchers
-            function loadApplicableVouchers() {
-                voucherLoadingEl.style.display = 'block';
-                voucherListEl.style.display = 'none';
-                voucherEmptyEl.style.display = 'none';
-
-                // Get current cart total (use BigDecimal value from server)
-                const cartTotal = currentCartTotal > 0 ? currentCartTotal : /*[[${totalPrice}]]*/ 0;
-
-                fetch(`/v1/api/vouchers/applicable?orderTotal=${cartTotal}`)
-                    .then(res => res.json())
-                    .then(vouchers => {
-                        voucherLoadingEl.style.display = 'none';
-
-                        if (!vouchers || vouchers.length === 0) {
-                            voucherEmptyEl.style.display = 'block';
-                            return;
-                        }
-
-                        voucherListEl.innerHTML = '';
-                        vouchers.forEach(voucher => {
-                            const discountText = voucher.type === 'PERCENT' 
-                                ? `Giảm ${voucher.discountValue}%` 
-                                : `Giảm ${formatCurrency(voucher.discountValue)}`;
-                            
-                            const minOrderText = voucher.minOrderValue 
-                                ? `Đơn tối thiểu: ${formatCurrency(voucher.minOrderValue)}` 
-                                : 'Không giới hạn';
-                            
-                            const remainingText = voucher.remaining !== null 
-                                ? `Còn lại: ${voucher.remaining} lượt` 
-                                : '';
-                            
-                            const expireText = voucher.expireAt 
-                                ? `HSD: ${formatDate(voucher.expireAt)}` 
-                                : 'Không giới hạn';
-
-                            const voucherItem = document.createElement('div');
-                            voucherItem.className = 'list-group-item';
-                            
-                            const codeDiv = document.createElement('div');
-                            codeDiv.className = 'd-flex w-100 justify-content-between align-items-start';
-                            
-                            const infoDiv = document.createElement('div');
-                            infoDiv.className = 'flex-grow-1';
-                            infoDiv.innerHTML = `
-                                <h6 class="mb-1 text-primary fw-bold">
-                                    <i class="fas fa-tag me-1"></i>${escapeHtml(voucher.code)}
-                                </h6>
-                                <p class="mb-1 text-success fw-bold">${discountText}</p>
-                                <small class="text-muted d-block">${minOrderText}</small>
-                                ${remainingText ? `<small class="text-muted d-block">${remainingText}</small>` : ''}
-                                <small class="text-muted d-block">${expireText}</small>
-                            `;
-                            
-                            const selectBtn = document.createElement('button');
-                            selectBtn.className = 'btn btn-sm btn-outline-primary ms-3';
-                            selectBtn.textContent = 'Chọn';
-                            selectBtn.onclick = function() {
-                                selectVoucher(voucher.code);
-                            };
-                            
-                            codeDiv.appendChild(infoDiv);
-                            codeDiv.appendChild(selectBtn);
-                            voucherItem.appendChild(codeDiv);
-                            voucherListEl.appendChild(voucherItem);
-                        });
-
-                        voucherListEl.style.display = 'block';
-                    })
-                    .catch(err => {
-                        console.error('Error loading vouchers:', err);
-                        voucherLoadingEl.style.display = 'none';
-                        voucherEmptyEl.style.display = 'block';
-                        voucherEmptyEl.innerHTML = '<p class="text-danger">Lỗi khi tải voucher. Vui lòng thử lại.</p>';
-                    });
-            }
-
-            // Function to format currency
+            // ===============================
+            // 3. Utility Functions
+            // ===============================
             function formatCurrency(amount) {
                 if (!amount) return '0 đ';
                 return new Intl.NumberFormat('vi-VN', {
@@ -404,96 +363,296 @@
                 }).format(amount).replace('₫', 'đ');
             }
 
-            // Function to format date
             function formatDate(dateString) {
                 if (!dateString) return '';
                 const date = new Date(dateString);
                 return date.toLocaleDateString('vi-VN', {
                     day: '2-digit',
                     month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    year: 'numeric'
                 });
             }
 
-            // Function to escape HTML to prevent XSS
             function escapeHtml(text) {
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             }
 
-            // Function to select voucher from modal
-            window.selectVoucher = function(code) {
-                voucherInput.value = code.toUpperCase();
-                hiddenVoucher.value = code.toUpperCase();
-                voucherModal.hide();
-                // Automatically apply the voucher
-                btnApplyVoucher.click();
-            };
+            // ===============================
+            // 4. Pricing Logic
+            // ===============================
+            function recalcFinalPrice() {
+                let final = currentServerFinalPrice - currentDiscount;
+                if (final < 0) final = 0;
+                finalPriceEl.innerText = formatCurrency(final);
+            }
 
-            // Load vouchers when modal is shown
-            btnShowVouchers.addEventListener('click', function() {
-                loadApplicableVouchers();
-            });
+            function updatePricing() {
+                let addressId = null;
+                addressRadios.forEach(r => { if (r.checked) addressId = r.value; });
 
+                let deliveryType = "STANDARD";
+                deliveryRadios.forEach(r => { if (r.checked) deliveryType = r.value; });
 
-            btnApplyVoucher.addEventListener('click', function () {
-                const code = voucherInput.value;
-                if (!code) return;
+                if (!addressId) return;
 
-                btnApplyVoucher.innerHTML = '...';
+                shipLabelEl.innerText = (deliveryType === 'FAST') ? 'Hỏa Tốc' : 'Tiết Kiệm';
+                shippingFeeEl.innerHTML = '<span class="spinner-border spinner-border-sm text-secondary"></span>';
+
+                fetch(`/checkout/api/calculate-fee?addressId=${addressId}&deliveryType=${deliveryType}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Err');
+                        return response.json();
+                    })
+                    .then(data => {
+                        shippingFeeEl.innerText = formatCurrency(data.shippingFee);
+                        estimatedTimeEl.innerText = data.estimatedTime;
+
+                        currentServerFinalPrice = data.finalPrice;
+                        if (data.cartTotal !== undefined) {
+                            currentCartTotal = parseFloat(data.cartTotal) || 0;
+                        }
+
+                        recalcFinalPrice();
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        shippingFeeEl.innerText = '---';
+                    });
+            }
+
+            // ===============================
+            // 5. Voucher Logic
+            // ===============================
+            function applyVoucher(code) {
+                if (!code) {
+                    voucherMsg.innerHTML = '<span class="text-warning"><i class="fas fa-info-circle me-1"></i>Vui lòng nhập mã voucher</span>';
+                    return;
+                }
+
+                const originalBtnText = btnApplyVoucher.innerHTML;
+                btnApplyVoucher.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
                 btnApplyVoucher.disabled = true;
 
-                fetch(`/checkout/api/apply-voucher?code=${code}`)
+                fetch(`/checkout/api/apply-voucher?code=${encodeURIComponent(code.toUpperCase())}`)
                     .then(res => {
                         if (!res.ok) return res.text().then(text => { throw new Error(text) });
                         return res.json();
                     })
                     .then(data => {
                         currentDiscount = data.discountAmount;
-                        hiddenVoucher.value = code;
-                        voucherMsg.innerHTML = `<span class="text-success">Áp dụng mã thành công!</span>`;
+                        hiddenVoucher.value = code.toUpperCase();
+                        voucherMsg.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Áp dụng mã thành công!</span>';
 
-                        // Show discount row
+                        localStorage.setItem('appliedVoucherCode', code.toUpperCase());
+
                         discountRow.style.setProperty('display', 'flex', 'important');
-                        const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-                        discountDisplay.innerText = '-' + formatter.format(currentDiscount).replace('₫', 'đ');
+                        discountDisplay.innerText = '-' + formatCurrency(currentDiscount);
 
                         recalcFinalPrice();
                     })
                     .catch(err => {
-                        voucherMsg.innerHTML = `<span class="text-danger">${err.message}</span>`;
+                        voucherMsg.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>' + err.message + '</span>';
                         currentDiscount = 0;
                         hiddenVoucher.value = '';
                         discountRow.style.setProperty('display', 'none', 'important');
                         recalcFinalPrice();
+                        localStorage.removeItem('appliedVoucherCode');
                     })
                     .finally(() => {
-                        btnApplyVoucher.innerHTML = 'Áp dụng';
+                        btnApplyVoucher.innerHTML = originalBtnText;
                         btnApplyVoucher.disabled = false;
                     });
-            });
-
-            function recalcFinalPrice() {
-                // New Final = ServerPrice - Discount
-                // ShippingFee is already in ServerPrice (from updatePricing)
-
-                // NOTE: currentServerFinalPrice need to be updated in updatePricing
-
-                let final = currentServerFinalPrice - currentDiscount;
-                if (final < 0) final = 0;
-
-                const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-                finalPriceEl.innerText = formatter.format(final).replace('₫', 'đ');
             }
 
-            // Cần sửa lại updatePricing để lưu currentServerFinalPrice
-            const originalUpdatePricing = updatePricing; // Backup reference ? No need, just overwrite logic inside
+            function loadVouchers() {
+                voucherLoadingEl.style.display = 'block';
+                voucherListEl.style.display = 'none';
+                voucherEmptyEl.style.display = 'none';
 
-            // Rewrite updatePricing logic inside listener to avoid conflict or duplicate code
-            // But since I cannot easily "inject" code into middle of function, I have to replace the function or use replace_file_content to rewrite the whole block.
+                // Lấy tổng tiền giỏ hàng hiện tại để tính toán logic voucher
+                const cartTotal = currentCartTotal > 0 ? currentCartTotal : /*[[${totalPrice}]]*/ 0;
+
+                fetch(`/v1/api/vouchers/checkout-vouchers?orderTotal=${cartTotal}`)
+                    .then(res => res.json())
+                    .then(vouchers => {
+                        voucherLoadingEl.style.display = 'none';
+                        if (!vouchers || vouchers.length === 0) {
+                            voucherEmptyEl.style.display = 'block';
+                            return;
+                        }
+
+                        voucherListEl.innerHTML = '';
+                        vouchers.forEach(v => {
+                            // Determine styles based on type
+                            let typeClass = 'voucher-amount';
+                            let badgeText = 'GIẢM TIỀN';
+                            let iconClass = 'fa-money-bill-wave';
+
+                            if (v.type === 'FREESHIP') {
+                                typeClass = 'voucher-freeship';
+                                badgeText = 'FREESHIP';
+                                iconClass = 'fa-shipping-fast';
+                            } else if (v.type === 'PERCENT') {
+                                typeClass = 'voucher-percent';
+                                badgeText = 'GIẢM %';
+                                iconClass = 'fa-percentage';
+                            }
+
+                            // Format discount info
+                            let discountInfo = '';
+                            if (v.type === 'PERCENT') {
+                                discountInfo = `Giảm <span class="text-success fw-bold">${v.discountValue}%</span>`;
+                            } else if (v.type === 'FREESHIP') {
+                                discountInfo = `Miễn phí vận chuyển`;
+                            } else {
+                                discountInfo = `Giảm <span class="text-warning fw-bold">${formatCurrency(v.discountValue)}</span>`;
+                            }
+
+                            // Check valid state
+                            const isDisabled = !v.canApply;
+                            const disableClass = isDisabled ? 'voucher-disabled' : '';
+                            const selectBtnHtml = isDisabled
+                                ? ''
+                                : `<button class="btn btn-sm btn-primary voucher-select-btn shadow-sm">Áp dụng</button>`;
+
+                            const reasonHtml = isDisabled
+                                ? `<small class="text-danger d-block mt-1"><i class="fas fa-times-circle me-1"></i>${v.disabledReason || 'Không đủ điều kiện'}</small>`
+                                : `<small class="text-success d-block mt-1" style="display:none" id="save-info-${v.id}"><i class="fas fa-piggy-bank me-1"></i>Tiết kiệm: ${formatCurrency(v.calculatedDiscount)}</small>`;
+
+                            // Show calculated savings if available and valid
+                            if (!isDisabled && v.calculatedDiscount > 0) {
+                                // Logic này đã được xử lý trong reasonHtml phần else
+                            }
+
+                            const item = document.createElement('div');
+                            item.className = `list-group-item p-3 mb-2 border rounded shadow-sm voucher-card ${typeClass} ${disableClass}`;
+                            item.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        <div class="me-3 text-center" style="min-width: 60px;">
+                                            <div class="fs-4 text-muted"><i class="fas ${iconClass}"></i></div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="voucher-badge me-2 shadow-sm">${badgeText}</span>
+                                                <span class="voucher-code text-dark">${v.code}</span>
+                                            </div>
+                                            <div class="mb-1">${discountInfo}</div>
+                                            <small class="text-muted d-block">Đơn tối thiểu: ${formatCurrency(v.minOrderValue)}</small>
+                                            <small class="text-muted d-block">HSD: ${formatDate(v.expireAt)}</small>
+                                            ${reasonHtml}
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        ${selectBtnHtml}
+                                    </div>
+                                </div>
+                            `;
+
+                            if (!isDisabled) {
+                                // Allow selection
+                                item.addEventListener('click', () => {
+                                    selectVoucher(v.code);
+                                });
+                                // Show savings on hover? (Optional, JS handle hover is tricky, rely on CSS)
+                                // But simply, we always show savings if valid
+                                const saveInfo = item.querySelector(`#save-info-${v.id}`);
+                                if (saveInfo && v.calculatedDiscount > 0) saveInfo.style.display = 'block';
+                            }
+
+                            voucherListEl.appendChild(item);
+                        });
+
+                        voucherListEl.style.display = 'block';
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        voucherLoadingEl.style.display = 'none';
+                        voucherEmptyEl.innerHTML = '<p class="text-danger">Lỗi tải dữ liệu voucher</p>';
+                        voucherEmptyEl.style.display = 'block';
+                    });
+            }
+
+            function selectVoucher(code) {
+                voucherInput.value = code;
+
+                // Áp dụng voucher ngay lập tức
+                applyVoucher(code);
+
+                // Move focus outside the modal first to avoid aria-hidden focus blocking
+                try {
+                    if (btnShowVouchers) {
+                        btnShowVouchers.focus();
+                    } else if (document.activeElement && voucherModalEl && voucherModalEl.contains(document.activeElement)) {
+                        document.activeElement.blur();
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
+                // Đóng modal sau khi đã bắt đầu apply (delay nhẹ để focus kịp thay đổi)
+                if (voucherModal) {
+                    setTimeout(() => voucherModal.hide(), 50);
+                }
+            }
+
+            // ===============================
+            // 6. Event Listeners
+            // ===============================
+            addressRadios.forEach(el => el.addEventListener('change', updatePricing));
+            deliveryRadios.forEach(el => el.addEventListener('change', updatePricing));
+
+            if (btnApplyVoucher) {
+                btnApplyVoucher.addEventListener('click', function () {
+                    const code = voucherInput.value.trim();
+                    applyVoucher(code);
+                });
+            }
+
+            if (btnShowVouchers) {
+                btnShowVouchers.addEventListener('click', function () {
+                    loadVouchers();
+                });
+            }
+
+            // Lắng nghe sự kiện modal ẩn để có thể scroll/focus lại UI
+            if (voucherModalEl) {
+                voucherModalEl.addEventListener('hidden.bs.modal', function () {
+                    // Cuộn đến phần hiển thị voucher để user thấy kết quả
+                    const voucherSection = document.getElementById('voucher-message');
+                    if (voucherSection && voucherSection.innerHTML.trim() !== '') {
+                        voucherSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            }
+
+            // Allow pressing Enter in voucher input to apply
+            if (voucherInput) {
+                voucherInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const code = voucherInput.value.trim();
+                        applyVoucher(code);
+                    }
+                });
+            }
+
+            // ===============================
+            // 7. Initialize
+            // ===============================
+            // Restore saved voucher from localStorage
+            const savedVoucher = localStorage.getItem('appliedVoucherCode');
+            if (savedVoucher) {
+                voucherInput.value = savedVoucher;
+                hiddenVoucher.value = savedVoucher;
+                // Apply after a short delay to ensure DOM is ready
+                setTimeout(() => applyVoucher(savedVoucher), 500);
+            }
+
+            // Initial pricing calculation
+            updatePricing();
         });
     </script>
 

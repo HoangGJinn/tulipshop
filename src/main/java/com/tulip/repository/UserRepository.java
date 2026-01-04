@@ -13,13 +13,19 @@ import java.util.Optional;
 @Repository // Có hay ko cũng đc vì đã extends JpaRepository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
+
     boolean existsByEmail(String email);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile ORDER BY u.createdAt DESC")
     List<User> findAllWithProfile();
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile p " +
             "WHERE LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+            "OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR p.phone LIKE CONCAT('%', :keyword, '%') " +
+            "ORDER BY u.createdAt DESC")
     List<User> searchWithProfile(@Param("keyword") String keyword);
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.role = :role ORDER BY u.createdAt DESC")
+    List<User> findByRoleWithProfile(@Param("role") com.tulip.entity.Role role);
 }

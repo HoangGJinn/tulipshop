@@ -68,13 +68,13 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**", "/ws-chat/**").permitAll()
                 
                 // Live Chat API endpoints
-                .requestMatchers("/v1/api/live-chat/session").permitAll() // Cho phép khách vãng lai tạo session
+                .requestMatchers("/v1/api/live-chat/session").authenticated()
                 .requestMatchers("/v1/api/live-chat/admin/**").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers("/v1/api/live-chat/staff/**").hasAnyRole("ADMIN", "STAFF")
 
                 // Admin routes - phải đặt trước các rule chung
                 // Chặn STAFF truy cập customer và staff management
-                .requestMatchers("/admin/customers", "/admin/customers/**").hasRole("ADMIN")
+                .requestMatchers("/admin/customers", "/admin/customers/**", "/admin/dashboard/**").hasRole("ADMIN")
                 .requestMatchers("/admin/staff", "/admin/staff/**").hasRole("ADMIN")
                 .requestMatchers("/v1/api/admin/users/**").hasRole("ADMIN")
                 .requestMatchers("/v1/api/admin/staff/**").hasRole("ADMIN")

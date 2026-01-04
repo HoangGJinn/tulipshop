@@ -35,6 +35,15 @@ public interface OrderService {
      */
     void reOrderToCart(Long userId, Long orderId);
 
+    /**
+     * Hủy đơn hàng khi trạng thái còn là PENDING
+     * @param userId ID người dùng
+     * @param orderId ID đơn hàng cần hủy
+     * @param reason Lý do hủy đơn
+     * @throws RuntimeException nếu đơn hàng không hợp lệ hoặc không thể hủy
+     */
+    void cancelOrder(Long userId, Long orderId, String reason);
+
     // ===== ADMIN METHODS =====
 
     List<OrderAdminDTO> getAllOrders();

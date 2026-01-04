@@ -311,7 +311,12 @@
                 <!-- Toolbar -->
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
                     <div>
-                        <span class="text-muted" style="font-size: 0.9rem;" th:text="${products != null ? products.size() : 0} + ' sản phẩm'">443 sản phẩm</span>
+                        <span class="text-muted" style="font-size: 0.9rem;">
+                            <span th:text="${totalElements != null ? totalElements : (products != null ? products.size() : 0)}">443</span> sản phẩm
+                            <span th:if="${totalPages > 1}" class="ms-2">
+                                (Trang <span th:text="${currentPage + 1}">1</span>/<span th:text="${totalPages}">5</span>)
+                            </span>
+                        </span>
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center gap-2">
@@ -394,24 +399,76 @@
                 </div>
 
                 <!-- Pagination -->
-                <nav class="mt-4 pt-3 border-top">
+                <nav class="mt-4 pt-3 border-top" th:if="${totalPages > 1}">
                     <ul class="pagination justify-content-center mb-0">
-                        <li class="page-item">
-                            <a class="page-link border-0 text-dark" href="#" aria-label="Previous">
+                        <!-- Previous Button -->
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link border-0 text-dark" 
+                               th:href="@{/products(collection=${selectedCollection}, category=${selectedCategory}, sort=${selectedSort}, color=${selectedColor}, size=${selectedSize}, priceRange=${selectedPriceRange}, page=${currentPage - 1})}" 
+                               aria-label="Previous"
+                               th:if="${currentPage > 0}">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
+                            <span class="page-link border-0 text-muted" aria-label="Previous" th:if="${currentPage == 0}">
+                                <span aria-hidden="true">&laquo;</span>
+                            </span>
                         </li>
-                        <li class="page-item active"><a class="page-link bg-dark border-dark" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">4</a></li>
-                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">5</a></li>
-                        <li class="page-item">
-                            <a class="page-link border-0 text-dark" href="#" aria-label="Next">
+                        
+                        <!-- Page Numbers -->
+                        <th:block th:with="startPage=${currentPage > 2 ? currentPage - 2 : 0}, 
+                                          endPage=${currentPage + 2 < totalPages - 1 ? currentPage + 2 : totalPages - 1}">
+                            
+                            <!-- First Page -->
+                            <li class="page-item" th:if="${startPage > 0}">
+                                <a class="page-link border-0 text-dark" 
+                                   th:href="@{/products(collection=${selectedCollection}, category=${selectedCategory}, sort=${selectedSort}, color=${selectedColor}, size=${selectedSize}, priceRange=${selectedPriceRange}, page=0)}">1</a>
+                            </li>
+                            <li class="page-item disabled" th:if="${startPage > 1}">
+                                <span class="page-link border-0 text-muted">...</span>
+                            </li>
+                            
+                            <!-- Page Range -->
+                            <li class="page-item" 
+                                th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link" 
+                                   th:classappend="${i == currentPage} ? 'bg-dark border-dark' : 'border-0 text-dark'"
+                                   th:href="@{/products(collection=${selectedCollection}, category=${selectedCategory}, sort=${selectedSort}, color=${selectedColor}, size=${selectedSize}, priceRange=${selectedPriceRange}, page=${i})}"
+                                   th:text="${i + 1}">1</a>
+                            </li>
+                            
+                            <!-- Last Page -->
+                            <li class="page-item disabled" th:if="${endPage < totalPages - 2}">
+                                <span class="page-link border-0 text-muted">...</span>
+                            </li>
+                            <li class="page-item" th:if="${endPage < totalPages - 1}">
+                                <a class="page-link border-0 text-dark" 
+                                   th:href="@{/products(collection=${selectedCollection}, category=${selectedCategory}, sort=${selectedSort}, color=${selectedColor}, size=${selectedSize}, priceRange=${selectedPriceRange}, page=${totalPages - 1})}"
+                                   th:text="${totalPages}">5</a>
+                            </li>
+                        </th:block>
+                        
+                        <!-- Next Button -->
+                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                            <a class="page-link border-0 text-dark" 
+                               th:href="@{/products(collection=${selectedCollection}, category=${selectedCategory}, sort=${selectedSort}, color=${selectedColor}, size=${selectedSize}, priceRange=${selectedPriceRange}, page=${currentPage + 1})}" 
+                               aria-label="Next"
+                               th:if="${currentPage < totalPages - 1}">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
+                            <span class="page-link border-0 text-muted" aria-label="Next" th:if="${currentPage >= totalPages - 1}">
+                                <span aria-hidden="true">&raquo;</span>
+                            </span>
                         </li>
                     </ul>
+                    
+                    <!-- Page Info -->
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Trang <span th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">5</span>
+                            (<span th:text="${totalElements}">50</span> sản phẩm)
+                        </small>
+                    </div>
                 </nav>
 
             </div>

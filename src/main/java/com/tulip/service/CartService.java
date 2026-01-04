@@ -34,4 +34,7 @@ public interface CartService {
 
     // Xóa các items đã mua khỏi giỏ
     void removeItems(Long userId, List<Long> itemIds);
+
+    // Thêm vào giỏ và trả về ID của cart item (dùng cho chức năng Mua ngay)
+    Long addToCartAndGetItemId(Long userId, Long stockId, int quantity);
 }

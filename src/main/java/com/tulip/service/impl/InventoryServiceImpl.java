@@ -2,10 +2,14 @@ package com.tulip.service.impl;
 
 import com.tulip.dto.InventoryAlertsDTO;
 import com.tulip.dto.InventoryDTO;
+import com.tulip.dto.NotificationRequest;
 import com.tulip.dto.StockHistoryDTO;
 import com.tulip.dto.UninitializedVariantDTO;
 import com.tulip.dto.request.StockInitRequest;
+import com.tulip.entity.Notification;
+import com.tulip.entity.WishlistItem;
 import com.tulip.entity.enums.StockStatus;
+import com.tulip.entity.product.Product;
 import com.tulip.entity.product.ProductStock;
 import com.tulip.entity.product.ProductVariant;
 import com.tulip.entity.product.ProductVariantImage;
@@ -16,8 +20,12 @@ import com.tulip.repository.ProductStockRepository;
 import com.tulip.repository.SizeRepository;
 import com.tulip.repository.StockHistoryRepository;
 import com.tulip.repository.VariantRepository;
+import com.tulip.repository.WishlistItemRepository;
+import com.tulip.service.EmailService;
 import com.tulip.service.InventoryService;
+import com.tulip.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +41,9 @@ public class InventoryServiceImpl implements InventoryService {
     private final StockHistoryRepository stockHistoryRepository;
     private final VariantRepository variantRepository;
     private final SizeRepository sizeRepository;
+    private final WishlistItemRepository wishlistItemRepository;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
 
     private static final int LOW_STOCK_THRESHOLD = 10;
 
@@ -69,7 +80,7 @@ public class InventoryServiceImpl implements InventoryService {
             );
         }
         
-        // Store previous quantity for history
+        // Store previous quantity for history and notification logic
         Integer previousQuantity = stock.getQuantity();
         
         // Create stock history record before any changes
@@ -82,6 +93,27 @@ public class InventoryServiceImpl implements InventoryService {
                 .reason(reason)
                 .build();
         stockHistoryRepository.save(history);
+        
+        // Check if we need to send wishlist notifications
+        boolean shouldNotify = false;
+        String notificationType = null;
+        
+        // Case 1: Low Stock (previousQuantity > 10 && newQuantity <= 10 && newQuantity > 0)
+        if (previousQuantity > LOW_STOCK_THRESHOLD && newQuantity <= LOW_STOCK_THRESHOLD && newQuantity > 0) {
+            shouldNotify = true;
+            notificationType = "LOW_STOCK";
+        }
+        
+        // Case 2: Back in Stock (previousQuantity <= 0 && newQuantity > 0)
+        if (previousQuantity <= 0 && newQuantity > 0) {
+            shouldNotify = true;
+            notificationType = "BACK_IN_STOCK";
+        }
+        
+        // Send notifications if needed
+        if (shouldNotify && notificationType != null) {
+            sendWishlistNotifications(stock, notificationType);
+        }
         
         // If new quantity is 0 and no reserved stock, delete the record
         // Otherwise update it (keep for historical data if there's reserved stock)
@@ -100,6 +132,75 @@ public class InventoryServiceImpl implements InventoryService {
             
             // Return updated inventory DTO
             return convertToInventoryDTO(stock);
+        }
+    }
+    
+    /**
+     * Send wishlist notifications to users who have this product in their wishlist
+     */
+    private void sendWishlistNotifications(ProductStock stock, String type) {
+        try {
+            // Get the product from the variant
+            ProductVariant variant = stock.getVariant();
+            Product product = variant.getProduct();
+            
+            // Initialize product data to avoid LazyInitializationException in async context
+            Hibernate.initialize(product);
+            if (product.getThumbnail() != null) {
+                // Ensure thumbnail is loaded
+                product.getThumbnail();
+            }
+            
+            // Find all users who have this product in their wishlist
+            List<WishlistItem> wishlistItems = wishlistItemRepository.findByProductId(product.getId());
+            
+            if (wishlistItems.isEmpty()) {
+                return; // No users to notify
+            }
+            
+            // Prepare notification title and message
+            String notificationTitle;
+            String notificationMessage;
+            
+            if ("BACK_IN_STOCK".equals(type)) {
+                notificationTitle = "Sản phẩm đã có hàng trở lại";
+                notificationMessage = "Sản phẩm \"" + product.getName() + "\" trong danh sách yêu thích của bạn đã có hàng trở lại!";
+            } else {
+                notificationTitle = "Sản phẩm sắp hết hàng";
+                notificationMessage = "Sản phẩm \"" + product.getName() + "\" trong danh sách yêu thích của bạn sắp hết hàng. Nhanh tay đặt hàng!";
+            }
+            
+            // Send notifications to each user
+            for (WishlistItem item : wishlistItems) {
+                try {
+                    // Initialize user data
+                    Hibernate.initialize(item.getUser());
+                    if (item.getUser().getProfile() != null) {
+                        Hibernate.initialize(item.getUser().getProfile());
+                    }
+                    
+                    // Create notification request
+                    NotificationRequest notificationRequest = new NotificationRequest();
+                    notificationRequest.setTitle(notificationTitle);
+                    notificationRequest.setContent(notificationMessage);
+                    notificationRequest.setLink("/product/" + product.getId());
+                    notificationRequest.setType(Notification.NotificationType.SYSTEM);
+                    
+                    // Send in-app notification
+                    notificationService.sendNotification(item.getUser().getEmail(), notificationRequest);
+                    
+                    // Send email notification
+                    emailService.sendWishlistStockAlert(item.getUser(), product, type);
+                    
+                } catch (Exception e) {
+                    // Log error but continue with other users
+                    System.err.println("Failed to send notification to user " + item.getUser().getId() + ": " + e.getMessage());
+                }
+            }
+            
+        } catch (Exception e) {
+            // Log error but don't fail the stock update
+            System.err.println("Failed to send wishlist notifications: " + e.getMessage());
         }
     }
 

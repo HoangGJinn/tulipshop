@@ -25,4 +25,39 @@ public interface CategoryService {
      * @return Danh sách tất cả categories
      */
     List<Category> findAll();
+    
+    /**
+     * Tìm category theo ID
+     * @param id ID của category
+     * @return Optional<Category>
+     */
+    Optional<Category> findById(Long id);
+    
+    /**
+     * Lưu hoặc cập nhật category
+     * @param category Category cần lưu
+     * @return Category đã lưu
+     */
+    Category save(Category category);
+    
+    /**
+     * Xóa category theo ID
+     * @param id ID của category cần xóa
+     * @throws com.tulip.exception.BusinessException nếu category đang có sản phẩm
+     */
+    void deleteById(Long id);
+    
+    /**
+     * Kiểm tra xem category có sản phẩm không
+     * @param categoryId ID của category
+     * @return true nếu có sản phẩm, false nếu không
+     */
+    boolean hasProducts(Long categoryId);
+    
+    /**
+     * Tạo slug từ tên category
+     * @param name Tên category
+     * @return Slug đã chuẩn hóa
+     */
+    String generateSlug(String name);
 }
