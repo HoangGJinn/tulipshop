@@ -20,6 +20,12 @@ public class Voucher {
     @Column(unique = true, nullable = false)
     private String code;
 
+    @Column(length = 255)
+    private String name; // Tên voucher (VD: "Voucher Tết 2026", "Quà tặng đánh giá")
+
+    @Column(columnDefinition = "TEXT")
+    private String description; // Mô tả chi tiết voucher
+
     @Enumerated(EnumType.STRING)
     private DiscountType type;
 
@@ -43,6 +49,10 @@ public class Voucher {
     private Integer usedCount; // Số lượng đã sử dụng
 
     private Boolean status;
+
+    @Column(name = "is_public")
+    @Builder.Default
+    private Boolean isPublic = true; // true = hiển thị công khai, false = chỉ phát riêng cho user
 
     public enum DiscountType {
         PERCENT, AMOUNT, FREESHIP

@@ -82,6 +82,14 @@ public class VoucherServiceImpl implements VoucherService {
         if (v.getMinOrderValue() != null && orderTotal.compareTo(v.getMinOrderValue()) < 0)
             return false;
 
+        // Check quantity: null means unlimited, otherwise check usedCount < quantity
+        if (v.getQuantity() != null && v.getQuantity() > 0) {
+            int used = v.getUsedCount() != null ? v.getUsedCount() : 0;
+            if (used >= v.getQuantity()) {
+                return false;
+            }
+        }
+
         return true;
     }
 

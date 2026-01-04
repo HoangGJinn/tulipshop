@@ -17,6 +17,8 @@ import java.time.format.DateTimeFormatter;
 public class VoucherDTO {
     private Long id;
     private String code;
+    private String name;
+    private String description;
     private String type; // PERCENT, AMOUNT, or FREESHIP
     private BigDecimal discountValue;
     private BigDecimal minOrderValue;
@@ -27,7 +29,12 @@ public class VoucherDTO {
     private String expireAt; // Formatted as string for JSON
     private Boolean status;
     private Boolean isValid;
-    private String description;
+    private Boolean isPublic;
+
+    // New fields for checkout display
+    private BigDecimal calculatedDiscount; // Số tiền giảm thực tế cho đơn hàng hiện tại
+    private Boolean canApply; // Có thể áp dụng hay không
+    private String disabledReason; // Lý do không thể áp dụng
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -53,6 +60,8 @@ public class VoucherDTO {
         return VoucherDTO.builder()
                 .id(voucher.getId())
                 .code(voucher.getCode())
+                .name(voucher.getName())
+                .description(voucher.getDescription())
                 .type(voucher.getType() != null ? voucher.getType().name() : null)
                 .discountValue(voucher.getDiscountValue())
                 .minOrderValue(voucher.getMinOrderValue())
@@ -63,7 +72,7 @@ public class VoucherDTO {
                 .remaining(remaining)
                 .status(voucher.getStatus())
                 .isValid(isValid)
-                .description(null) // Add description field to Voucher entity if needed
+                .isPublic(voucher.getIsPublic())
                 .build();
     }
 }
