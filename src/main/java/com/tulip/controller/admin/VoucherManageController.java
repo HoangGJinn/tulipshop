@@ -13,13 +13,14 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/admin/vouchers")
 public class VoucherManageController {
 
     private final VoucherService voucherService;
 
+    // Both ADMIN and STAFF can view vouchers
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String list(Model model) {
         List<Voucher> vouchers = voucherService.getAllVouchers();
         model.addAttribute("vouchers", vouchers);
@@ -29,7 +30,9 @@ public class VoucherManageController {
         return "admin/layouts/layout";
     }
 
+    // Only ADMIN can create vouchers
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public String create(@ModelAttribute Voucher voucher,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         try {
@@ -44,7 +47,9 @@ public class VoucherManageController {
         return "redirect:/admin/vouchers";
     }
 
+    // Only ADMIN can update vouchers
     @PostMapping("/edit/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String update(@PathVariable Long id, @ModelAttribute Voucher voucher,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         try {
@@ -58,7 +63,9 @@ public class VoucherManageController {
         return "redirect:/admin/vouchers";
     }
 
+    // Only ADMIN can delete vouchers
     @PostMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String delete(@PathVariable Long id,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         try {

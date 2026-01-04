@@ -51,12 +51,14 @@ public class DashboardServiceImpl implements DashboardService {
                     .orElse(null);
             
             BigDecimal todayRevenue = BigDecimal.ZERO;
+            BigDecimal todayShippingFee = BigDecimal.ZERO;
             int newOrdersToday = 0;
             int newCustomersToday = 0;
             
             if (todayStats != null) {
                 // Đọc từ bảng stats (đã được tính sẵn)
                 todayRevenue = todayStats.getRevenue();
+                todayShippingFee = todayStats.getShippingFee() != null ? todayStats.getShippingFee() : BigDecimal.ZERO;
                 newOrdersToday = todayStats.getOrderCount();
                 newCustomersToday = todayStats.getCustomerCount();
             } else {
@@ -65,6 +67,7 @@ public class DashboardServiceImpl implements DashboardService {
                 LocalDateTime todayEnd = today.atTime(LocalTime.MAX);
                 List<Order> todayOrders = orderRepository.findByDateRange(todayStart, todayEnd);
                 todayRevenue = calculateRevenue(todayOrders != null ? todayOrders : List.of());
+                todayShippingFee = calculateShippingFee(todayOrders != null ? todayOrders : List.of());
                 newOrdersToday = todayOrders != null ? todayOrders.size() : 0;
                 
                 List<User> allUsers = userRepository.findAll();
@@ -129,6 +132,7 @@ public class DashboardServiceImpl implements DashboardService {
             
             return DashboardStatsDTO.builder()
                     .todayRevenue(todayRevenue)
+                    .todayShippingFee(todayShippingFee)
                     .todayGrowthPercent(todayGrowthPercent)
                     .newOrders(newOrdersToday)
                     .ordersGrowthPercent(ordersGrowthPercent)
@@ -144,6 +148,7 @@ public class DashboardServiceImpl implements DashboardService {
             // Return default values in case of error
             return DashboardStatsDTO.builder()
                     .todayRevenue(BigDecimal.ZERO)
+                    .todayShippingFee(BigDecimal.ZERO)
                     .todayGrowthPercent(0.0)
                     .newOrders(0)
                     .ordersGrowthPercent(0.0)
@@ -158,13 +163,23 @@ public class DashboardServiceImpl implements DashboardService {
     }
     
     /**
-     * Tính tổng doanh thu từ danh sách đơn hàng
+     * Tính tổng tiền ship từ danh sách đơn hàng (chỉ đơn DELIVERED)
+     */
+    private BigDecimal calculateShippingFee(List<Order> orders) {
+        return orders.stream()
+                .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
+                .map(order -> order.getShippingPrice() != null ? order.getShippingPrice() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    
+    /**
+     * Tính tổng doanh thu từ danh sách đơn hàng (không bao gồm ship)
      * Chỉ tính các đơn đã thanh toán thành công (DELIVERED)
      */
     private BigDecimal calculateRevenue(List<Order> orders) {
         return orders.stream()
                 .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
-                .map(Order::getFinalPrice)
+                .map(Order::getTotalPrice) // Chỉ lấy totalPrice (không có ship)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     
