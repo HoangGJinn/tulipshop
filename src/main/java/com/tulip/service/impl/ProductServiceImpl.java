@@ -7,6 +7,8 @@ import com.tulip.repository.*;
 import com.tulip.service.CategoryService;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,10 @@ public class ProductServiceImpl implements ProductService {
                 .thumbnail(mainThumbnail)
                 .variants(new ArrayList<>())
                 .tags(dto.getTags())
+                .neckline(dto.getNeckline())
+                .material(dto.getMaterial())
+                .sleeveType(dto.getSleeveType())
+                .brand(dto.getBrand())
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -213,6 +219,68 @@ public class ProductServiceImpl implements ProductService {
 
                 .map(this::convertToCardDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<ProductCardDTO> getFilteredProductsWithPagination(String categorySlug,
+                                                                   String sort, String color,
+                                                                   String size, Double minPrice,
+                                                                   Double maxPrice, Pageable pageable) {
+        Page<Product> productPage;
+        
+        // Nếu có categorySlug, tìm theo N-cấp category hierarchy
+        if (categorySlug != null && !categorySlug.isEmpty()) {
+            Optional<Category> categoryOpt = categoryService.findBySlug(categorySlug);
+            
+            if (categoryOpt.isPresent()) {
+                Category category = categoryOpt.get();
+                List<Long> categoryIds = categoryService.getAllChildCategoryIds(category.getId());
+                productPage = productRepository.findByCategoryIdInAndStatus(categoryIds, ProductStatus.ACTIVE, pageable);
+            } else {
+                // Category không tồn tại, trả về trang rỗng
+                return Page.empty(pageable);
+            }
+        } else {
+            // Không có category filter, lấy tất cả sản phẩm ACTIVE
+            productPage = productRepository.findByStatus(ProductStatus.ACTIVE, pageable);
+        }
+
+        // Nếu không có filter phức tạp (color, size, price), chuyển đổi trực tiếp
+        if ((color == null || color.isEmpty()) && 
+            (size == null || size.isEmpty()) && 
+            minPrice == null && maxPrice == null) {
+            return productPage.map(this::convertToCardDTO);
+        }
+
+        // Nếu có filter phức tạp, phải lọc ở tầng application
+        // Lưu ý: Điều này làm mất tính chính xác của phân trang
+        // Trong production nên tối ưu bằng cách đưa logic này vào Query
+        List<ProductCardDTO> filteredProducts = productPage.getContent().stream()
+            .filter(product -> {
+                // Kiểm tra các điều kiện lọc
+                boolean matchesPrice = (minPrice == null || product.getBasePrice().doubleValue() >= minPrice) &&
+                                      (maxPrice == null || product.getBasePrice().doubleValue() <= maxPrice);
+                
+                boolean matchesColor = color == null || color.isEmpty() ||
+                                      product.getVariants().stream().anyMatch(v -> v.getColorName().equalsIgnoreCase(color));
+                
+                boolean matchesSize = size == null || size.isEmpty() ||
+                                     product.getVariants().stream().anyMatch(v ->
+                                         v.getStocks().stream().anyMatch(s -> 
+                                             s.getSize().getCode().equalsIgnoreCase(size) && s.getQuantity() > 0));
+                
+                return matchesPrice && matchesColor && matchesSize;
+            })
+            .map(this::convertToCardDTO)
+            .collect(Collectors.toList());
+
+        // Tạo Page mới với dữ liệu đã lọc
+        // Lưu ý: totalElements không chính xác khi có filter
+        return new org.springframework.data.domain.PageImpl<>(
+            filteredProducts, 
+            pageable, 
+            productPage.getTotalElements()
+        );
     }
 
     public ProductCardDTO convertToCardDTO(Product p) {
@@ -380,6 +448,12 @@ public class ProductServiceImpl implements ProductService {
         dto.setDescription(product.getDescription());
         dto.setTags(product.getTags());
         dto.setStatus(product.getStatus());
+        
+        // Map thuộc tính kỹ thuật
+        dto.setNeckline(product.getNeckline());
+        dto.setMaterial(product.getMaterial());
+        dto.setSleeveType(product.getSleeveType());
+        dto.setBrand(product.getBrand());
 
         // Gán URL ảnh cũ để hiển thị
         dto.setThumbnailUrl(product.getThumbnail());
@@ -439,6 +513,12 @@ public class ProductServiceImpl implements ProductService {
         product.setDiscountPrice(dto.getDiscountPrice());
         product.setDescription(dto.getDescription());
         product.setTags(dto.getTags());
+        
+        // Cập nhật thuộc tính kỹ thuật
+        product.setNeckline(dto.getNeckline());
+        product.setMaterial(dto.getMaterial());
+        product.setSleeveType(dto.getSleeveType());
+        product.setBrand(dto.getBrand());
         
         // Cập nhật trạng thái
         if (dto.getStatus() != null) {

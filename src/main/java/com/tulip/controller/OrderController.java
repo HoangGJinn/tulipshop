@@ -94,4 +94,26 @@ public class OrderController {
             return "redirect:/orders/" + orderId;
         }
     }
+
+    // --- 4. HỦY ĐƠN HÀNG ---
+    @PostMapping("/orders/{orderId}/cancel")
+    public String cancelOrder(@PathVariable Long orderId,
+                              @RequestParam("reason") String reason,
+                              @AuthenticationPrincipal CustomUserDetails userDetails,
+                              HttpServletRequest request,
+                              RedirectAttributes redirectAttributes) {
+        if (userDetails == null || !jwtUtil.validateJwtToken(request, userDetails)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Phiên đăng nhập đã hết hạn.");
+            return "redirect:/login";
+        }
+
+        try {
+            orderService.cancelOrder(userDetails.getUserId(), orderId, reason);
+            redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng đã được hủy thành công.");
+            return "redirect:/orders/" + orderId;
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/orders/" + orderId;
+        }
+    }
 }

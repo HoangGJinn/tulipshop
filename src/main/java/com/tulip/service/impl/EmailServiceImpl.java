@@ -1,6 +1,8 @@
 package com.tulip.service.impl;
 
 import com.tulip.entity.Order;
+import com.tulip.entity.User;
+import com.tulip.entity.product.Product;
 import com.tulip.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -423,6 +425,73 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             log.error("❌ [EMAIL] Unexpected error sending rating reminder for order #{}. Error: {}", 
                      order.getId(), e.getMessage(), e);
+        }
+    }
+    
+    @Async
+    @Override
+    public void sendWishlistStockAlert(User user, Product product, String type) {
+        try {
+            if (user == null || user.getEmail() == null) {
+                log.error("❌ [EMAIL] Cannot send wishlist alert - User has no email");
+                return;
+            }
+            
+            if (product == null) {
+                log.error("❌ [EMAIL] Cannot send wishlist alert - Product is null");
+                return;
+            }
+            
+            String customerEmail = user.getEmail();
+            String customerName = "Khách hàng";
+            if (user.getProfile() != null && user.getProfile().getFullName() != null) {
+                customerName = user.getProfile().getFullName();
+            }
+            
+            // Determine subject and title based on type
+            String subject;
+            String title;
+            if ("BACK_IN_STOCK".equals(type)) {
+                subject = "🎉 Sản phẩm yêu thích đã có hàng trở lại - Tulip Shop";
+                title = "Món đồ bạn yêu thích đã có hàng lại!";
+            } else {
+                subject = "⚠️ Sản phẩm yêu thích sắp hết hàng - Tulip Shop";
+                title = "Sản phẩm yêu thích của bạn sắp hết hàng!";
+            }
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(customerEmail);
+            helper.setSubject(subject);
+
+            // Create Thymeleaf context
+            Context context = new Context();
+            context.setVariable("customerName", customerName);
+            context.setVariable("title", title);
+            context.setVariable("type", type);
+            context.setVariable("productName", product.getName());
+            context.setVariable("productPrice", product.getDiscountPrice() != null ? 
+                               product.getDiscountPrice() : product.getBasePrice());
+            context.setVariable("productImage", product.getThumbnail() != null ? 
+                               product.getThumbnail() : "/images/placeholder.jpg");
+            context.setVariable("productUrl", "http://localhost:8787/products/" + product.getId());
+
+            // Process the template
+            String htmlContent = templateEngine.process("mail/wishlist-alert", context);
+            helper.setText(htmlContent, true);
+
+            log.info("📧 [EMAIL] Sending wishlist {} alert to: {} for product #{}", 
+                    type, customerEmail, product.getId());
+            mailSender.send(message);
+            log.info("✅ [EMAIL] Wishlist alert sent successfully to: {} for product #{}", 
+                    customerEmail, product.getId());
+        } catch (MessagingException e) {
+            log.error("❌ [EMAIL] MessagingException sending wishlist alert for product #{}. Error: {}", 
+                     product != null ? product.getId() : "null", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("❌ [EMAIL] Unexpected error sending wishlist alert for product #{}. Error: {}", 
+                     product != null ? product.getId() : "null", e.getMessage(), e);
         }
     }
 }

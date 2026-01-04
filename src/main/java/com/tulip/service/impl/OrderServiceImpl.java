@@ -764,6 +764,74 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public void cancelOrder(Long userId, Long orderId, String reason) {
+        // 1. Tìm kiếm đơn hàng
+        Order order = orderRepository.findByIdWithDetails(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // 2. Kiểm tra quyền sở hữu
+        if (!order.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền hủy đơn hàng này");
+        }
+
+        // 3. Kiểm tra trạng thái - chỉ cho phép hủy khi PENDING
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể hủy đơn hàng ở trạng thái Chờ xử lý");
+        }
+
+        // 4. Cập nhật trạng thái và lý do hủy
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelReason(reason);
+
+        // 5. Hoàn tác voucher nếu có
+        if (order.getVoucher() != null) {
+            Voucher voucher = order.getVoucher();
+            if (voucher.getUsedCount() > 0) {
+                voucher.setUsedCount(voucher.getUsedCount() - 1);
+                voucherService.saveVoucher(voucher);
+                log.info("✅ Voucher {} usage count decreased for cancelled order #{}", 
+                        voucher.getCode(), orderId);
+            }
+        }
+
+        // 6. Cập nhật payment status nếu là thanh toán online
+        if (order.getPaymentMethod() == PaymentMethod.MOMO || 
+            order.getPaymentMethod() == PaymentMethod.VNPAY) {
+            order.setPaymentStatus(PaymentStatus.CANCELLED);
+        }
+
+        // 7. Lưu đơn hàng
+        Order savedOrder = orderRepository.save(order);
+        log.info("📦 Order #{} has been cancelled by user #{}", orderId, userId);
+
+        // 8. Eager load relationships trước khi gửi thông báo
+        Hibernate.initialize(savedOrder.getUser());
+        if (savedOrder.getUser().getProfile() != null) {
+            Hibernate.initialize(savedOrder.getUser().getProfile());
+        }
+
+        // 9. Gửi thông báo cho người dùng
+        try {
+            com.tulip.dto.NotificationRequest notificationRequest = com.tulip.dto.NotificationRequest.builder()
+                .title("Đơn hàng đã được hủy")
+                .content("Đơn hàng #" + savedOrder.getId() + " đã được hủy thành công. Lý do: " + reason)
+                .link("/orders/" + savedOrder.getId())
+                .type(com.tulip.entity.Notification.NotificationType.ORDER)
+                .build();
+            
+            notificationService.sendNotification(savedOrder.getUser().getEmail(), notificationRequest);
+            log.info("🔔 Cancellation notification sent successfully for order #{}", savedOrder.getId());
+        } catch (Exception e) {
+            log.error("❌ Error sending cancellation notification for order #{}: {}", 
+                    savedOrder.getId(), e.getMessage(), e);
+        }
+
+        // Lưu ý: Reserved stock sẽ tự động được giải phóng vì InventoryService 
+        // tính toán reservedStock dựa trên các đơn hàng chưa hoàn thành/hủy
+    }
+
+    @Override
+    @Transactional
     public void confirmOrderPayment(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
