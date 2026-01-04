@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/api/admin/category-stats")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class CategoryStatsController {
     
     private final CategoryStatsService categoryStatsService;

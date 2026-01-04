@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class AdminViewController {
     
     private final OrderService orderService;
@@ -26,6 +26,15 @@ public class AdminViewController {
         return "redirect:/admin/dashboard";
     }
 
+    @GetMapping("/chat-support")
+    public String chatSupport(Model model) {
+        model.addAttribute("pageTitle", "LIVE CHAT SUPPORT");
+        model.addAttribute("currentPage", "chat-support");
+        model.addAttribute("contentTemplate", "admin/chat-support/index");
+        model.addAttribute("showSearch", false);
+        return "admin/layouts/layout";
+    }
+    
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         try {
@@ -71,6 +80,7 @@ public class AdminViewController {
     }
 
     @GetMapping("/customers")
+    @PreAuthorize("hasRole('ADMIN')")
     public String customers(Model model) {
         model.addAttribute("pageTitle", "CUSTOMERS");
         model.addAttribute("currentPage", "customers");

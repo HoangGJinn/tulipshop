@@ -139,6 +139,10 @@
             resultDiv.innerHTML = html;
         }
     </script>
+    
+    <!-- Live Chat Widget -->
+    <div th:replace="~{fragments/live-chat-widget :: liveChatWidget}"></div>
+    <script th:src="@{/js/live-chat.js}"></script>
 </footer>
 
 </body>

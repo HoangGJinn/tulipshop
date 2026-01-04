@@ -65,11 +65,22 @@ public class SecurityConfig {
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/static/**", "/assets/**", "/favicon.ico").permitAll()
 
                 // WebSocket endpoints - cho phép kết nối (authentication sẽ được xử lý bởi JwtChannelInterceptor)
-                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/ws/**", "/ws-chat/**").permitAll()
+                
+                // Live Chat API endpoints
+                .requestMatchers("/v1/api/live-chat/session").permitAll() // Cho phép khách vãng lai tạo session
+                .requestMatchers("/v1/api/live-chat/admin/**").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/v1/api/live-chat/staff/**").hasAnyRole("ADMIN", "STAFF")
 
                 // Admin routes - phải đặt trước các rule chung
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
+                // Chặn STAFF truy cập customer và staff management
+                .requestMatchers("/admin/customers", "/admin/customers/**").hasRole("ADMIN")
+                .requestMatchers("/admin/staff", "/admin/staff/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/admin/users/**").hasRole("ADMIN")
+                .requestMatchers("/v1/api/admin/staff/**").hasRole("ADMIN")
+                // Cho phép ADMIN và STAFF truy cập các admin pages khác
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/v1/api/admin/**").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers("/v1/api/webhook/**").permitAll()
                 .requestMatchers("/register", "/login", "/logout", "/h2-console/**").permitAll()
                 .requestMatchers("/verify-email", "/resend-otp").permitAll()
@@ -84,8 +95,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/ratings/debug/**").permitAll()
                 .requestMatchers("/api/ratings/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/v1/api/admin/**").hasRole("ADMIN")
                 // VNPAY callback URL cho phép truy cập công khai vì không có JWT:
                 .requestMatchers("/v1/api/vnpay/payment-callback").permitAll()
                 // MoMo callback URL cho phép truy cập công khai vì không có JWT:

@@ -23,7 +23,7 @@ import java.util.Map;
 @RequestMapping("/api/admin/ratings")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class AdminRatingApiController {
 
     private final RatingService ratingService;

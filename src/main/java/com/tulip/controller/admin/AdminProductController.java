@@ -22,7 +22,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/admin/products")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class AdminProductController {
 
     private final ProductService productService;

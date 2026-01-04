@@ -1,10 +1,4 @@
-/**
- * Notification Simple - Enhanced with Smooth Animations
- * @author Tulip Shop
- * @version 2.0
- */
-
-class Notification {
+class NotificationManager {
     constructor() {
         this.stompClient = null;
         this.connected = false;
@@ -12,12 +6,12 @@ class Notification {
         this.currentPage = { all: 0, ORDER: 0, PROMOTION: 0, SYSTEM: 0 };
         this.hasMore = { all: true, ORDER: true, PROMOTION: true, SYSTEM: true };
         this.currentTab = 'all';
-        
+
         this.initElements();
         this.initEventListeners();
         this.init();
     }
-    
+
     /**
      * Initialize DOM elements
      */
@@ -29,7 +23,7 @@ class Notification {
         this.headerCount = document.getElementById('headerCount');
         this.toastContainer = document.getElementById('notificationToastContainer');
     }
-    
+
     /**
      * Initialize event listeners
      */
@@ -41,31 +35,31 @@ class Notification {
                 this.togglePanel();
             });
         }
-        
+
         // Mark all as read
         if (this.markAllReadBtn) {
             this.markAllReadBtn.addEventListener('click', () => this.markAllAsRead());
         }
-        
+
         // Close panel when clicking outside
         document.addEventListener('click', (e) => {
             if (this.panel && !this.panel.contains(e.target) && !this.bellBtn.contains(e.target)) {
                 this.closePanel();
             }
         });
-        
+
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => this.switchTab(e.currentTarget.dataset.tab));
         });
-        
+
         // Notification item clicks
         document.addEventListener('click', (e) => {
             const item = e.target.closest('.notification-item');
             if (item) this.handleNotificationClick(item, e);
         });
     }
-    
+
     /**
      * Initialize notification system
      */
@@ -73,73 +67,73 @@ class Notification {
         this.loadUnreadCount();
         this.connect();
     }
-    
+
     /**
      * Toggle notification panel with smooth animation
      */
     togglePanel() {
         const isOpen = this.panel.classList.contains('open');
-        
+
         if (isOpen) {
             this.closePanel();
         } else {
             this.openPanel();
         }
     }
-    
+
     /**
      * Open panel with animation
      */
     openPanel() {
         this.panel.classList.add('open');
-        
+
         // Load notifications on first open
         if (!this.notificationsLoaded) {
             this.loadNotifications(null, 0, 10);
             this.notificationsLoaded = true;
         }
-        
+
         // Add entrance animation
         requestAnimationFrame(() => {
             this.panel.style.opacity = '1';
             this.panel.style.transform = 'translateY(0) scale(1)';
         });
     }
-    
+
     /**
      * Close panel with animation
      */
     closePanel() {
         this.panel.classList.remove('open');
     }
-    
+
     /**
      * Switch between tabs
      */
     switchTab(tab) {
         this.currentTab = tab;
-        
+
         // Update active tab button
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tab);
         });
-        
+
         // Update active content
         document.querySelectorAll('.notification-tab-content').forEach(content => {
             content.classList.toggle('active', content.dataset.tab === tab);
         });
-        
+
         // Load notifications if not loaded yet
         const listId = this.getListId(tab);
         const list = document.getElementById(listId);
         const hasItems = list && list.querySelectorAll('.notification-item').length > 0;
-        
+
         if (!hasItems) {
             const type = tab === 'all' ? null : document.querySelector(`.tab-btn[data-tab="${tab}"]`).dataset.type;
             this.loadNotifications(type, 0, 10);
         }
     }
-    
+
     /**
      * Get styling configuration by notification type
      */
@@ -151,7 +145,7 @@ class Notification {
         };
         return styles[type] || styles['SYSTEM'];
     }
-    
+
     /**
      * Create notification HTML with enhanced styling
      */
@@ -159,11 +153,11 @@ class Notification {
         const styles = this.getStyleByType(notification.type);
         const unreadClass = notification.isRead ? '' : 'unread';
         const timeAgo = this.formatTimeAgo(notification.createdAt);
-        
-        const iconHtml = notification.imageUrl 
-            ? `<img src="${notification.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="icon">` 
+
+        const iconHtml = notification.imageUrl
+            ? `<img src="${notification.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="icon">`
             : `<i class="${styles.icon}"></i>`;
-        
+
         return `
             <a href="${notification.link || 'javascript:void(0)'}" 
                class="notification-item ${unreadClass}" 
@@ -180,7 +174,7 @@ class Notification {
             </a>
         `;
     }
-    
+
     /**
      * Show toast notification with smooth animation
      */
@@ -188,11 +182,11 @@ class Notification {
         const styles = this.getStyleByType(notification.type);
         const toast = document.createElement('div');
         toast.className = 'notification-toast';
-        
-        const iconHtml = notification.imageUrl 
-            ? `<img src="${notification.imageUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;" alt="icon">` 
+
+        const iconHtml = notification.imageUrl
+            ? `<img src="${notification.imageUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;" alt="icon">`
             : `<i class="${styles.icon}" style="color:${styles.color};font-size:18px;"></i>`;
-        
+
         toast.innerHTML = `
             <div style="flex-shrink:0;">${iconHtml}</div>
             <div style="flex:1;">
@@ -200,20 +194,20 @@ class Notification {
                 <div style="font-size:12px;color:#666;">${this.escapeHtml(notification.content)}</div>
             </div>
         `;
-        
+
         toast.onclick = () => {
             if (notification.link && notification.link !== 'javascript:void(0)') {
                 window.location.href = notification.link;
             }
             this.removeToast(toast);
         };
-        
+
         this.toastContainer.appendChild(toast);
-        
+
         // Auto remove after 5 seconds
         setTimeout(() => this.removeToast(toast), 5000);
     }
-    
+
     /**
      * Remove toast with exit animation
      */
@@ -221,18 +215,18 @@ class Notification {
         toast.classList.add('toast-exit');
         setTimeout(() => toast.remove(), 300);
     }
-    
+
     /**
      * Connect to WebSocket
      */
     connect() {
         const token = this.getAccessToken();
         if (!token) return;
-        
+
         const socket = new SockJS('/ws');
         this.stompClient = Stomp.over(socket);
         this.stompClient.debug = null;
-        
+
         const headers = { 'Authorization': 'Bearer ' + token };
         this.stompClient.connect(
             headers,
@@ -240,24 +234,24 @@ class Notification {
             (error) => console.error('WebSocket connection error:', error)
         );
     }
-    
+
     /**
      * Handle WebSocket connection success
      */
     onConnected() {
         this.connected = true;
-        
+
         // Subscribe to personal notifications
         this.stompClient.subscribe('/user/queue/notifications', (message) => {
             this.onNotificationReceived(message);
         });
-        
+
         // Subscribe to public notifications
         this.stompClient.subscribe('/topic/public-notifications', (message) => {
             this.onNotificationReceived(message);
         });
     }
-    
+
     /**
      * Handle incoming notification
      */
@@ -271,7 +265,7 @@ class Notification {
             console.error('Error processing notification:', error);
         }
     }
-    
+
     /**
      * Load unread notification count
      */
@@ -286,19 +280,19 @@ class Notification {
             console.error('Error loading unread count:', error);
         }
     }
-    
+
     /**
      * Load notifications with pagination
      */
     async loadNotifications(type, page, size) {
         const tabKey = type || 'all';
-        
+
         if (!this.hasMore[tabKey] && page > 0) return;
-        
-        const url = type 
+
+        const url = type
             ? `/v1/api/notifications/type/${type}?page=${page}&size=${size}`
             : `/v1/api/notifications?page=${page}&size=${size}`;
-        
+
         try {
             const response = await fetch(url);
             if (response.ok) {
@@ -306,7 +300,7 @@ class Notification {
                 this.hasMore[tabKey] = !data.last;
                 this.currentPage[tabKey] = page;
                 this.renderNotifications(data.content, type, page > 0);
-                
+
                 if (this.hasMore[tabKey]) {
                     this.addLoadMoreButton(type);
                 }
@@ -315,19 +309,19 @@ class Notification {
             console.error('Error loading notifications:', error);
         }
     }
-    
+
     /**
      * Render notifications to DOM
      */
     renderNotifications(notifications, type, append) {
         const tab = type ? type.toLowerCase() : 'all';
         const list = document.getElementById(this.getListId(tab));
-        
+
         if (!list) return;
-        
+
         // Clear spinner on first load
         if (!append) list.innerHTML = '';
-        
+
         if (notifications.length === 0 && !append) {
             list.innerHTML = `
                 <div class="notification-empty" style="animation: fadeIn 0.5s ease;">
@@ -337,9 +331,9 @@ class Notification {
             `;
             return;
         }
-        
+
         const html = notifications.map(n => this.createNotificationHtml(n)).join('');
-        
+
         if (append) {
             const loadMoreBtn = list.querySelector('.load-more-container');
             if (loadMoreBtn) loadMoreBtn.remove();
@@ -348,7 +342,7 @@ class Notification {
             list.innerHTML = html;
         }
     }
-    
+
     /**
      * Get list element ID by tab
      */
@@ -361,14 +355,14 @@ class Notification {
         };
         return mapping[tab] || 'allNotificationList';
     }
-    
+
     /**
      * Add load more button
      */
     addLoadMoreButton(type) {
         const tab = type ? type.toLowerCase() : 'all';
         const list = document.getElementById(this.getListId(tab));
-        
+
         if (list) {
             const html = `
                 <div class="load-more-container">
@@ -380,7 +374,7 @@ class Notification {
             list.insertAdjacentHTML('beforeend', html);
         }
     }
-    
+
     /**
      * Load more notifications
      */
@@ -389,7 +383,7 @@ class Notification {
         const tabKey = t || 'all';
         this.loadNotifications(t, this.currentPage[tabKey] + 1, 10);
     }
-    
+
     /**
      * Prepend new notification to list
      */
@@ -398,11 +392,11 @@ class Notification {
         if (list) {
             const empty = list.querySelector('.notification-empty');
             if (empty) list.innerHTML = '';
-            
+
             list.insertAdjacentHTML('afterbegin', this.createNotificationHtml(notification));
         }
     }
-    
+
     /**
      * Update unread badges
      */
@@ -411,12 +405,12 @@ class Notification {
             this.headerCount.textContent = counts.total > 99 ? '99+' : counts.total;
             this.headerCount.style.display = counts.total > 0 ? 'inline-block' : 'none';
         }
-        
+
         if (this.countBadge) {
             this.countBadge.style.display = counts.total > 0 ? 'block' : 'none';
         }
     }
-    
+
     /**
      * Increment unread count
      */
@@ -424,14 +418,14 @@ class Notification {
         const current = parseInt(this.headerCount?.textContent || '0');
         this.updateUnreadBadges({ total: current + 1 });
     }
-    
+
     /**
      * Mark all notifications as read
      */
     async markAllAsRead() {
         try {
             const response = await fetch('/v1/api/notifications/read-all', { method: 'PUT' });
-            
+
             if (response.ok) {
                 document.querySelectorAll('.notification-item.unread').forEach(item => {
                     item.classList.remove('unread');
@@ -442,7 +436,7 @@ class Notification {
             console.error('Error marking all as read:', error);
         }
     }
-    
+
     /**
      * Mark single notification as read
      */
@@ -457,22 +451,22 @@ class Notification {
             return false;
         }
     }
-    
+
     /**
      * Handle notification item click
      */
     handleNotificationClick(item, event) {
         const isUnread = item.classList.contains('unread');
-        
+
         if (isUnread) {
             event.preventDefault();
-            
+
             const notificationId = item.dataset.id;
             const link = item.getAttribute('href');
-            
+
             this.markAsRead(notificationId).then(() => {
                 item.classList.remove('unread');
-                
+
                 if (link && link !== 'javascript:void(0)') {
                     setTimeout(() => {
                         window.location.href = link;
@@ -481,7 +475,7 @@ class Notification {
             });
         }
     }
-    
+
     /**
      * Get access token from cookie
      */
@@ -489,7 +483,7 @@ class Notification {
         const match = document.cookie.match(new RegExp('(^| )accessToken=([^;]+)'));
         return match ? match[2] : null;
     }
-    
+
     /**
      * Escape HTML to prevent XSS
      */
@@ -504,18 +498,18 @@ class Notification {
         };
         return text.replace(/[&<>"']/g, m => map[m]);
     }
-    
+
     /**
      * Format time ago
      */
     formatTimeAgo(dateString) {
         const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
-        
+
         if (seconds < 60) return 'Vừa xong';
         if (seconds < 3600) return Math.floor(seconds / 60) + ' phút trước';
         if (seconds < 86400) return Math.floor(seconds / 3600) + ' giờ trước';
         if (seconds < 604800) return Math.floor(seconds / 86400) + ' ngày trước';
-        
+
         return new Date(dateString).toLocaleDateString('vi-VN');
     }
 }
@@ -523,6 +517,6 @@ class Notification {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.notification-widget-container')) {
-        window.notificationSimple = new Notification();
+        window.notificationSimple = new NotificationManager();
     }
 });
