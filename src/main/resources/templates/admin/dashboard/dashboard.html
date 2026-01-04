@@ -60,7 +60,7 @@
                 <i data-lucide="package-check" class="w-4 h-4"></i>
                 <span class="whitespace-nowrap">Xử lý đơn</span>
             </a>
-            <a href="/admin/products/new" class="flex-1 md:flex-none justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
+            <a href="/admin/products" class="flex-1 md:flex-none justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 <span class="whitespace-nowrap">Thêm SP</span>
             </a>
@@ -69,7 +69,7 @@
 
     <div class="stats-grid">
 
-        <div class="stat-card revenue-card animate-card delay-100" data-tooltip="Tổng doanh thu thực nhận">
+        <div class="stat-card revenue-card animate-card delay-100" data-tooltip="Doanh thu thuần (không bao gồm ship)">
             <div class="bg-icon">
                 <i data-lucide="dollar-sign" width="80" height="80"></i>
             </div>
@@ -85,7 +85,21 @@
                 <p class="card-value" data-stat="revenue" 
                 th:text="${stats != null ? #numbers.formatDecimal(stats.todayRevenue, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}">0đ</p>
                 
-                <div class="card-footer" th:if="${stats != null}">
+                <!-- Shipping Fee Info -->
+                <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: rgba(255,255,255,0.8);">
+                        <span style="display: flex; align-items: center; gap: 0.25rem;">
+                            <i data-lucide="truck" class="w-3 h-3"></i>
+                            Phí vận chuyển
+                        </span>
+                        <span style="font-weight: 600; color: white;" data-stat="shipping-fee"
+                              th:text="${stats != null && stats.todayShippingFee != null ? '+' + #numbers.formatDecimal(stats.todayShippingFee, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}">
+                            0đ
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-footer" th:if="${stats != null}" style="margin-top: 0.75rem;">
                     <span class="trend-badge" 
                         th:classappend="${stats.todayGrowthPercent >= 0 ? 'text-green' : 'text-red'}">
                         <i th:attr="data-lucide=${stats.todayGrowthPercent >= 0 ? 'trending-up' : 'trending-down'}" class="w-3 h-3 mr-1"></i>

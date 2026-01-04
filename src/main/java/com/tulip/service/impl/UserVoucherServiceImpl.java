@@ -9,7 +9,6 @@ import com.tulip.repository.VoucherRepository;
 import com.tulip.service.UserVoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,16 +25,6 @@ public class UserVoucherServiceImpl implements UserVoucherService {
 
     private final UserVoucherRepository userVoucherRepository;
     private final VoucherRepository voucherRepository;
-
-    // Cấu hình voucher thưởng đánh giá (có thể đặt trong application.properties)
-    @Value("${voucher.rating.discount-percent:5}")
-    private int ratingVoucherDiscountPercent;
-
-    @Value("${voucher.rating.expire-days:30}")
-    private int ratingVoucherExpireDays;
-
-    @Value("${voucher.rating.min-order:100000}")
-    private long ratingVoucherMinOrder;
 
     @Override
     @Transactional(readOnly = true)
@@ -70,14 +59,14 @@ public class UserVoucherServiceImpl implements UserVoucherService {
             return null;
         }
 
-        // Tạo UserVoucher
+        // Tạo UserVoucher với thời hạn 30 ngày
         UserVoucher userVoucher = UserVoucher.builder()
                 .user(user)
                 .voucher(ratingVoucher)
                 .isUsed(false)
                 .source("RATING")
                 .sourceId(ratingId)
-                .expireAt(LocalDateTime.now().plusDays(ratingVoucherExpireDays))
+                .expireAt(LocalDateTime.now().plusDays(30)) // Voucher hết hạn sau 30 ngày
                 .build();
 
         UserVoucher saved = userVoucherRepository.save(userVoucher);
@@ -165,31 +154,32 @@ public class UserVoucherServiceImpl implements UserVoucherService {
      * Tìm hoặc tạo voucher template cho việc tặng khi đánh giá
      */
     private Voucher findOrCreateRatingVoucher() {
-        // Tìm voucher có code bắt đầu bằng "RATING_REWARD" và còn hoạt động
-        String ratingVoucherCode = "RATING_REWARD";
+        // Tìm voucher FREESHIP có sẵn trong hệ thống
+        String ratingVoucherCode = "FREESHIP";
         Optional<Voucher> existing = voucherRepository.findByCode(ratingVoucherCode);
 
         if (existing.isPresent() && Boolean.TRUE.equals(existing.get().getStatus())) {
+            log.info("✅ Sử dụng voucher FREESHIP có sẵn để tặng cho đánh giá");
             return existing.get();
         }
 
-        // Nếu chưa có, tạo mới
+        // Nếu chưa có voucher FREESHIP, tạo mới (trường hợp backup)
+        // Voucher này sẽ được phát riêng cho user đã đánh giá
         Voucher ratingVoucher = Voucher.builder()
                 .code(ratingVoucherCode)
-                .name("Quà tặng đánh giá sản phẩm")
-                .description(
-                        "Voucher giảm giá dành cho khách hàng đã đánh giá sản phẩm. Cảm ơn bạn đã chia sẻ trải nghiệm!")
-                .type(Voucher.DiscountType.PERCENT)
-                .discountValue(BigDecimal.valueOf(ratingVoucherDiscountPercent))
-                .minOrderValue(BigDecimal.valueOf(ratingVoucherMinOrder))
+                .name("Miễn Phí Vận Chuyển (Quà Tặng Đánh Giá)")
+                .description("Voucher free ship 30k dành cho khách hàng đã đánh giá sản phẩm. Cảm ơn bạn đã chia sẻ trải nghiệm!")
+                .type(Voucher.DiscountType.AMOUNT)
+                .discountValue(BigDecimal.valueOf(30000)) // Free ship 30k
+                .minOrderValue(BigDecimal.valueOf(50000)) // Đơn tối thiểu 50k
                 .quantity(null) // Không giới hạn
                 .usedCount(0)
                 .status(true)
-                .isPublic(false) // Chỉ phát riêng cho user
+                .isPublic(false) // Private: chỉ tặng riêng cho user đánh giá
                 .build();
 
         Voucher saved = voucherRepository.save(ratingVoucher);
-        log.info("✅ Đã tạo voucher template cho đánh giá: {}", ratingVoucherCode);
+        log.info("✅ Đã tạo voucher FREESHIP để tặng cho đánh giá");
 
         return saved;
     }

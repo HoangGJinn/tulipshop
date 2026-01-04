@@ -213,6 +213,7 @@
             </div>
         </a>
 
+        <!-- Dashboard - ADMIN Only -->
         <li sec:authorize="hasRole('ADMIN')">
             <a th:href="@{/admin/dashboard}"
                class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
@@ -222,17 +223,45 @@
             </a>
         </li>
 
+        <!-- Core Business Operations -->
         <li th:each="item : ${ {
                 {'orders', 'shopping-bag', 'Orders'},
                 {'products', 'package', 'Products'},
-                {'categories', 'folder-tree', 'Danh mục'},
-                {'inventory', 'warehouse', 'Quản lý kho'},
-                {'ratings', 'star', 'Đánh giá'},
-                {'catalog', 'book-open', 'Catalog'},
-                {'vouchers', 'ticket', 'Vouchers'},
-                {'notifications', 'bell', 'Notifications'},
+                {'categories', 'folder-tree', 'Categories'},
+                {'inventory', 'warehouse', 'Inventory'},
+                {'ratings', 'star', 'Ratings'},
+                {'vouchers', 'ticket', 'Vouchers'}
+            } }">
+            <a th:href="@{'/admin/' + ${item[0]}}"
+               class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
+               th:classappend="${currentPage == item[0]} ? 'nav-item-active' : ''">
+                <i th:data-lucide="${item[1]}" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                <span class="text-sm font-medium nav-text" th:text="${item[2]}"></span>
+            </a>
+        </li>
+
+        <!-- User Management - ADMIN Only -->
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/customers}"
+               class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
+               th:classappend="${currentPage == 'customers'} ? 'nav-item-active' : ''">
+                <i data-lucide="users" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                <span class="text-sm font-medium nav-text">Customers</span>
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/staff}"
+               class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
+               th:classappend="${currentPage == 'staff'} ? 'nav-item-active' : ''">
+                <i data-lucide="user-cog" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                <span class="text-sm font-medium nav-text">Staff</span>
+            </a>
+        </li>
+
+        <!-- Communication & System -->
+        <li th:each="item : ${ {
                 {'chat-support', 'message-circle', 'Chat Support'},
-                {'content', 'layout', 'Web Content'},
+                {'notifications', 'bell', 'Notifications'},
                 {'account', 'circle-user', 'Account'}
             } }">
             <a th:href="@{'/admin/' + ${item[0]}}"
@@ -242,29 +271,14 @@
                 <span class="text-sm font-medium nav-text" th:text="${item[2]}"></span>
             </a>
         </li>
-                <!-- Menu items chỉ cho ADMIN -->
-                <li sec:authorize="hasRole('ADMIN')">
-                    <a th:href="@{/admin/customers}"
-                       class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
-                       th:classappend="${currentPage == 'customers'} ? 'nav-item-active' : ''">
-                        <i data-lucide="users" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
-                        <span class="text-sm font-medium nav-text">Customers</span>
-                    </a>
-                </li>
-                <li sec:authorize="hasRole('ADMIN')">
-                    <a th:href="@{/admin/staff}"
-                       class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
-                       th:classappend="${currentPage == 'staff'} ? 'nav-item-active' : ''">
-                        <i data-lucide="user-cog" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
-                        <span class="text-sm font-medium nav-text">Staffs</span>
-                    </a>
-                </li>
             </ul>
+
+            <!-- Footer Section -->
             <div class="px-3 py-2">
                 <div class="border-t border-gray-200 my-2"></div>
                 <a href="/" target="_blank" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group">
                     <i data-lucide="external-link" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
-                    <span class="text-sm font-medium nav-text">Xem Shop</span>
+                    <span class="text-sm font-medium nav-text">Visit Store</span>
                 </a>
             </div>
         </nav>

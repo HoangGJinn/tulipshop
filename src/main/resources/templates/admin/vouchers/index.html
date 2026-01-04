@@ -5,7 +5,8 @@
             <h1 class="text-2xl font-bold tracking-tight text-gray-900" th:text="${pageTitle}">Quản lý Voucher</h1>
             <p class="text-sm text-gray-500 mt-1">Quản lý mã giảm giá và các chương trình khuyến mãi</p>
         </div>
-        <button onclick="openVoucherModal()"
+        <!-- Only ADMIN can create vouchers -->
+        <button onclick="openVoucherModal()" sec:authorize="hasRole('ADMIN')"
             class="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-all shadow-lg shadow-gray-200">
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span>Tạo Voucher Mới</span>
@@ -91,7 +92,8 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <div
+                            <!-- Only ADMIN can edit/delete vouchers -->
+                            <div sec:authorize="hasRole('ADMIN')"
                                 class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button th:onclick="openVoucherModal([[${v}]])"
                                     class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -104,6 +106,10 @@
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
+                            <!-- STAFF sees read-only indicator -->
+                            <div sec:authorize="hasRole('STAFF')" class="flex items-center justify-end">
+                                <span class="text-xs text-gray-400 italic">Chỉ xem</span>
+                            </div>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(vouchers)}">
@@ -113,8 +119,9 @@
                                     <i data-lucide="ticket" class="w-6 h-6 text-gray-400"></i>
                                 </div>
                                 <p class="text-gray-500 font-medium">Chưa có voucher nào</p>
-                                <button onclick="openVoucherModal()" class="text-blue-600 text-sm hover:underline">Tạo
-                                    voucher đầu tiên</button>
+                                <!-- Only ADMIN can create vouchers -->
+                                <button onclick="openVoucherModal()" sec:authorize="hasRole('ADMIN')" 
+                                    class="text-blue-600 text-sm hover:underline">Tạo voucher đầu tiên</button>
                             </div>
                         </td>
                     </tr>
