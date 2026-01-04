@@ -8,8 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/admin")
@@ -20,7 +19,6 @@ public class AdminViewController {
     private final OrderService orderService;
     private final DashboardService dashboardService;
 
-    // Xử lý route /admin - redirect đến dashboard
     @GetMapping
     public String adminHome() {
         return "redirect:/admin/dashboard";
@@ -29,10 +27,7 @@ public class AdminViewController {
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         try {
-            // Lấy số đơn hàng đang chờ xử lý
             int pendingOrdersCount = orderService.getPendingOrders().size();
-            
-            // Lấy thống kê tổng quan
             DashboardStatsDTO stats = dashboardService.getDashboardStats();
             
             model.addAttribute("pendingOrdersCount", pendingOrdersCount);
@@ -44,7 +39,6 @@ public class AdminViewController {
             return "admin/layouts/layout";
         } catch (Exception e) {
             e.printStackTrace();
-            // Fallback với giá trị mặc định
             model.addAttribute("pendingOrdersCount", 0);
             model.addAttribute("stats", null);
             model.addAttribute("pageTitle", "DASHBOARD");
@@ -57,7 +51,6 @@ public class AdminViewController {
 
     @GetMapping("/orders")
     public String orders(Model model) {
-        // Load statistics
         model.addAttribute("countPending", orderService.getPendingOrders().size());
         model.addAttribute("countConfirmed", orderService.getOrdersByStatus(OrderStatus.CONFIRMED).size());
         model.addAttribute("countShipping", orderService.getOrdersByStatus(OrderStatus.SHIPPING).size());
@@ -66,15 +59,6 @@ public class AdminViewController {
         model.addAttribute("pageTitle", "ORDERS");
         model.addAttribute("currentPage", "orders");
         model.addAttribute("contentTemplate", "admin/orders/orders");
-        model.addAttribute("showSearch", true);
-        return "admin/layouts/layout";
-    }
-
-    @GetMapping("/customers")
-    public String customers(Model model) {
-        model.addAttribute("pageTitle", "CUSTOMERS");
-        model.addAttribute("currentPage", "customers");
-        model.addAttribute("contentTemplate", "admin/customers/customers");
         model.addAttribute("showSearch", true);
         return "admin/layouts/layout";
     }

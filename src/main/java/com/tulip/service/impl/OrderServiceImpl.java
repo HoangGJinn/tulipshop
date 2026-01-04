@@ -101,7 +101,6 @@ public class OrderServiceImpl implements OrderService {
 
                 // Update voucher usage
                 if (voucher != null) {
-                    voucher.setUsedCount(voucher.getUsedCount() + 1);
                     voucherService.saveVoucher(voucher);
                 }
             }

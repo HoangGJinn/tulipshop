@@ -233,6 +233,55 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    @Override
+    @Transactional
+    public Long addToCartAndGetItemId(Long userId, Long stockId, int quantity) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 1. Lấy hoặc tạo giỏ hàng
+        Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> {
+            Cart newCart = Cart.builder().user(user).build();
+            return cartRepository.save(newCart);
+        });
+
+        // 2. Lấy thông tin Stock
+        ProductStock stock = productStockRepository.findById(stockId)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại hoặc đã hết hàng"));
+
+        // 3. Kiểm tra tồn kho
+        Integer reservedStock = orderItemRepository.calculateReservedStock(stockId);
+        if (reservedStock == null)
+            reservedStock = 0;
+
+        int availableToSell = stock.getQuantity() - reservedStock;
+
+        Optional<CartItem> existingItemOpt = cartItemRepository.findByCartIdAndStockId(cart.getId(), stockId);
+        int currentInCart = existingItemOpt.map(CartItem::getQuantity).orElse(0);
+        int totalDemand = currentInCart + quantity;
+
+        if (totalDemand > availableToSell) {
+            throw new RuntimeException("Sản phẩm này chỉ còn " + availableToSell + " món khả dụng");
+        }
+
+        // 4. Thêm hoặc cập nhật cart item
+        CartItem savedItem;
+        if (existingItemOpt.isPresent()) {
+            CartItem item = existingItemOpt.get();
+            item.setQuantity(item.getQuantity() + quantity);
+            savedItem = cartItemRepository.save(item);
+        } else {
+            CartItem newItem = CartItem.builder()
+                    .cart(cart)
+                    .stock(stock)
+                    .quantity(quantity)
+                    .build();
+            savedItem = cartItemRepository.save(newItem);
+        }
+
+        return savedItem.getId();
+    }
+
     // Helper: Convert Entity -> DTO
     private CartItemDTO convertToDTO(CartItem item) {
         ProductStock stock = item.getStock();

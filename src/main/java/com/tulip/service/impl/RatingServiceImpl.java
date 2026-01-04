@@ -14,6 +14,7 @@ import com.tulip.repository.OrderRepository;
 import com.tulip.repository.ProductRepository;
 import com.tulip.repository.RatingRepository;
 import com.tulip.service.RatingService;
+import com.tulip.service.UserVoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,36 +35,36 @@ public class RatingServiceImpl implements RatingService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final CloudinaryService cloudinaryService;
+    private final UserVoucherService userVoucherService;
 
     @Override
     @Transactional
     public RatingDTO submitRating(RatingRequest request, User user) {
         // 1. Validate: Kiểm tra quyền đánh giá với message lỗi chi tiết
         Order order = orderRepository.findById(request.getOrderId()).orElse(null);
-        
+
         if (order == null) {
             throw new IllegalStateException("Không tìm thấy đơn hàng");
         }
-        
+
         if (!order.getUser().getId().equals(user.getId())) {
             throw new IllegalStateException("Đơn hàng này không thuộc về bạn");
         }
-        
+
         if (order.getStatus() != OrderStatus.DELIVERED) {
             throw new IllegalStateException(
-                "Bạn chỉ có thể đánh giá sau khi đơn hàng đã được giao thành công. " +
-                "Trạng thái hiện tại: " + getStatusDisplayName(order.getStatus())
-            );
+                    "Bạn chỉ có thể đánh giá sau khi đơn hàng đã được giao thành công. " +
+                            "Trạng thái hiện tại: " + getStatusDisplayName(order.getStatus()));
         }
-        
+
         boolean productInOrder = order.getOrderItems().stream()
                 .anyMatch(item -> item.getProduct().getId().equals(request.getProductId()));
         if (!productInOrder) {
             throw new IllegalStateException("Sản phẩm này không có trong đơn hàng của bạn");
         }
-        
+
         Optional<Rating> existingRating = ratingRepository.findByUserAndProductAndOrder(
-            user.getId(), request.getProductId(), request.getOrderId());
+                user.getId(), request.getProductId(), request.getOrderId());
         if (existingRating.isPresent()) {
             throw new IllegalStateException("Bạn đã đánh giá sản phẩm này rồi");
         }
@@ -75,8 +76,7 @@ public class RatingServiceImpl implements RatingService {
         // 3. Tính toán utilityScore
         double utilityScore = calculateUtilityScore(
                 request.getContent(),
-                request.getImages() != null ? request.getImages().size() : 0
-        );
+                request.getImages() != null ? request.getImages().size() : 0);
 
         // 4. Tạo Rating entity
         Rating rating = Rating.builder()
@@ -112,11 +112,22 @@ public class RatingServiceImpl implements RatingService {
 
         // 6. Lưu vào database
         Rating savedRating = ratingRepository.save(rating);
-        
-        log.info("User {} đã đánh giá sản phẩm {} với utilityScore: {}", 
+
+        log.info("User {} đã đánh giá sản phẩm {} với utilityScore: {}",
                 user.getId(), product.getId(), utilityScore);
 
-        // 7. Convert sang DTO
+        // 7. Tặng voucher cho user vì đã đánh giá
+        try {
+            var grantedVoucher = userVoucherService.grantRatingVoucher(user, savedRating.getId());
+            if (grantedVoucher != null) {
+                log.info("🎁 Đã tặng voucher {} cho user {} vì đánh giá",
+                        grantedVoucher.getVoucher().getCode(), user.getId());
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ Không thể tặng voucher cho user {}: {}", user.getId(), e.getMessage());
+        }
+
+        // 8. Convert sang DTO
         return convertToDTO(savedRating);
     }
 
@@ -133,9 +144,9 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional(readOnly = true)
     public boolean canUserRateProduct(Long userId, Long productId, Long orderId) {
-        log.info("🔍 Checking rating permission: userId={}, productId={}, orderId={}", 
-                 userId, productId, orderId);
-        
+        log.info("🔍 Checking rating permission: userId={}, productId={}, orderId={}",
+                userId, productId, orderId);
+
         // 1. Kiểm tra đơn hàng tồn tại và thuộc về user
         Order order = orderRepository.findById(orderId).orElse(null);
         if (order == null) {
@@ -143,8 +154,8 @@ public class RatingServiceImpl implements RatingService {
             return false;
         }
         if (!order.getUser().getId().equals(userId)) {
-            log.warn("❌ Order does not belong to user: orderId={}, userId={}, orderUserId={}", 
-                     orderId, userId, order.getUser().getId());
+            log.warn("❌ Order does not belong to user: orderId={}, userId={}, orderUserId={}",
+                    orderId, userId, order.getUser().getId());
             return false;
         }
 
@@ -165,13 +176,13 @@ public class RatingServiceImpl implements RatingService {
         // 4. Kiểm tra chưa đánh giá
         Optional<Rating> existingRating = ratingRepository.findByUserAndProductAndOrder(userId, productId, orderId);
         if (existingRating.isPresent()) {
-            log.warn("❌ User already rated this product: userId={}, productId={}, orderId={}", 
-                     userId, productId, orderId);
+            log.warn("❌ User already rated this product: userId={}, productId={}, orderId={}",
+                    userId, productId, orderId);
             return false;
         }
-        
-        log.info("✅ User can rate product: userId={}, productId={}, orderId={}", 
-                 userId, productId, orderId);
+
+        log.info("✅ User can rate product: userId={}, productId={}, orderId={}",
+                userId, productId, orderId);
         return true;
     }
 
@@ -180,16 +191,16 @@ public class RatingServiceImpl implements RatingService {
     public RatingStatistics getProductRatingStatistics(Long productId) {
         // Chỉ tính thống kê từ các đánh giá visible
         List<Rating> ratings = ratingRepository.findByProductIdAndIsVisibleOrderByUtilityScoreDesc(productId, true);
-        
+
         long total = ratings.size();
         double average = total > 0 ? ratings.stream().mapToInt(Rating::getStars).average().orElse(0.0) : 0.0;
-        
+
         long fiveStar = ratings.stream().filter(r -> r.getStars() == 5).count();
         long fourStar = ratings.stream().filter(r -> r.getStars() == 4).count();
         long threeStar = ratings.stream().filter(r -> r.getStars() == 3).count();
         long twoStar = ratings.stream().filter(r -> r.getStars() == 2).count();
         long oneStar = ratings.stream().filter(r -> r.getStars() == 1).count();
-        
+
         return RatingStatistics.builder()
                 .totalRatings(total)
                 .averageStars(Math.round(average * 10.0) / 10.0)
@@ -200,50 +211,50 @@ public class RatingServiceImpl implements RatingService {
                 .oneStar(oneStar)
                 .build();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Order getOrderById(Long orderId) {
         return orderRepository.findById(orderId).orElse(null);
     }
-    
+
     @Override
     @Transactional
     public RatingDTO replyToRating(Long ratingId, String replyContent) {
         Rating rating = ratingRepository.findById(ratingId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đánh giá"));
-        
+
         rating.setAdminReply(replyContent);
         rating.setReplyTime(java.time.LocalDateTime.now());
-        
+
         Rating savedRating = ratingRepository.save(rating);
         log.info("Admin đã phản hồi đánh giá ID: {}", ratingId);
-        
+
         return convertToDTO(savedRating);
     }
-    
+
     @Override
     @Transactional
     public RatingDTO toggleVisibility(Long ratingId) {
         Rating rating = ratingRepository.findById(ratingId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đánh giá"));
-        
+
         rating.setIsVisible(!rating.getIsVisible());
         Rating savedRating = ratingRepository.save(rating);
-        
-        log.info("Admin đã {} đánh giá ID: {}", 
+
+        log.info("Admin đã {} đánh giá ID: {}",
                 savedRating.getIsVisible() ? "hiện" : "ẩn", ratingId);
-        
+
         return convertToDTO(savedRating);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<RatingDTO> getAllRatingsForAdmin(
             Integer stars, Boolean hasReply, org.springframework.data.domain.Pageable pageable) {
-        
+
         org.springframework.data.domain.Page<Rating> ratingsPage;
-        
+
         if (stars != null && hasReply != null) {
             ratingsPage = ratingRepository.findByStarsAndHasReply(stars, hasReply, pageable);
         } else if (stars != null) {
@@ -253,7 +264,7 @@ public class RatingServiceImpl implements RatingService {
         } else {
             ratingsPage = ratingRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
-        
+
         return ratingsPage.map(this::convertToDTO);
     }
 
@@ -261,7 +272,8 @@ public class RatingServiceImpl implements RatingService {
      * Thuật toán tính điểm hữu ích (Utility Score)
      * - Cơ bản: 0 điểm
      * - Số lượng từ: +1 điểm cho mỗi 10 từ (tối đa 20 điểm)
-     * - Hình ảnh: +30 điểm cho ảnh đầu tiên, +10 điểm cho mỗi ảnh thêm (tối đa 50 điểm)
+     * - Hình ảnh: +30 điểm cho ảnh đầu tiên, +10 điểm cho mỗi ảnh thêm (tối đa 50
+     * điểm)
      * - Chất lượng: Loại bỏ spam/từ vô nghĩa
      */
     private double calculateUtilityScore(String content, int imageCount) {
@@ -270,15 +282,15 @@ public class RatingServiceImpl implements RatingService {
         // 1. Điểm từ nội dung text
         if (content != null && !content.trim().isEmpty()) {
             String cleanContent = content.trim();
-            
+
             // Kiểm tra spam đơn giản
             if (isSpamContent(cleanContent)) {
                 return 0.0; // Spam = 0 điểm
             }
-            
+
             // Đếm số từ
             int wordCount = cleanContent.split("\\s+").length;
-            
+
             // +1 điểm cho mỗi 10 từ, tối đa 20 điểm
             double wordScore = Math.min((wordCount / 10.0), 20.0);
             score += wordScore;
@@ -288,7 +300,7 @@ public class RatingServiceImpl implements RatingService {
         if (imageCount > 0) {
             // Ảnh đầu tiên: +30 điểm
             score += 30.0;
-            
+
             // Mỗi ảnh thêm: +10 điểm
             if (imageCount > 1) {
                 score += Math.min((imageCount - 1) * 10.0, 20.0); // Tối đa thêm 20 điểm
@@ -305,21 +317,21 @@ public class RatingServiceImpl implements RatingService {
         if (content.length() < 5) {
             return true; // Quá ngắn
         }
-        
+
         // Kiểm tra lặp ký tự (ví dụ: "aaaaaaa", "111111")
         if (content.matches("(.)\\1{9,}")) {
             return true;
         }
-        
+
         // Kiểm tra các từ spam phổ biến
         String lowerContent = content.toLowerCase();
-        String[] spamKeywords = {"spam", "fake", "bot", "test test test"};
+        String[] spamKeywords = { "spam", "fake", "bot", "test test test" };
         for (String keyword : spamKeywords) {
             if (lowerContent.contains(keyword)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -334,10 +346,10 @@ public class RatingServiceImpl implements RatingService {
         // Lấy thông tin user từ profile
         String userName = "Khách hàng";
         String userAvatar = null;
-        
+
         if (rating.getUser() != null && rating.getUser().getProfile() != null) {
-            userName = rating.getUser().getProfile().getFullName() != null ? 
-                      rating.getUser().getProfile().getFullName() : "Khách hàng";
+            userName = rating.getUser().getProfile().getFullName() != null ? rating.getUser().getProfile().getFullName()
+                    : "Khách hàng";
             userAvatar = rating.getUser().getProfile().getAvatar();
         }
 
@@ -360,18 +372,24 @@ public class RatingServiceImpl implements RatingService {
                 .isVisible(rating.getIsVisible())
                 .build();
     }
-    
+
     /**
      * Helper method để hiển thị tên trạng thái đơn hàng
      */
     private String getStatusDisplayName(OrderStatus status) {
         switch (status) {
-            case PENDING: return "Chờ xác nhận";
-            case CONFIRMED: return "Đã xác nhận";
-            case SHIPPING: return "Đang giao hàng";
-            case DELIVERED: return "Đã giao hàng";
-            case CANCELLED: return "Đã hủy";
-            default: return status.toString();
+            case PENDING:
+                return "Chờ xác nhận";
+            case CONFIRMED:
+                return "Đã xác nhận";
+            case SHIPPING:
+                return "Đang giao hàng";
+            case DELIVERED:
+                return "Đã giao hàng";
+            case CANCELLED:
+                return "Đã hủy";
+            default:
+                return status.toString();
         }
     }
 }

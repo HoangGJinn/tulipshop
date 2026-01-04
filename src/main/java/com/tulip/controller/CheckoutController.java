@@ -56,18 +56,42 @@ public class CheckoutController {
     @GetMapping("/checkout")
     public String viewCheckout(Model model,
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) String items,
             HttpServletRequest request) {
         if (userDetails == null || !jwtUtil.validateJwtToken(request, userDetails)) {
             return "redirect:/login";
         }
 
         Long userId = userDetails.getUserId();
-        List<CartItemDTO> cartItems = cartService.getCartItems(userId);
+
+        // Parse item IDs nếu có
+        List<Long> itemIds = null;
+        if (items != null && !items.trim().isEmpty()) {
+            try {
+                itemIds = java.util.Arrays.stream(items.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .map(Long::parseLong)
+                        .collect(java.util.stream.Collectors.toList());
+            } catch (NumberFormatException e) {
+                // Ignore parse errors, will use all cart items
+            }
+        }
+
+        // Lấy cart items (lọc theo IDs nếu có)
+        List<CartItemDTO> cartItems = (itemIds != null && !itemIds.isEmpty())
+                ? cartService.getCartItems(userId, itemIds)
+                : cartService.getCartItems(userId);
+
         if (cartItems.isEmpty())
             return "redirect:/cart";
 
         List<UserAddressDTO> addresses = addressService.getUserAddresses(userId);
-        BigDecimal totalPrice = cartService.getTotalPrice(userId);
+
+        // Tính tổng tiền (lọc theo IDs nếu có)
+        BigDecimal totalPrice = (itemIds != null && !itemIds.isEmpty())
+                ? cartService.getTotalPrice(userId, itemIds)
+                : cartService.getTotalPrice(userId);
 
         // Mặc định Standard
         BigDecimal shippingFee = new BigDecimal("30000");
@@ -103,6 +127,7 @@ public class CheckoutController {
         model.addAttribute("shippingFee", shippingFee);
         model.addAttribute("estimatedTime", estimatedTime);
         model.addAttribute("finalPrice", totalPrice.add(shippingFee));
+        model.addAttribute("selectedItems", items); // Lưu lại để form submit
         if (addresses == null)
             addresses = new java.util.ArrayList<>();
         model.addAttribute("addresses", addresses);
