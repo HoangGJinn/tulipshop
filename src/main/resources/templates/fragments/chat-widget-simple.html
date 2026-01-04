@@ -389,10 +389,12 @@
                 this.isOpen = false;
                 this.isTyping = false;
                 this.unreadCount = 0;
+                this.sessionInitialized = false; // Track if session has been initialized
                 
                 this.initElements();
                 this.initEventListeners();
-                this.initSession();
+                // KHÔNG tự động tạo session khi load trang
+                // Chỉ tạo khi user click vào chat bubble
             }
             
             initElements() {
@@ -496,8 +498,16 @@
                 }
             }
             
-            toggleChat() {
+            async toggleChat() {
                 console.log('Toggle chat called, current isOpen:', this.isOpen);
+                
+                // Nếu đang đóng và chưa khởi tạo session, tạo session ngay
+                if (!this.isOpen && !this.sessionInitialized) {
+                    console.log('🔄 First time opening AI chat, initializing session...');
+                    await this.initSession();
+                    this.sessionInitialized = true;
+                }
+                
                 this.isOpen = !this.isOpen;
                 console.log('New isOpen:', this.isOpen);
                 
@@ -523,6 +533,19 @@
             async sendMessage() {
                 const message = this.messageInput.value.trim();
                 if (!message || this.isTyping) return;
+                
+                // Nếu chưa có session, tạo mới trước khi gửi
+                if (!this.sessionId || !this.sessionToken) {
+                    console.log('🔄 No AI chat session found, initializing before sending...');
+                    await this.initSession();
+                    this.sessionInitialized = true;
+                    
+                    // Kiểm tra lại sau khi init
+                    if (!this.sessionId || !this.sessionToken) {
+                        this.addMessage('Không thể khởi tạo phiên trò chuyện. Vui lòng thử lại.', 'bot');
+                        return;
+                    }
+                }
                 
                 console.log('Sending message:', message);
                 console.log('Session ID:', this.sessionId);

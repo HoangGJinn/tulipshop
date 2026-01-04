@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${pageTitle != null ? pageTitle + ' - TulipShop Admin' : 'TulipShop Admin'}">TulipShop Admin</title>
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Tailwind CSS Configuration
@@ -213,29 +213,50 @@
             </div>
         </a>
 
-        <div class="p-3 uppercase text-[10px] font-semibold text-gray-400 tracking-wider sidebar-header-text">Apps</div>
-        <nav class="flex-1 overflow-y-auto px-3 space-y-1">
-            <ul class="space-y-1">
-                <li th:each="item : ${ {
-                    {'dashboard', 'layout-dashboard', 'Dashboard'},
-                    {'orders', 'shopping-bag', 'Orders'},
-                    {'products', 'package', 'Products'},
-                    {'categories', 'folder-tree', 'Danh mục'},
-                    {'inventory', 'warehouse', 'Quản lý kho'},
-                    {'customers', 'users', 'Customers'},
-                    {'ratings', 'star', 'Đánh giá'},
-                    {'staff', 'user-cog', 'Staffs'},
-                    {'catalog', 'book-open', 'Catalog'},
-                    {'vouchers', 'ticket', 'Vouchers'},
-                    {'notifications', 'bell', 'Notifications'},
-                    {'content', 'layout', 'Web Content'},
-                    {'account', 'circle-user', 'Account'}
-                } }">
-                    <a th:href="@{'/admin/' + ${item[0]}}"
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/dashboard}"
+               class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
+               th:classappend="${currentPage == 'dashboard'} ? 'nav-item-active' : ''">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                <span class="text-sm font-medium nav-text">Dashboard</span>
+            </a>
+        </li>
+
+        <li th:each="item : ${ {
+                {'orders', 'shopping-bag', 'Orders'},
+                {'products', 'package', 'Products'},
+                {'categories', 'folder-tree', 'Danh mục'},
+                {'inventory', 'warehouse', 'Quản lý kho'},
+                {'ratings', 'star', 'Đánh giá'},
+                {'catalog', 'book-open', 'Catalog'},
+                {'vouchers', 'ticket', 'Vouchers'},
+                {'notifications', 'bell', 'Notifications'},
+                {'chat-support', 'message-circle', 'Chat Support'},
+                {'content', 'layout', 'Web Content'},
+                {'account', 'circle-user', 'Account'}
+            } }">
+            <a th:href="@{'/admin/' + ${item[0]}}"
+               class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
+               th:classappend="${currentPage == item[0]} ? 'nav-item-active' : ''">
+                <i th:data-lucide="${item[1]}" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                <span class="text-sm font-medium nav-text" th:text="${item[2]}"></span>
+            </a>
+        </li>
+                <!-- Menu items chỉ cho ADMIN -->
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/customers}"
                        class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
-                       th:classappend="${currentPage == item[0]} ? 'nav-item-active' : ''">
-                        <i th:data-lucide="${item[1]}" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
-                        <span class="text-sm font-medium nav-text" th:text="${item[2]}"></span>
+                       th:classappend="${currentPage == 'customers'} ? 'nav-item-active' : ''">
+                        <i data-lucide="users" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                        <span class="text-sm font-medium nav-text">Customers</span>
+                    </a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/staff}"
+                       class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-50 group"
+                       th:classappend="${currentPage == 'staff'} ? 'nav-item-active' : ''">
+                        <i data-lucide="user-cog" class="w-5 h-5 text-gray-500 group-hover:text-black"></i>
+                        <span class="text-sm font-medium nav-text">Staffs</span>
                     </a>
                 </li>
             </ul>

@@ -48,7 +48,7 @@ async function toggleWishlist(btn) {
             icon.classList.add('text-dark');
         }
     } catch (e) {
-        console.error(e);
+        // Rollback UI on error
         // rollback UI
         if (wasLiked) {
             icon.classList.remove('far');

@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/api/admin/revenue-stats")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class RevenueStatsController {
     
     private final RevenueStatsService revenueStatsService;

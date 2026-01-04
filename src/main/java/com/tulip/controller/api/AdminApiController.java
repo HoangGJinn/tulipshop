@@ -1,7 +1,6 @@
 package com.tulip.controller.api;
 
 import com.tulip.dto.ProductCompositeDTO;
-import com.tulip.dto.AdminNotificationRequest;
 import com.tulip.dto.NotificationRequest;
 import com.tulip.entity.User;
 import com.tulip.entity.Notification;
@@ -36,7 +35,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/v1/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class AdminApiController {
 
     private final ProductRepository productRepository;

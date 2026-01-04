@@ -6,6 +6,7 @@ import com.tulip.service.DashboardService;
 import com.tulip.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,21 +14,40 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class AdminViewController {
     
     private final OrderService orderService;
     private final DashboardService dashboardService;
 
+    // Xử lý route /admin - redirect đến dashboard cho ADMIN, orders cho STAFF
     @GetMapping
-    public String adminHome() {
+    public String adminHome(Authentication authentication) {
+        boolean isStaff = authentication.getAuthorities().stream()
+            .anyMatch(auth -> auth.getAuthority().equals("ROLE_STAFF"));
+        
+        if (isStaff) {
+            return "redirect:/admin/orders";
+        }
         return "redirect:/admin/dashboard";
+    }
+
+    @GetMapping("/chat-support")
+    public String chatSupport(Model model) {
+        model.addAttribute("pageTitle", "LIVE CHAT SUPPORT");
+        model.addAttribute("currentPage", "chat-support");
+        model.addAttribute("contentTemplate", "admin/chat-support/index");
+        model.addAttribute("showSearch", false);
+        return "admin/layouts/layout";
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         try {
+            // Lấy số đơn hàng đang chờ xử lý
             int pendingOrdersCount = orderService.getPendingOrders().size();
+            
+            // Lấy thống kê tổng quan
             DashboardStatsDTO stats = dashboardService.getDashboardStats();
             
             model.addAttribute("pendingOrdersCount", pendingOrdersCount);
@@ -39,6 +59,7 @@ public class AdminViewController {
             return "admin/layouts/layout";
         } catch (Exception e) {
             e.printStackTrace();
+            // Fallback với giá trị mặc định
             model.addAttribute("pendingOrdersCount", 0);
             model.addAttribute("stats", null);
             model.addAttribute("pageTitle", "DASHBOARD");
@@ -51,6 +72,7 @@ public class AdminViewController {
 
     @GetMapping("/orders")
     public String orders(Model model) {
+        // Load statistics
         model.addAttribute("countPending", orderService.getPendingOrders().size());
         model.addAttribute("countConfirmed", orderService.getOrdersByStatus(OrderStatus.CONFIRMED).size());
         model.addAttribute("countShipping", orderService.getOrdersByStatus(OrderStatus.SHIPPING).size());
@@ -65,7 +87,7 @@ public class AdminViewController {
 
     @GetMapping("/categories")
     public String categories(Model model) {
-        model.addAttribute("pageTitle", "QUẢN LÝ DANH MỤC");
+        model.addAttribute("pageTitle", "CATEGORIES");
         model.addAttribute("currentPage", "categories");
         model.addAttribute("contentTemplate", "admin/products/categories");
         model.addAttribute("showSearch", true);

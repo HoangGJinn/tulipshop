@@ -29,6 +29,7 @@ public class DataInitializer {
 
     @PostConstruct
     public void init() {
+        // 1. Khởi tạo Admin
         if (!userRepository.existsByEmail("admin@local")) {
             User admin = User.builder()
                     .email("admin@local")
@@ -43,7 +44,27 @@ public class DataInitializer {
                     .build();
             admin.setProfile(p);
             userRepository.save(admin);
+            System.out.println("✅ Đã tạo tài khoản Admin: admin@local / admin123");
         }
+
+        // 2. Khởi tạo Staff
+        if (!userRepository.existsByEmail("staff@local")) {
+            User staff = User.builder()
+                    .email("staff@local")
+                    .passwordHash(passwordEncoder.encode("staff123"))
+                    .authProvider("LOCAL")
+                    .role(Role.STAFF) // Đảm bảo Enum Role của bạn đã có giá trị STAFF
+                    .status(true)
+                    .emailVerifiedAt(LocalDateTime.now())
+                    .build();
+            UserProfile p = UserProfile.builder()
+                    .fullName("Nhân viên bán hàng")
+                    .build();
+            staff.setProfile(p);
+            userRepository.save(staff);
+            System.out.println("✅ Đã tạo tài khoản Staff: staff@local / staff123");
+        }
+
         initProducts();
     }
 
@@ -66,7 +87,6 @@ public class DataInitializer {
                 .category(aoKieu)
                 .basePrice(new BigDecimal("555000"))
                 .description("Áo kiểu voan tay dài kèm hoa mang đến vẻ đẹp nhẹ nhàng, nữ tính...")
-                // Tôi dùng ảnh mẫu placeholder, sau này bạn sẽ thay bằng link Cloudinary thật
                 .thumbnail("https://cdn.hstatic.net/products/1000197303/pro_trang___1__6eda201ee5f948b3af240cc3187bdce5_master.jpg")
                 .build();
 
@@ -82,11 +102,10 @@ public class DataInitializer {
         ProductVariantImage imgWhite2 = ProductVariantImage.builder().variant(whiteVar).imageUrl("https://cdn.hstatic.net/products/1000197303/pro_trang___3__9f09b60c9fe94ce4bac164437049558f_master.jpg").build();
         whiteVar.setImages(Arrays.asList(imgWhite1, imgWhite2));
 
-        // Kho hàng cho màu trắng (only create records with quantity > 0)
+        // Kho hàng cho màu trắng
         ProductStock stockWhiteS = ProductStock.builder().variant(whiteVar).size(s).quantity(23).sku("AK-TRANG-S").build();
         ProductStock stockWhiteM = ProductStock.builder().variant(whiteVar).size(m).quantity(31).sku("AK-TRANG-M").build();
         ProductStock stockWhiteL = ProductStock.builder().variant(whiteVar).size(l).quantity(17).sku("AK-TRANG-L").build();
-        // XL is out of stock - no record created
         whiteVar.setStocks(Arrays.asList(stockWhiteS, stockWhiteM, stockWhiteL));
 
         // --- Variant 2: Màu Đen ---
@@ -100,12 +119,11 @@ public class DataInitializer {
         ProductVariantImage imgBlack1 = ProductVariantImage.builder().variant(blackVar).imageUrl("https://cdn.kkfashion.vn/6035-large_default/ao-voan-den-tay-dai-asm05-08.jpg").build();
         blackVar.setImages(Arrays.asList(imgBlack1));
 
-        // Kho hàng cho màu đen (only create records with quantity > 0)
+        // Kho hàng cho màu đen
         ProductStock stockBlackM = ProductStock.builder().variant(blackVar).size(m).quantity(10).sku("AK-DEN-M").build();
-        // S is out of stock - no record created
         blackVar.setStocks(Arrays.asList(stockBlackM));
 
-        // Lưu Product (Cascade sẽ tự lưu Variants, Images và Stock)
+        // Lưu Product
         product.setVariants(Arrays.asList(whiteVar, blackVar));
         productRepository.save(product);
 
