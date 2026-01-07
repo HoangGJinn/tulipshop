@@ -269,16 +269,25 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         List<Order> orders = orderRepository.findByDateRange(start, end);
         List<User> allUsers = userRepository.findAll();
         
-        // Tính revenue (chỉ đơn đã giao)
-        BigDecimal revenue = orders.stream()
+        // Lọc đơn đã giao
+        List<Order> deliveredOrders = orders.stream()
                 .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
-                .map(Order::getFinalPrice)
+                .toList();
+        
+        // Tính revenue (chỉ tổng giá sản phẩm, không bao gồm ship)
+        BigDecimal revenue = deliveredOrders.stream()
+                .map(Order::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Tính tổng tiền ship riêng
+        BigDecimal shippingFee = deliveredOrders.stream()
+                .map(order -> order.getShippingPrice() != null ? order.getShippingPrice() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         // Đếm số đơn theo trạng thái
         int pendingOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.PENDING).count();
-        int shippingOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.SHIPPING).count();
-        int deliveredOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.DELIVERED).count();
+        int shippingOrdersCount = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.SHIPPING).count();
+        int deliveredOrdersCount = deliveredOrders.size();
         int cancelledOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.CANCELLED).count();
         
         // Đếm khách hàng mới
@@ -291,12 +300,13 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         RevenueStats stats = RevenueStats.builder()
                 .statsDate(statsDate)
                 .statsType(type)
-                .revenue(revenue)
+                .revenue(revenue) // Doanh thu thuần (không có ship)
+                .shippingFee(shippingFee) // Tiền ship riêng
                 .orderCount(orders.size())
                 .customerCount(customerCount)
                 .pendingOrders(pendingOrders)
-                .shippingOrders(shippingOrders)
-                .deliveredOrders(deliveredOrders)
+                .shippingOrders(shippingOrdersCount)
+                .deliveredOrders(deliveredOrdersCount)
                 .cancelledOrders(cancelledOrders)
                 .build();
         
@@ -310,14 +320,24 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         List<Order> orders = orderRepository.findByDateRange(start, end);
         List<User> allUsers = userRepository.findAll();
         
-        BigDecimal revenue = orders.stream()
+        // Lọc đơn đã giao
+        List<Order> deliveredOrdersList = orders.stream()
                 .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
-                .map(Order::getFinalPrice)
+                .toList();
+        
+        // Tính revenue (không bao gồm ship)
+        BigDecimal revenue = deliveredOrdersList.stream()
+                .map(Order::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Tính tiền ship riêng
+        BigDecimal shippingFee = deliveredOrdersList.stream()
+                .map(order -> order.getShippingPrice() != null ? order.getShippingPrice() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         int pendingOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.PENDING).count();
-        int shippingOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.SHIPPING).count();
-        int deliveredOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.DELIVERED).count();
+        int shippingOrdersCount = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.SHIPPING).count();
+        int deliveredOrdersCount = deliveredOrdersList.size();
         int cancelledOrders = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.CANCELLED).count();
         
         int customerCount = (int) allUsers.stream()
@@ -327,11 +347,12 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
                 .count();
         
         existing.setRevenue(revenue);
+        existing.setShippingFee(shippingFee);
         existing.setOrderCount(orders.size());
         existing.setCustomerCount(customerCount);
         existing.setPendingOrders(pendingOrders);
-        existing.setShippingOrders(shippingOrders);
-        existing.setDeliveredOrders(deliveredOrders);
+        existing.setShippingOrders(shippingOrdersCount);
+        existing.setDeliveredOrders(deliveredOrdersCount);
         existing.setCancelledOrders(cancelledOrders);
         
         return revenueStatsRepository.save(existing);

@@ -1,34 +1,34 @@
 <div th:fragment="content">
     <div th:replace="~{admin/fragments/common :: tableLayout(
-        title='Quản lý Users',
+        title='Quản lý Staff',
         addBtnText='-',
         searchPlaceholder='TÌM THEO EMAIL / TÊN...',
-        tableHeaders=${T(java.util.List).of('Email','Họ tên','Role','Trạng thái','Provider','Thao tác')}
+        tableHeaders=${tableHeaders}
     )}"></div>
 
     <script th:inline="javascript">
-        async function loadUsers(keyword) {
+        async function loadStaff(keyword) {
             const q = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-            const res = await fetch(`/v1/api/admin/users${q}`);
-            if (!res.ok) throw new Error('Failed to fetch users');
+            const res = await fetch(`/v1/api/admin/staff${q}`);
+            if (!res.ok) throw new Error('Failed to fetch staff');
             return res.json();
         }
 
-        async function renderUsers(keyword) {
+        async function renderStaff(keyword) {
             try {
-                const data = await loadUsers(keyword);
+                const data = await loadStaff(keyword);
                 const tbody = document.getElementById('table-body-data');
                 const countLabel = document.getElementById('data-count');
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center"><p class="text-[10px] tracking-[0.5em] uppercase text-gray-400">Chưa có user nào</p></td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center"><p class="text-[10px] tracking-[0.5em] uppercase text-gray-400">Chưa có staff nào</p></td></tr>`;
                     countLabel.innerText = '0 Items';
                     return;
                 }
 
                 countLabel.innerText = `${data.length} Items`;
                 tbody.innerHTML = data.map(u => {
-                    const roleOptions = ['CUSTOMER','ADMIN'].map(r => `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('');
+                    const roleOptions = ['CUSTOMER','STAFF'].map(r => `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('');
                     return `
                         <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-none">
                             <td class="p-6 font-bold text-xs">${u.email || ''}</td>
@@ -61,17 +61,17 @@
 
         function handleSearch() {
             const kw = document.getElementById('tableSearch').value.trim();
-            renderUsers(kw);
+            renderStaff(kw);
         }
 
         async function toggleStatus(id, status) {
-            const res = await fetch(`/v1/api/admin/users/${id}/status`, {
+            const res = await fetch(`/v1/api/admin/staff/${id}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
             });
             if (res.ok) {
-                renderUsers(document.getElementById('tableSearch').value.trim());
+                renderStaff(document.getElementById('tableSearch').value.trim());
             } else {
                 const data = await res.json().catch(() => null);
                 alert(data?.error || 'Không thể cập nhật trạng thái');
@@ -79,7 +79,7 @@
         }
 
         async function changeRole(id, role) {
-            const res = await fetch(`/v1/api/admin/users/${id}/role`, {
+            const res = await fetch(`/v1/api/admin/staff/${id}/role`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role })
@@ -87,9 +87,14 @@
             if (!res.ok) {
                 const data = await res.json().catch(() => null);
                 alert(data?.error || 'Không thể cập nhật role');
+            } else {
+                // Nếu chuyển từ STAFF sang CUSTOMER, reload để cập nhật danh sách
+                if (role === 'CUSTOMER') {
+                    renderStaff(document.getElementById('tableSearch').value.trim());
+                }
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => renderUsers(''));
+        document.addEventListener('DOMContentLoaded', () => renderStaff(''));
     </script>
 </div>

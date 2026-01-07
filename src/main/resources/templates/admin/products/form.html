@@ -40,7 +40,12 @@
                                        placeholder="Áo sơ mi lụa Tulip Premium...">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Mô tả sản phẩm</label>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2 flex items-center justify-between">
+                                    <span>Mô tả sản phẩm</span>
+                                    <button type="button" id="aiGenerateBtn" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                                        <i data-lucide="sparkles" class="w-3 h-3"></i> ✨ Sáng tạo cùng AI
+                                    </button>
+                                </label>
                                 <textarea th:field="*{description}" id="productDescription"></textarea>
                             </div>
                         </div>
@@ -182,6 +187,74 @@
                     </div>
 
                     <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                        <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 border-b pb-2">Thuộc tính kỹ thuật</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[9px] font-black uppercase tracking-widest text-gray-700 mb-2">Kiểu cổ áo</label>
+                                <select th:field="*{neckline}" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-bold outline-none focus:border-black neckline-select">
+                                    <option value="">-- Chọn kiểu cổ --</option>
+                                    <option value="Cổ tròn">Cổ tròn</option>
+                                    <option value="Cổ V">Cổ V</option>
+                                    <option value="Cổ sơ mi">Cổ sơ mi</option>
+                                    <option value="Cổ vuông">Cổ vuông</option>
+                                    <option value="Cổ yếm">Cổ yếm</option>
+                                    <option value="Cổ lọ">Cổ lọ</option>
+                                    <option value="Cổ thuyền">Cổ thuyền</option>
+                                    <option value="OTHER">Khác...</option>
+                                </select>
+                                <input type="text" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 hidden neckline-custom" placeholder="Nhập kiểu cổ tùy chỉnh...">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[9px] font-black uppercase tracking-widest text-gray-700 mb-2">Chất liệu</label>
+                                <select th:field="*{material}" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-bold outline-none focus:border-black material-select">
+                                    <option value="">-- Chọn chất liệu --</option>
+                                    <option value="Cotton">Cotton</option>
+                                    <option value="Lụa">Lụa</option>
+                                    <option value="Vải thun">Vải thun</option>
+                                    <option value="Kaki">Kaki</option>
+                                    <option value="Jean">Jean</option>
+                                    <option value="Linen">Linen</option>
+                                    <option value="Polyester">Polyester</option>
+                                    <option value="Vải ren">Vải ren</option>
+                                    <option value="OTHER">Khác...</option>
+                                </select>
+                                <input type="text" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 hidden material-custom" placeholder="Nhập chất liệu tùy chỉnh...">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[9px] font-black uppercase tracking-widest text-gray-700 mb-2">Kiểu tay áo</label>
+                                <select th:field="*{sleeveType}" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-bold outline-none focus:border-black sleeve-select">
+                                    <option value="">-- Chọn kiểu tay --</option>
+                                    <option value="Tay ngắn">Tay ngắn</option>
+                                    <option value="Tay dài">Tay dài</option>
+                                    <option value="Tay lỡ">Tay lỡ</option>
+                                    <option value="Tay lửng">Tay lửng</option>
+                                    <option value="Không tay">Không tay</option>
+                                    <option value="Tay bồng">Tay bồng</option>
+                                    <option value="Tay raglan">Tay raglan</option>
+                                    <option value="OTHER">Khác...</option>
+                                </select>
+                                <input type="text" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 hidden sleeve-custom" placeholder="Nhập kiểu tay tùy chỉnh...">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[9px] font-black uppercase tracking-widest text-gray-700 mb-2">Nhãn hiệu</label>
+                                <select th:field="*{brand}" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-bold outline-none focus:border-black brand-select">
+                                    <option value="">-- Chọn nhãn hiệu --</option>
+                                    <option value="TulipShop">TulipShop</option>
+                                    <option value="Zara">Zara</option>
+                                    <option value="H&M">H&M</option>
+                                    <option value="Uniqlo">Uniqlo</option>
+                                    <option value="Mango">Mango</option>
+                                    <option value="OTHER">Khác...</option>
+                                </select>
+                                <input type="text" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 hidden brand-custom" placeholder="Nhập nhãn hiệu tùy chỉnh...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                         <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 border-b pb-2">Nhãn sản phẩm (Tags)</h2>
                         <div id="tag-input-container" class="flex flex-wrap gap-2 border border-gray-200 rounded-lg p-3 min-h-[50px] focus-within:border-black transition-all bg-white">
                             <input type="text" id="tag-input-field" class="outline-none text-xs flex-1 min-w-[80px]" placeholder="Nhập nhãn...">
@@ -248,6 +321,144 @@
         $(this).addClass('active border-black text-black').removeClass('text-gray-400');
         $('#pane-general, #pane-variants').addClass('hidden');
         $(target).removeClass('hidden');
+    });
+    
+    // --- 1.5. THUỘC TÍNH KỸ THUẬT - DROPDOWN "KHÁC" ---
+    function setupCustomDropdown(selectClass, inputClass, fieldName) {
+        $(document).on('change', selectClass, function() {
+            const customInput = $(this).siblings(inputClass);
+            if ($(this).val() === 'OTHER') {
+                customInput.removeClass('hidden').focus();
+                customInput.attr('name', fieldName);
+                $(this).removeAttr('name');
+            } else {
+                customInput.addClass('hidden').val('');
+                customInput.removeAttr('name');
+                $(this).attr('name', fieldName);
+            }
+        });
+        
+        // Khôi phục giá trị tùy chỉnh khi edit
+        const currentVal = $(selectClass).val();
+        if (currentVal && !$(selectClass + ' option[value="' + currentVal + '"]').length) {
+            $(selectClass).val('OTHER').trigger('change');
+            $(selectClass).siblings(inputClass).val(currentVal);
+        }
+    }
+    
+    setupCustomDropdown('.neckline-select', '.neckline-custom', 'neckline');
+    setupCustomDropdown('.material-select', '.material-custom', 'material');
+    setupCustomDropdown('.sleeve-select', '.sleeve-custom', 'sleeveType');
+    setupCustomDropdown('.brand-select', '.brand-custom', 'brand');
+    
+    // --- 1.6. AI GENERATE DESCRIPTION ---
+    $('#aiGenerateBtn').click(async function() {
+        const productName = $('input[name="name"]').val();
+        const neckline = $('.neckline-select').val() === 'OTHER' ? $('.neckline-custom').val() : $('.neckline-select').val();
+        const material = $('.material-select').val() === 'OTHER' ? $('.material-custom').val() : $('.material-select').val();
+        const sleeveType = $('.sleeve-select').val() === 'OTHER' ? $('.sleeve-custom').val() : $('.sleeve-select').val();
+        const brand = $('.brand-select').val() === 'OTHER' ? $('.brand-custom').val() : $('.brand-select').val();
+        
+        if (!productName) {
+            Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập tên sản phẩm trước!' });
+            return;
+        }
+        
+        // Kiểm tra xem có ảnh không
+        const mainImageInput = document.getElementById('mainImageInput');
+        const currentImageSrc = $('#currentImage').attr('src');
+        const hiddenThumbnailUrl = $('input[name="thumbnailUrl"]').val();
+        
+        let cloudinaryUrl = null;
+        
+        // Nếu có ảnh mới được chọn, upload lên Cloudinary trước
+        if (mainImageInput.files && mainImageInput.files[0]) {
+            Swal.fire({
+                title: '📤 ĐANG TẢI ẢNH LÊN',
+                html: '<div class="text-sm text-gray-600">Đang upload ảnh lên Cloudinary...</div>',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            
+            const formData = new FormData();
+            formData.append('file', mainImageInput.files[0]);
+            
+            try {
+                const uploadResponse = await $.ajax({
+                    url: '/v1/api/admin/products/upload-image',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false
+                });
+                
+                cloudinaryUrl = uploadResponse.location;
+                // Lưu URL vào hidden field để dùng khi submit form
+                $('input[name="thumbnailUrl"]').val(cloudinaryUrl);
+                
+            } catch (error) {
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'LỖI UPLOAD ẢNH', 
+                    text: 'Không thể upload ảnh lên Cloudinary. Vui lòng thử lại!' 
+                });
+                return;
+            }
+        } else if (currentImageSrc && currentImageSrc !== '#') {
+            // Nếu đang edit và có ảnh cũ
+            cloudinaryUrl = currentImageSrc;
+        } else if (hiddenThumbnailUrl) {
+            // Nếu có URL trong hidden field
+            cloudinaryUrl = hiddenThumbnailUrl;
+        } else {
+            Swal.fire({ icon: 'warning', title: 'Thiếu hình ảnh', text: 'Vui lòng tải ảnh đại diện trước!' });
+            return;
+        }
+        
+        // Bây giờ gọi AI với URL Cloudinary
+        Swal.fire({
+            title: '✨ CHUYÊN GIA AI ĐANG LÀM VIỆC',
+            html: '<div class="text-sm text-gray-600">Đang phân tích hình ảnh và thiết kế nội dung sáng tạo...</div>',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
+        $.ajax({
+            url: '/v1/api/admin/ai/generate-description',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                productName: productName,
+                thumbnailUrl: cloudinaryUrl,  // Gửi URL Cloudinary, KHÔNG phải Base64
+                neckline: neckline || 'Không xác định',
+                material: material || 'Không xác định',
+                sleeveType: sleeveType || 'Không xác định',
+                brand: brand || 'TulipShop'
+            }),
+            success: function(response) {
+                Swal.close();
+                if (response.success && response.htmlContent) {
+                    tinymce.get('productDescription').setContent(response.htmlContent);
+                    Swal.fire({
+                        icon: 'success',
+                        title: '🎨 HOÀN THÀNH',
+                        text: 'Nội dung đã được tạo bởi AI Fashion Expert!',
+                        confirmButtonColor: '#000'
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: response.message || 'Không thể tạo nội dung' });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'LỖI KẾT NỐI AI', 
+                    text: xhr.responseJSON?.message || 'Không thể kết nối với AI Service' 
+                });
+            }
+        });
     });
 
     // --- 2. ẢNH ĐẠI DIỆN ---

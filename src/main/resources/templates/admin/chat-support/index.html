@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<div th:fragment="content">
+    <link rel="stylesheet" th:href="@{/css/admin-live-chat.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- GIỮ NGUYÊN CSS CƠ BẢN CŨ --- */
+        .live-chat-admin-container { padding: 15px 20px; height: calc(100vh - 100px); display: flex; flex-direction: column; }
+        .header-section { margin-bottom: 15px; flex-shrink: 0; }
+        .page-title { margin-bottom: 10px; font-size: 24px; color: #333; }
+        .stats-bar { display: flex; gap: 15px; margin-bottom: 0; }
+        .stat-item { background: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; }
+        .stat-label { font-size: 12px; color: #666; display: block; }
+        .stat-value { display: block; font-size: 24px; font-weight: bold; color: #333; margin-top: 5px; }
+        .stat-value.new { color: #ff6b6b; }
+        .stat-value.processing { color: #4CAF50; }
+
+        .chat-layout { flex-grow: 1; display: flex; height: 100%; overflow: hidden; gap: 15px; }
+        .chat-list-panel { width: 320px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e0e0e0; }
+        .panel-header { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: white; border-bottom: 1px solid #e0e0e0; }
+        .panel-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+        .header-actions { display: flex; gap: 12px; }
+        .header-btn { background: none; border: none; color: #666; cursor: pointer; font-size: 16px; padding: 4px; transition: color 0.2s; }
+        .header-btn:hover, .header-btn.active { color: #007bff; }
+
+        /* --- CSS CHO BỘ LỌC (GIỮ NGUYÊN) --- */
+        #filterContainer { background: #f8f9fa; border-bottom: 1px solid #e0e0e0; overflow: hidden; transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+        #filterContainer.filter-collapsed { max-height: 0; padding: 0; opacity: 0; border-bottom: none; }
+        #filterContainer.filter-expanded { max-height: 200px; padding: 12px 15px; opacity: 1; }
+        .filter-content { display: flex; flex-direction: column; gap: 10px; }
+        .form-select-sm, .form-control-sm { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .filter-dates { display: flex; gap: 8px; }
+        .filter-dates input { flex: 1; }
+        .filter-buttons { display: flex; gap: 8px; }
+        .filter-buttons button { flex: 1; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; }
+        #applyFilterBtn { background: #007bff; color: white; }
+        #clearFilterBtn { background: #e9ecef; color: #333; }
+
+        /* --- CSS MỚI: TABS (QUAN TRỌNG) --- */
+        .chat-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            background: #fcfcfc;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { background: #f0f0f0; }
+        .tab-btn.active {
+            color: #007bff;
+            background: white;
+        }
+        /* Đường gạch chân màu xanh dưới tab active */
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #007bff;
+        }
+        .tab-badge {
+            background: #e0e0e0;
+            color: #333;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+        .tab-btn.active .tab-badge {
+            background: #e3f2fd;
+            color: #007bff;
+        }
+
+        /* --- CSS DANH SÁCH --- */
+        .chat-list-scroll-area { flex: 1 1 auto; overflow-y: auto; position: relative; }
+        .tab-content { display: none; } /* Ẩn tất cả tab content */
+        .tab-content.active { display: block; } /* Chỉ hiện tab đang active */
+        
+        .chat-list { padding: 0; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+        .empty-state i { font-size: 32px; margin-bottom: 10px; color: #ddd; }
+
+        /* --- KHUNG CHAT PHẢI (GIỮ NGUYÊN) --- */
+        .chat-window-panel { flex-grow: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; display: flex; flex-direction: column; }
+        #chatWindowHeader { padding: 15px; border-bottom: 1px solid #e0e0e0; }
+        #chatMessages { flex: 1; overflow-y: auto; padding: 20px; background: #f9f9f9; }
+        #chatInputArea { padding: 15px; background: white; border-top: 1px solid #e0e0e0; }
+        .input-wrapper { display: flex; gap: 10px; }
+        #chatMessageInput { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+        #sendMessageBtn { width: 40px; height: 40px; border-radius: 50%; border: none; background: #007bff; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        /* CSS cho thông tin session */
+        .chat-info { flex: 1; }
+        .chat-info h3 { margin: 0 0 5px 0; font-size: 16px; color: #333; }
+        .chat-info .session-metadata { display: flex; gap: 15px; flex-wrap: wrap; font-size: 13px; color: #666; }
+        .chat-info .session-metadata .meta-item { display: flex; align-items: center; gap: 5px; }
+        .chat-info .session-metadata .meta-item i { color: #999; font-size: 12px; }
+        .chat-info .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .chat-info .status-badge.new { background: #fff3cd; color: #856404; }
+        .chat-info .status-badge.processing { background: #d4edda; color: #155724; }
+        .chat-info .status-badge.closed { background: #f8d7da; color: #721c24; }
+        .chat-actions { display: flex; gap: 8px; align-items: center; }
+        .action-btn { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; transition: all 0.2s; }
+        .action-btn.primary { background: #007bff; color: white; }
+        .action-btn.primary:hover { background: #0056b3; }
+        .action-btn:not(.primary) { background: #f0f0f0; color: #333; }
+        .action-btn:not(.primary):hover { background: #e0e0e0; }
+    </style>
+
+    <div class="live-chat-admin-container">
+        <div class="header-section">
+            <h1 class="page-title"><i class="fas fa-headset"></i> Live Chat Support</h1>
+            <div class="stats-bar">
+                <div class="stat-item"><span class="stat-label">Tổng số chat</span><span class="stat-value" id="totalChats">0</span></div>
+                <div class="stat-item"><span class="stat-label">Đang chờ</span><span class="stat-value new" id="newChats">0</span></div>
+                <div class="stat-item"><span class="stat-label">Đang xử lý</span><span class="stat-value processing" id="processingChats">0</span></div>
+            </div>
+        </div>
+
+        <div class="chat-layout">
+            <div class="chat-list-panel">
+                <div class="panel-header">
+                    <h3>Danh sách chat</h3>
+                    <div class="header-actions">
+                        <button class="header-btn" id="toggleFilterBtn" title="Bật/Tắt bộ lọc"><i class="fas fa-filter"></i></button>
+                        <button class="header-btn" id="refreshChats" title="Làm mới"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </div>
+
+                <div id="filterContainer" class="filter-collapsed">
+                    <div class="filter-content">
+                        <select id="statusFilter" class="form-select-sm">
+                            <option value="ALL">Tất cả trạng thái</option>
+                            <option value="NEW">Mới</option>
+                            <option value="PROCESSING">Đang xử lý</option>
+                            <option value="CLOSED">Đã đóng</option>
+                        </select>
+                        <div class="filter-dates">
+                            <input type="date" id="fromDateFilter" class="form-control-sm" placeholder="Từ ngày">
+                            <input type="date" id="toDateFilter" class="form-control-sm" placeholder="Đến ngày">
+                        </div>
+                        <div class="filter-buttons">
+                            <button id="applyFilterBtn"><i class="fas fa-check"></i> Lọc</button>
+                            <button id="clearFilterBtn"><i class="fas fa-times"></i> Xóa</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-tabs">
+                    <button class="tab-btn active" onclick="switchTab('active')">
+                        Đang hoạt động <span class="tab-badge" id="activeBadge">0</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('closed')">
+                        Lịch sử <span class="tab-badge" id="closedBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="chat-list-scroll-area">
+                    <div id="activeTabContent" class="tab-content active">
+                        <div class="chat-list" id="activeChatList">
+                            <div class="empty-state">
+                                <i class="fas fa-comments"></i>
+                                <p>Không có cuộc hội thoại nào đang hoạt động</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="closedTabContent" class="tab-content">
+                        <div class="chat-list" id="closedChatList">
+                            <div class="empty-state">
+                                <i class="fas fa-history"></i>
+                                <p>Không có lịch sử hội thoại</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-window-panel">
+                <div class="panel-header" id="chatWindowHeader">
+                    <div class="chat-info"><h3>Chọn một cuộc trò chuyện</h3></div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="empty-state"><i class="fas fa-comment-dots"></i><p>Chọn một cuộc trò chuyện để bắt đầu</p></div>
+                </div>
+                <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                    <div class="input-wrapper">
+                        <input type="text" id="chatMessageInput" placeholder="Nhập tin nhắn..." maxlength="1000">
+                        <button id="sendMessageBtn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script th:src="@{/js/admin-live-chat.js}"></script>
+
+    <script>
+        // Xử lý Toggle Filter
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleFilterBtn = document.getElementById('toggleFilterBtn');
+            const filterContainer = document.getElementById('filterContainer');
+            if (toggleFilterBtn && filterContainer) {
+                toggleFilterBtn.addEventListener('click', function() {
+                    filterContainer.classList.toggle('filter-collapsed');
+                    filterContainer.classList.toggle('filter-expanded');
+                    this.classList.toggle('active');
+                });
+            }
+        });
+
+        // Hàm chuyển Tab
+        function switchTab(tabName) {
+            // 1. Cập nhật giao diện nút Tab
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(btn => btn.classList.remove('active'));
+            
+            // Tìm nút được bấm (dựa vào onclick hoặc text) - Cách đơn giản nhất:
+            if (tabName === 'active') {
+                tabs[0].classList.add('active'); // Nút đầu tiên
+            } else {
+                tabs[1].classList.add('active'); // Nút thứ hai
+            }
+
+            // 2. Ẩn hiện nội dung
+            document.getElementById('activeTabContent').classList.remove('active');
+            document.getElementById('closedTabContent').classList.remove('active');
+
+            if (tabName === 'active') {
+                document.getElementById('activeTabContent').classList.add('active');
+            } else {
+                document.getElementById('closedTabContent').classList.add('active');
+            }
+        }
+    </script>
+</div>
+</html>

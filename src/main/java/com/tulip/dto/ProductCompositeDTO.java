@@ -23,6 +23,12 @@ public class ProductCompositeDTO {
 
     private String thumbnailUrl; // để hiện ảnh khi sửa
 
+    // Thuộc tính kỹ thuật
+    private String neckline;    // Kiểu cổ áo
+    private String material;    // Chất liệu
+    private String sleeveType;  // Kiểu tay áo
+    private String brand;       // Nhãn hiệu
+
     // Danh sách biến thể (Màu sắc)
     private List<VariantInput> variants = new ArrayList<>();
 

@@ -61,6 +61,12 @@ function updateDashboardUI(stats) {
         revenueElement.textContent = formatCurrency(stats.todayRevenue);
     }
     
+    // Update shipping fee
+    const shippingFeeElement = document.querySelector('[data-stat="shipping-fee"]');
+    if (shippingFeeElement && stats.todayShippingFee !== null) {
+        shippingFeeElement.textContent = '+' + formatCurrency(stats.todayShippingFee);
+    }
+    
     const revenueChangeElement = document.querySelector('[data-stat="revenue-change"]');
     if (revenueChangeElement && stats.todayGrowthPercent !== null) {
         const changeText = `${stats.todayGrowthPercent >= 0 ? '+' : ''}${stats.todayGrowthPercent.toFixed(1)}%`;

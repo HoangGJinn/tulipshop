@@ -30,4 +30,27 @@ public class CloudinaryService {
             throw new RuntimeException("Lỗi upload ảnh lên Cloudinary: " + e.getMessage());
         }
     }
+    
+    /**
+     * Tối ưu URL Cloudinary cho AI processing
+     * Giảm kích thước ảnh xuống 512px để tiết kiệm tokens và tránh lỗi 429
+     */
+    public String optimizeImageForAI(String originalUrl) {
+        if (originalUrl == null || !originalUrl.contains("cloudinary.com")) {
+            return originalUrl;
+        }
+        
+        // Chèn transformation vào URL Cloudinary để giảm kích thước
+        // w_512: giới hạn chiều rộng 512px
+        // c_limit: giữ tỷ lệ, không crop
+        // q_auto: tự động tối ưu chất lượng
+        // f_auto: tự động chọn format tốt nhất (webp, jpg, etc.)
+        String transformation = "w_512,c_limit,q_auto,f_auto";
+        
+        if (originalUrl.contains("/upload/")) {
+            return originalUrl.replace("/upload/", "/upload/" + transformation + "/");
+        }
+        
+        return originalUrl;
+    }
 }

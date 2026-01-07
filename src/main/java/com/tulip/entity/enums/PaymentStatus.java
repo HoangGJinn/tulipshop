@@ -4,7 +4,8 @@ public enum PaymentStatus {
     PENDING("PENDING"),
     SUCCESS("SUCCESS"),
     FAILED("FAILED"),
-    EXPIRED("EXPIRED");
+    EXPIRED("EXPIRED"),
+    CANCELLED("CANCELLED");
     
     private final String value;
     

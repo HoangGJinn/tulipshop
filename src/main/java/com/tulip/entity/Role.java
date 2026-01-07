@@ -2,6 +2,7 @@ package com.tulip.entity;
 
 public enum Role {
     CUSTOMER("CUSTOMER"),
+    STAFF("STAFF"),
     ADMIN("ADMIN");
     
     private final String value;

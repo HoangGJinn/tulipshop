@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8f8f8;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header Section */
+        .header {
+            background-color: #000000;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #ffffff;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #cccccc;
+            text-transform: uppercase;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 50px 40px 30px;
+            text-align: center;
+            background-color: #ffffff;
+        }
+        
+        .hero-title {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: #000000;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .hero-subtitle {
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .greeting {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 30px;
+        }
+        
+        /* Product Section */
+        .product-container {
+            padding: 30px 40px;
+            background-color: #fafafa;
+        }
+        
+        .product-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .product-details {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .product-name {
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            color: #000000;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .product-price {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 25px;
+        }
+        
+        /* CTA Button */
+        .cta-button {
+            display: inline-block;
+            background-color: #000000;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 15px 50px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: 2px solid #000000;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        /* Alert Message */
+        .alert-message {
+            padding: 30px 40px;
+            text-align: center;
+            background-color: #ffffff;
+        }
+        
+        .alert-text {
+            font-size: 13px;
+            color: #666666;
+            line-height: 1.8;
+            font-style: italic;
+        }
+        
+        .alert-text.low-stock {
+            color: #d9534f;
+        }
+        
+        .alert-text.back-in-stock {
+            color: #5cb85c;
+        }
+        
+        /* Footer Section */
+        .footer {
+            background-color: #f5f5f5;
+            padding: 40px 40px 30px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .footer-links {
+            margin-bottom: 20px;
+        }
+        
+        .footer-link {
+            color: #666666;
+            text-decoration: none;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin: 0 15px;
+        }
+        
+        .footer-link:hover {
+            color: #000000;
+        }
+        
+        .footer-text {
+            font-size: 11px;
+            color: #999999;
+            letter-spacing: 1px;
+            line-height: 1.6;
+        }
+        
+        .copyright {
+            margin-top: 20px;
+            font-size: 10px;
+            color: #aaaaaa;
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .header, .hero, .product-container, .alert-message, .footer {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .hero-title {
+                font-size: 20px;
+            }
+            
+            .product-name {
+                font-size: 16px;
+            }
+            
+            .cta-button {
+                padding: 12px 40px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">TULIPSHOP</div>
+            <div class="tagline">Minimalist Luxury Fashion</div>
+        </div>
+        
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1 class="hero-title" th:text="${title}">Món đồ bạn yêu thích đã có hàng lại!</h1>
+            <p class="greeting">Xin chào <span th:text="${customerName}">Khách hàng</span>,</p>
+            <p class="hero-subtitle" th:if="${type == 'BACK_IN_STOCK'}">
+                Tin vui! Sản phẩm bạn đã thêm vào danh sách yêu thích đã có hàng trở lại. 
+                Đừng bỏ lỡ cơ hội sở hữu món đồ này!
+            </p>
+            <p class="hero-subtitle" th:if="${type == 'LOW_STOCK'}">
+                Sản phẩm bạn đã thêm vào danh sách yêu thích đang sắp hết hàng. 
+                Hãy nhanh tay đặt hàng trước khi quá muộn!
+            </p>
+        </div>
+        
+        <!-- Product Section -->
+        <div class="product-container">
+            <div class="product-card">
+                <img th:src="${productImage}" 
+                     alt="Product Image" 
+                     class="product-image">
+                <div class="product-details">
+                    <h2 class="product-name" th:text="${productName}">Tên sản phẩm</h2>
+                    <div class="product-price">
+                        <span th:text="${#numbers.formatDecimal(productPrice, 0, 'COMMA', 0, 'POINT')}">1,000,000</span>đ
+                    </div>
+                    <a th:href="${productUrl}" class="cta-button">MUA NGAY</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alert Message -->
+        <div class="alert-message">
+            <p class="alert-text back-in-stock" th:if="${type == 'BACK_IN_STOCK'}">
+                ✨ Sản phẩm đã có hàng trở lại với số lượng có hạn. 
+                Đặt hàng ngay để không bỏ lỡ!
+            </p>
+            <p class="alert-text low-stock" th:if="${type == 'LOW_STOCK'}">
+                ⚠️ Chỉ còn số lượng giới hạn. 
+                Hãy nhanh tay đặt hàng trước khi hết hàng!
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="#" class="footer-link">Chính sách đổi trả</a>
+                <a href="#" class="footer-link">Hỗ trợ</a>
+                <a href="#" class="footer-link">Liên hệ</a>
+            </div>
+            <p class="footer-text">
+                Bạn nhận được email này vì sản phẩm trong danh sách yêu thích của bạn đã thay đổi trạng thái tồn kho.
+            </p>
+            <p class="copyright">
+                &copy; 2025 TULIPSHOP. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

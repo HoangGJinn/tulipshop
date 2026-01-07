@@ -4,6 +4,9 @@
 <head th:replace="~{fragments/header :: head(title='Chi tiết đơn hàng - Tulip Shop')}">
 </head>
 <body>
+<!-- Rating Modal CSS & JS -->
+<link rel="stylesheet" th:href="@{/css/rating-modal.css}">
+<script th:src="@{/js/rating-modal.js}" defer></script>
 
 
 <!-- Custom CSS cho trang order detail -->
@@ -50,6 +53,7 @@
         .payment-pending { background-color: #fff3cd; color: #856404; }
         .payment-failed { background-color: #f8d7da; color: #721c24; }
         .payment-expired { background-color: #e2e3e5; color: #383d41; }
+        .payment-cancelled { background-color: #f8d7da; color: #721c24; }
         .order-item-row {
             padding: 20px 0;
             border-bottom: 1px solid #f0f0f0;
@@ -144,7 +148,7 @@
                                  th:src="${item.variant.images[0].imageUrl}"
                                  class="item-image"
                                  alt="Sản phẩm"
-                                 th:onerror="this.src=(${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'});">
+                                 th:onerror="|this.src='${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'}'|">
                             <img th:if="${item.snapThumbnailUrl == null and (item.variant == null or #lists.isEmpty(item.variant.images))}"
                                  th:src="${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'}"
                                  class="item-image"
@@ -178,6 +182,21 @@
                             <div class="small text-muted">
                                 Tổng: <span th:text="${#numbers.formatDecimal((item.snapPrice != null ? item.snapPrice : item.priceAtPurchase) * item.quantity, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span>
                             </div>
+                            
+                            <!-- Nút đánh giá cho đơn hàng đã hoàn thành -->
+                            <div th:if="${order.status.toString() == 'COMPLETED' or order.status.toString() == 'DELIVERED'}" class="mt-3">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-warning"
+                                        th:attr="data-product-id=${item.product != null ? item.product.id : null},
+                                                 data-product-name=${item.snapProductName != null ? item.snapProductName : (item.product != null ? item.product.name : 'Sản phẩm')},
+                                                 data-product-image=${item.snapThumbnailUrl != null ? item.snapThumbnailUrl : (item.variant != null and not #lists.isEmpty(item.variant.images) ? item.variant.images[0].imageUrl : (item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'))},
+                                                 data-variant-info=${item.variant != null ? (item.variant.colorName + (item.size != null ? ' - Size ' + item.size.code : '')) : ''},
+                                                 data-order-id=${order.id}"
+                                        onclick="openRatingModal(this)"
+                                        th:if="${item.product != null}">
+                                    <i class="fas fa-star me-1"></i>Đánh giá
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -209,6 +228,7 @@
                                 <span th:if="${order.paymentStatus.toString() == 'PENDING'}">Chờ thanh toán</span>
                                 <span th:if="${order.paymentStatus.toString() == 'FAILED'}">Thanh toán thất bại</span>
                                 <span th:if="${order.paymentStatus.toString() == 'EXPIRED'}">Hết hạn thanh toán</span>
+                                <span th:if="${order.paymentStatus.toString() == 'CANCELLED'}">Đã hủy</span>
                             </span>
                         </div>
                         <div th:if="${order.transactionId != null}" class="info-row d-flex">
@@ -255,7 +275,7 @@
                     </div>
                     <div th:if="${order.voucher != null}" class="d-flex justify-content-between mb-2 text-success">
                         <span>Giảm giá (Voucher):</span>
-                        <span class="fw-bold">-<span th:text="${#numbers.formatDecimal(order.voucher.discountAmount, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span></span>
+                        <span class="fw-bold">-<span th:text="${#numbers.formatDecimal(order.voucher.discountValue, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span></span>
                     </div>
                     <div class="d-flex justify-content-between pt-3 border-top mt-3">
                         <span class="fs-5 fw-bold">Tổng thanh toán:</span>
@@ -277,6 +297,32 @@
                     <p class="text-muted small mt-2 mb-0">
                         <i class="fas fa-clock me-1"></i>Link thanh toán còn hiệu lực đến: 
                         <span th:text="${#temporals.format(order.paymentExpireAt, 'dd/MM/yyyy HH:mm')}"></span>
+                    </p>
+                </div>
+                
+                <!-- Nút hủy đơn hàng cho đơn PENDING -->
+                <div th:if="${order.status.toString() == 'PENDING'}" 
+                     class="mt-4 text-center">
+                    <button type="button" 
+                            class="btn btn-danger btn-lg px-5" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#cancelOrderModal">
+                        <i class="fas fa-times-circle me-2"></i>Hủy đơn hàng
+                    </button>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Bạn chỉ có thể hủy đơn hàng khi đơn hàng đang ở trạng thái Chờ xử lý
+                    </p>
+                </div>
+                
+                <!-- Hiển thị lý do hủy nếu đơn đã bị hủy -->
+                <div th:if="${order.status.toString() == 'CANCELLED' and order.cancelReason != null}" 
+                     class="mt-4 alert alert-warning">
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Đơn hàng đã bị hủy
+                    </h6>
+                    <p class="mb-0">
+                        <strong>Lý do:</strong> <span th:text="${order.cancelReason}">Lý do hủy đơn</span>
                     </p>
                 </div>
                 
@@ -330,9 +376,87 @@
     </div>
 </div>
 
+<!-- Modal hủy đơn hàng -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelOrderModalLabel">
+                    <i class="fas fa-times-circle text-danger me-2"></i>Hủy đơn hàng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:if="${order != null}" th:action="@{/orders/{orderId}/cancel(orderId=${order.id})}" method="post">
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Vui lòng chọn lý do hủy đơn hàng:</p>
+                    
+                    <div class="mb-3">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="reasonOption" 
+                                   id="reason1" value="Muốn đổi địa chỉ giao hàng">
+                            <label class="form-check-label" for="reason1">
+                                Muốn đổi địa chỉ giao hàng
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="reasonOption" 
+                                   id="reason2" value="Đổi ý không mua nữa">
+                            <label class="form-check-label" for="reason2">
+                                Đổi ý không mua nữa
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="reasonOption" 
+                                   id="reason3" value="Tìm thấy giá rẻ hơn ở nơi khác">
+                            <label class="form-check-label" for="reason3">
+                                Tìm thấy giá rẻ hơn ở nơi khác
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="reasonOption" 
+                                   id="reason4" value="Thời gian giao hàng quá lâu">
+                            <label class="form-check-label" for="reason4">
+                                Thời gian giao hàng quá lâu
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="reasonOption" 
+                                   id="reasonOther" value="other">
+                            <label class="form-check-label" for="reasonOther">
+                                Lý do khác
+                            </label>
+                        </div>
+                        
+                        <div id="customReasonDiv" style="display: none;">
+                            <label for="customReason" class="form-label">Nhập lý do của bạn:</label>
+                            <textarea class="form-control" id="customReason" rows="3" 
+                                      placeholder="Vui lòng nhập lý do hủy đơn hàng..." maxlength="512"></textarea>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="reason" id="finalReason">
+                    
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>Sau khi hủy, đơn hàng sẽ không thể khôi phục. Nếu bạn đã thanh toán online, 
+                        vui lòng liên hệ bộ phận chăm sóc khách hàng để được hỗ trợ hoàn tiền.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                    </button>
+                    <button type="submit" class="btn btn-danger" id="confirmCancelBtn">
+                        <i class="fas fa-check me-2"></i>Xác nhận hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<script th:src="@{/js/notification.js}"></script>
 <script>
     // Hiển thị thông báo từ flash attributes
     const successMessage = /*[[${successMessage}]]*/ null;
@@ -344,6 +468,94 @@
     if (errorMessage) {
         showError('Lỗi', errorMessage);
     }
+    
+    // Hàm mở modal đánh giá
+    function openRatingModal(button) {
+        const productData = {
+            id: button.getAttribute('data-product-id'),
+            name: button.getAttribute('data-product-name'),
+            image: button.getAttribute('data-product-image'),
+            variant: button.getAttribute('data-variant-info')
+        };
+        const orderId = button.getAttribute('data-order-id');
+        
+        // Kiểm tra xem user đã đánh giá chưa - Gọi API debug để lấy thông tin chi tiết
+        fetch(`/api/ratings/debug/can-rate?productId=${productData.id}&orderId=${orderId}`)
+            .then(response => response.json())
+            .then(result => {
+                console.log('Rating permission check:', result);
+                
+                if (result.canRate) {
+                    ratingModal.open(productData, orderId);
+                } else {
+                    // Hiển thị message lỗi chi tiết từ backend
+                    const reason = result.reason || 'Bạn không có quyền đánh giá sản phẩm này';
+                    alert(reason);
+                }
+            })
+            .catch(error => {
+                console.error('Error checking rating permission:', error);
+                // Vẫn cho phép mở modal nếu có lỗi API
+                ratingModal.open(productData, orderId);
+            });
+    }
+    
+    // Xử lý modal hủy đơn hàng
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelReasonRadios = document.querySelectorAll('.cancel-reason-radio');
+        const customReasonDiv = document.getElementById('customReasonDiv');
+        const customReasonTextarea = document.getElementById('customReason');
+        const finalReasonInput = document.getElementById('finalReason');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const cancelOrderForm = document.querySelector('#cancelOrderModal form');
+        
+        // Xử lý khi chọn lý do
+        cancelReasonRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'other') {
+                    customReasonDiv.style.display = 'block';
+                    customReasonTextarea.required = true;
+                } else {
+                    customReasonDiv.style.display = 'none';
+                    customReasonTextarea.required = false;
+                    customReasonTextarea.value = '';
+                }
+            });
+        });
+        
+        // Xử lý khi submit form
+        if (cancelOrderForm) {
+            cancelOrderForm.addEventListener('submit', function(e) {
+                const selectedRadio = document.querySelector('.cancel-reason-radio:checked');
+                
+                if (!selectedRadio) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn lý do hủy đơn hàng');
+                    return false;
+                }
+                
+                let reason = '';
+                if (selectedRadio.value === 'other') {
+                    reason = customReasonTextarea.value.trim();
+                    if (!reason) {
+                        e.preventDefault();
+                        alert('Vui lòng nhập lý do hủy đơn hàng');
+                        return false;
+                    }
+                } else {
+                    reason = selectedRadio.value;
+                }
+                
+                finalReasonInput.value = reason;
+                
+                // Xác nhận lần cuối
+                if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        }
+    });
 </script>
 
 </body>

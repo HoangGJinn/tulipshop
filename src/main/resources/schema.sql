@@ -39,9 +39,24 @@ CREATE INDEX IF NOT EXISTS idx_order_items_stock_id ON order_items(stock_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
 -- Sample Vouchers for Testing
-INSERT IGNORE INTO vouchers (code, type, discount_value, min_order_value, quantity, used_count, start_at, expire_at, status, created_at) VALUES
-('WELCOME10', 'PERCENT', 10.00, 100000.00, 1000, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW()),
-('SAVE50K', 'AMOUNT', 50000.00, 200000.00, 500, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW()),
-('FREESHIP', 'AMOUNT', 30000.00, 50000.00, 2000, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW()),
-('SALE20', 'PERCENT', 20.00, 500000.00, 100, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, NOW());
+INSERT IGNORE INTO vouchers (code, name, description, type, discount_value, min_order_value, quantity, used_count, start_at, expire_at, status, is_public) VALUES
+('WELCOME10', 'Voucher Chào Mừng 10%', 'Giảm 10% cho đơn hàng từ 100k', 'PERCENT', 10.00, 100000.00, 1000, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, 1),
+('SAVE50K', 'Giảm 50K', 'Giảm 50.000đ cho đơn hàng từ 200k', 'AMOUNT', 50000.00, 200000.00, 500, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, 1),
+('FREESHIP', 'Miễn Phí Vận Chuyển', 'Free ship cho đơn hàng từ 50k', 'AMOUNT', 20000.00, 50000.00, 0, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, 0),
+('FREESHIP100', 'Miễn Phí Ship 100K', 'Free ship 30k cho đơn hàng từ 100k', 'AMOUNT', 30000.00, 100000.00, 1000, 0, '2024-01-01 00:00:00', '2026-12-31 23:59:59', 1, 1),
+('SALE20', 'Giảm 20%', 'Giảm 20% cho đơn hàng từ 500k', 'PERCENT', 20.00, 500000.00, 100, 0, '2024-01-01 00:00:00', '2025-12-31 23:59:59', 1, 1);
 
+-- Add admin reply fields to ratings table
+ALTER TABLE ratings 
+ADD COLUMN IF NOT EXISTS admin_reply TEXT,
+ADD COLUMN IF NOT EXISTS reply_time TIMESTAMP NULL,
+ADD COLUMN IF NOT EXISTS is_visible BOOLEAN DEFAULT TRUE;
+
+-- Add index for admin queries
+CREATE INDEX IF NOT EXISTS idx_ratings_created_at ON ratings(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ratings_stars ON ratings(stars);
+CREATE INDEX IF NOT EXISTS idx_ratings_is_visible ON ratings(is_visible);
+
+-- Add shipping_fee column to revenue_stats table
+ALTER TABLE revenue_stats 
+ADD COLUMN IF NOT EXISTS shipping_fee DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Tổng tiền ship (tách riêng khỏi doanh thu)';

@@ -4,9 +4,13 @@ import com.tulip.dto.*;
 import com.tulip.entity.product.*;
 import com.tulip.exception.BusinessException;
 import com.tulip.repository.*;
+import com.tulip.repository.specification.ProductSpecification;
 import com.tulip.service.CategoryService;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -51,6 +55,10 @@ public class ProductServiceImpl implements ProductService {
                 .thumbnail(mainThumbnail)
                 .variants(new ArrayList<>())
                 .tags(dto.getTags())
+                .neckline(dto.getNeckline())
+                .material(dto.getMaterial())
+                .sleeveType(dto.getSleeveType())
+                .brand(dto.getBrand())
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -158,61 +166,48 @@ public class ProductServiceImpl implements ProductService {
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : 0)
                 .allSizes(allSizeCodes)
                 .variants(variantDTOs)
+                // Mapping thuộc tính sản phẩm
+                .neckline(product.getNeckline())
+                .material(product.getMaterial())
+                .sleeveType(product.getSleeveType())
+                .brand(product.getBrand())
+                .tags(product.getTags())
                 .build();
     }
 
-    public List<ProductCardDTO> getFilteredProducts(String categorySlug,
-                                                    String sort, String color,
-                                                    String size, Double minPrice,
-                                                    Double maxPrice) {
-
-        List<Product> products;
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductCardDTO> getFilteredProducts(String categorySlug,
+                                                     String color,
+                                                     String size,
+                                                     Double minPrice,
+                                                     Double maxPrice,
+                                                     String tag,
+                                                     Pageable pageable) {
         
-        // Nếu có categorySlug, tìm theo N-cấp category hierarchy
+        // 1. Xử lý category IDs (hỗ trợ N-cấp)
+        List<Long> categoryIds = null;
         if (categorySlug != null && !categorySlug.isEmpty()) {
-            // Tìm category theo slug
             Optional<Category> categoryOpt = categoryService.findBySlug(categorySlug);
-            
             if (categoryOpt.isPresent()) {
                 Category category = categoryOpt.get();
-                // Lấy tất cả ID của category và các con cháu (đệ quy N-cấp)
-                List<Long> categoryIds = categoryService.getAllChildCategoryIds(category.getId());
-                // Query sản phẩm theo danh sách category IDs
-                products = productRepository.findByCategoryIdInAndStatus(categoryIds, ProductStatus.ACTIVE);
+                categoryIds = categoryService.getAllChildCategoryIds(category.getId());
             } else {
-                // Category không tồn tại, trả về danh sách rỗng
-                products = new ArrayList<>();
+                // Category không tồn tại, trả về trang rỗng
+                return Page.empty(pageable);
             }
-        } else {
-            // Không có category filter, lấy tất cả sản phẩm ACTIVE
-            products = productRepository.findByStatus(ProductStatus.ACTIVE);
         }
-
-        return products.stream()
-                // Lọc Giá
-                .filter(p -> (minPrice == null || p.getBasePrice().doubleValue() >= minPrice) &&
-                        (maxPrice == null || p.getBasePrice().doubleValue() <= maxPrice))
-
-                // Lọc Màu
-                .filter(p -> color == null || color.isEmpty() ||
-                        p.getVariants().stream().anyMatch(v -> v.getColorName().equalsIgnoreCase(color)))
-
-                // Lọc Size
-                .filter(p -> size == null || size.isEmpty() ||
-                        p.getVariants().stream().anyMatch(v ->
-                                v.getStocks().stream().anyMatch(s -> s.getSize().getCode().equalsIgnoreCase(size) && s.getQuantity() > 0)
-                        ))
-
-                // Sắp xếp
-                .sorted((p1, p2) -> {
-                    if ("price_asc".equals(sort)) return p1.getBasePrice().compareTo(p2.getBasePrice());
-                    if ("price_desc".equals(sort)) return p2.getBasePrice().compareTo(p1.getBasePrice());
-                    return p2.getId().compareTo(p1.getId()); // Mặc định mới nhất (ID lớn nhất)
-                })
-
-
-                .map(this::convertToCardDTO)
-                .collect(Collectors.toList());
+        
+        // 2. Xây dựng Specification với tất cả điều kiện lọc
+        Specification<Product> spec = ProductSpecification.buildFilterSpec(
+            categoryIds, tag, color, size, minPrice, maxPrice
+        );
+        
+        // 3. Query từ database với phân trang
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+        
+        // 4. Chuyển đổi sang DTO
+        return productPage.map(this::convertToCardDTO);
     }
 
     public ProductCardDTO convertToCardDTO(Product p) {
@@ -318,10 +313,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
+    /**
+     * Filters a list of products to return only those with ACTIVE status
+     * @param products the list of products to filter
+     * @return a list containing only active products
+     */
+    private List<Product> filterActiveProducts(List<Product> products) {
+        return products.stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
+                .collect(Collectors.toList());
+    }
+
     public List<ProductCardDTO> getRelatedProducts(Long currentProductId, Long categoryId){
         List<Product> products = productRepository.findTop5ByCategoryIdAndIdNot(categoryId, currentProductId);
-        return products.stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // Chỉ hiển thị sản phẩm ACTIVE
+        return filterActiveProducts(products).stream()
                 .map(this::convertToCardDTO)
                 .collect(Collectors.toList());
 
@@ -335,8 +340,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products = productRepository.findAllById(productIds);
 
         // Sắp xếp lại theo thứ tự mới nhất lên đầu
-        Map<Long, Product> productMap = products.stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // Chỉ hiển thị sản phẩm ACTIVE
+        Map<Long, Product> productMap = filterActiveProducts(products).stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
         List<ProductCardDTO> result = new ArrayList<>();
         for (Long id : productIds){
@@ -352,9 +356,7 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> findProductsWithDeepDiscount() {
         List<Product> products = productRepository.findProductsWithDeepDiscount();
         // Chỉ trả về sản phẩm ACTIVE
-        return products.stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
-                .collect(Collectors.toList());
+        return filterActiveProducts(products);
     }
 
     @Override
@@ -373,6 +375,12 @@ public class ProductServiceImpl implements ProductService {
         dto.setDescription(product.getDescription());
         dto.setTags(product.getTags());
         dto.setStatus(product.getStatus());
+        
+        // Map thuộc tính kỹ thuật
+        dto.setNeckline(product.getNeckline());
+        dto.setMaterial(product.getMaterial());
+        dto.setSleeveType(product.getSleeveType());
+        dto.setBrand(product.getBrand());
 
         // Gán URL ảnh cũ để hiển thị
         dto.setThumbnailUrl(product.getThumbnail());
@@ -432,6 +440,12 @@ public class ProductServiceImpl implements ProductService {
         product.setDiscountPrice(dto.getDiscountPrice());
         product.setDescription(dto.getDescription());
         product.setTags(dto.getTags());
+        
+        // Cập nhật thuộc tính kỹ thuật
+        product.setNeckline(dto.getNeckline());
+        product.setMaterial(dto.getMaterial());
+        product.setSleeveType(dto.getSleeveType());
+        product.setBrand(dto.getBrand());
         
         // Cập nhật trạng thái
         if (dto.getStatus() != null) {

@@ -33,7 +33,10 @@ public class RevenueStats {
     private StatsType statsType; // DAILY, WEEKLY, MONTHLY, QUARTERLY
     
     @Column(name = "revenue", precision = 12, scale = 2, nullable = false)
-    private BigDecimal revenue;
+    private BigDecimal revenue; // Doanh thu thuần (không bao gồm ship)
+    
+    @Column(name = "shipping_fee", precision = 12, scale = 2)
+    private BigDecimal shippingFee; // Tổng tiền ship riêng
     
     @Column(name = "order_count", nullable = false)
     private Integer orderCount;

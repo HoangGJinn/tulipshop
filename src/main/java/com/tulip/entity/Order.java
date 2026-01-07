@@ -79,6 +79,9 @@ public class Order {
     @Column(name = "shipping_address", length = 512)
     private String shippingAddress;
 
+    @Column(name = "cancel_reason", length = 512)
+    private String cancelReason;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     @Builder.Default
     @ToString.Exclude // [QUAN TRỌNG NHẤT] Ngăn chặn vòng lặp vô tận StackOverflowError

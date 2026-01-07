@@ -2,24 +2,26 @@ package com.tulip.controller;
 
 import com.tulip.dto.ProductCardDTO;
 import com.tulip.dto.ProductDetailDTO;
-import com.tulip.dto.RatingDTO;
-import com.tulip.dto.RatingSummaryDTO;
 import com.tulip.repository.CategoryRepository;
 import com.tulip.repository.ProductRepository;
 import com.tulip.service.ProductService;
-import com.tulip.service.RatingService;
+import com.tulip.service.impl.CloudinaryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -29,7 +31,7 @@ public class ProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
-    private final RatingService ratingService;
+    private final CloudinaryService cloudinaryService;
 
     // --- CHI TIẾT SẢN PHẨM ---
     @GetMapping("/product/{id}")
@@ -88,12 +90,8 @@ public class ProductController {
             cookie.setPath("/"); // Có hiệu lực trên toàn bộ website
             response.addCookie(cookie);
 
-
-            List<RatingDTO> reviews = ratingService.getRatingsByProduct(id);
-            RatingSummaryDTO ratingSummary = ratingService.getRatingSummary(id);
-
-            model.addAttribute("reviews", reviews);
-            model.addAttribute("ratingSummary", ratingSummary);
+            // Ratings được load qua JavaScript API (rating-display.js)
+            // Không cần load ở đây để tối ưu performance
 
             return "product/product-detail";
         } catch (RuntimeException e) {
@@ -110,7 +108,9 @@ public class ProductController {
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String priceRange, // Nhận chuỗi "0-500000"
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) String keyword, // Tìm kiếm theo keyword/tag
+            @RequestParam(required = false) String tag, // Lọc theo tag cụ thể
+            @RequestParam(defaultValue = "0") int page,
             Model model) {
 
         // 1. Xử lý logic khoảng giá
@@ -127,8 +127,59 @@ public class ProductController {
             }
         }
 
-        // 2. Xử lý collection parameter
-        List<ProductCardDTO> products;
+        // 2. Tạo Pageable với sắp xếp
+        Sort sortOrder = Sort.by(Sort.Direction.DESC, "id"); // Mặc định: mới nhất
+        if ("price_asc".equals(sort)) {
+            sortOrder = Sort.by(Sort.Direction.ASC, "basePrice");
+        } else if ("price_desc".equals(sort)) {
+            sortOrder = Sort.by(Sort.Direction.DESC, "basePrice");
+        }
+        
+        Pageable pageable = PageRequest.of(page, 12, sortOrder);
+
+        // 3. Xử lý keyword search (tags)
+        Page<ProductCardDTO> productPage;
+        
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            // Tìm kiếm theo keyword/tag
+            List<ProductCardDTO> searchResults = productRepository.searchSmart(keyword.trim())
+                .stream()
+                .map(productService::convertToCardDTO)
+                .collect(Collectors.toList());
+            
+            // Áp dụng các filter khác
+            Double finalMinPrice = minPrice;
+            Double finalMaxPrice = maxPrice;
+            searchResults = searchResults.stream()
+                .filter(p -> (finalMinPrice == null || p.getPrice().doubleValue() >= finalMinPrice) &&
+                            (finalMaxPrice == null || p.getPrice().doubleValue() <= finalMaxPrice))
+                .filter(p -> color == null || color.isEmpty() || 
+                            p.getColorCodes().stream().anyMatch(c -> c.equalsIgnoreCase(color)))
+                .collect(Collectors.toList());
+            
+            // Tạo Page thủ công
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), searchResults.size());
+            List<ProductCardDTO> pageContent = searchResults.subList(start, end);
+            productPage = new org.springframework.data.domain.PageImpl<>(pageContent, pageable, searchResults.size());
+            
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("products", productPage.getContent());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", productPage.getTotalPages());
+            model.addAttribute("totalElements", productPage.getTotalElements());
+            model.addAttribute("selectedCollection", collection);
+            model.addAttribute("selectedCategory", category);
+            model.addAttribute("selectedSort", sort);
+            model.addAttribute("selectedColor", color);
+            model.addAttribute("selectedSize", size);
+            model.addAttribute("selectedPriceRange", priceRange);
+            model.addAttribute("selectedTag", tag);
+            model.addAttribute("searchKeyword", keyword);
+            return "product/products";
+        }
+
+        // 4. Xử lý collection parameter
         String effectiveCategory = category;
         
         if (collection != null && !collection.isEmpty()) {
@@ -143,26 +194,37 @@ public class ProductController {
                     effectiveCategory = "phu-kien"; // slug
                     break;
                 case "gia-tot":
-                    // Lấy sản phẩm có discount >= 50%
-                    products = productService.getFilteredProducts(null, sort, color, size, minPrice, maxPrice)
-                        .stream()
+                    // Sử dụng JPA Specification để lọc sản phẩm có discount >= 50%
+                    productPage = productService.getFilteredProducts(null, color, size, minPrice, maxPrice, tag, pageable);
+                    
+                    // Lọc thêm discount percent ở tầng application (vì discount percent là calculated field)
+                    List<ProductCardDTO> giatotProducts = productPage.getContent().stream()
                         .filter(p -> p.getDiscountPercent() != null && p.getDiscountPercent() >= 50)
                         .collect(Collectors.toList());
                     
+                    productPage = new org.springframework.data.domain.PageImpl<>(
+                        giatotProducts, 
+                        pageable, 
+                        giatotProducts.size()
+                    );
+                    
                     model.addAttribute("categories", categoryRepository.findAll());
-                    model.addAttribute("products", products);
+                    model.addAttribute("products", productPage.getContent());
                     model.addAttribute("currentPage", page);
+                    model.addAttribute("totalPages", productPage.getTotalPages());
+                    model.addAttribute("totalElements", productPage.getTotalElements());
                     model.addAttribute("selectedCollection", collection);
                     model.addAttribute("selectedCategory", category);
                     model.addAttribute("selectedSort", sort);
                     model.addAttribute("selectedColor", color);
                     model.addAttribute("selectedSize", size);
                     model.addAttribute("selectedPriceRange", priceRange);
+                    model.addAttribute("selectedTag", tag);
                     return "product/products";
                     
                 case "best-seller":
                     // Lấy sản phẩm bán chạy từ repository
-                    products = productRepository.findBestSellingProducts()
+                    List<ProductCardDTO> bestsellerProducts = productRepository.findBestSellingProducts()
                         .stream()
                         .map(productService::convertToCardDTO)
                         .collect(Collectors.toList());
@@ -170,7 +232,7 @@ public class ProductController {
                     // Áp dụng các filter khác
                     Double finalMinPrice = minPrice;
                     Double finalMaxPrice = maxPrice;
-                    products = products.stream()
+                    bestsellerProducts = bestsellerProducts.stream()
                         .filter(p -> (finalMinPrice == null || p.getPrice().doubleValue() >= finalMinPrice) &&
                                     (finalMaxPrice == null || p.getPrice().doubleValue() <= finalMaxPrice))
                         .filter(p -> color == null || color.isEmpty() || 
@@ -178,15 +240,24 @@ public class ProductController {
                         .filter(p -> size == null || size.isEmpty()) // Size filter cần logic phức tạp hơn
                         .collect(Collectors.toList());
                     
+                    // Tạo Page thủ công
+                    int startBs = (int) pageable.getOffset();
+                    int endBs = Math.min((startBs + pageable.getPageSize()), bestsellerProducts.size());
+                    List<ProductCardDTO> pageContentBs = bestsellerProducts.subList(startBs, endBs);
+                    productPage = new org.springframework.data.domain.PageImpl<>(pageContentBs, pageable, bestsellerProducts.size());
+                    
                     model.addAttribute("categories", categoryRepository.findAll());
-                    model.addAttribute("products", products);
+                    model.addAttribute("products", productPage.getContent());
                     model.addAttribute("currentPage", page);
+                    model.addAttribute("totalPages", productPage.getTotalPages());
+                    model.addAttribute("totalElements", productPage.getTotalElements());
                     model.addAttribute("selectedCollection", collection);
                     model.addAttribute("selectedCategory", category);
                     model.addAttribute("selectedSort", sort);
                     model.addAttribute("selectedColor", color);
                     model.addAttribute("selectedSize", size);
                     model.addAttribute("selectedPriceRange", priceRange);
+                    model.addAttribute("selectedTag", tag);
                     return "product/products";
                     
                 case "all":
@@ -197,15 +268,17 @@ public class ProductController {
             }
         }
 
-        // 3. Gọi Service để lọc (cho các collection thông thường)
-        products = productService.getFilteredProducts(
-            effectiveCategory, sort, color, size, minPrice, maxPrice
+        // 5. Gọi Service để lọc với phân trang (sử dụng JPA Specification)
+        productPage = productService.getFilteredProducts(
+            effectiveCategory, color, size, minPrice, maxPrice, tag, pageable
         );
 
-        // 4. Truyền dữ liệu ra View
+        // 6. Truyền dữ liệu ra View
         model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("products", products);
+        model.addAttribute("products", productPage.getContent());
         model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("totalElements", productPage.getTotalElements());
 
         // Giữ lại các tham số filter để hiển thị trên giao diện
         model.addAttribute("selectedCollection", collection != null ? collection : "all");
@@ -214,7 +287,26 @@ public class ProductController {
         model.addAttribute("selectedColor", color);
         model.addAttribute("selectedSize", size);
         model.addAttribute("selectedPriceRange", priceRange);
+        model.addAttribute("selectedTag", tag);
 
         return "product/products";
     }
+
+    @PostMapping("/api/upload/image")
+    @ResponseBody // Bắt buộc: Để trả về JSON thay vì HTML
+    public ResponseEntity<?> uploadUserImage(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "File trống!"));
+            }
+
+            // Dùng lại đúng CloudinaryService bạn đã có
+            String url = cloudinaryService.uploadImage(file);
+
+            return ResponseEntity.ok(Map.of("url", url));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
+        }
+    }
+
 }

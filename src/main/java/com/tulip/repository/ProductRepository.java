@@ -1,7 +1,10 @@
 package com.tulip.repository;
 import com.tulip.entity.product.Product;
 import com.tulip.entity.product.ProductStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -9,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     List<Product> findByNameContainingIgnoreCase(String name);
 
     @Query("SELECT DISTINCT p FROM Product p " +
@@ -50,9 +53,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     // Method mới: Lấy tất cả sản phẩm ACTIVE (cho admin)
     List<Product> findByStatus(ProductStatus status);
+    Page<Product> findByStatus(ProductStatus status, Pageable pageable);
     
     // Method mới: Lấy tất cả sản phẩm ACTIVE hoặc HIDDEN (cho admin)
     List<Product> findByStatusIn(List<ProductStatus> statuses);
+    Page<Product> findByStatusIn(List<ProductStatus> statuses, Pageable pageable);
     
     // Tìm sản phẩm theo danh sách category IDs (hỗ trợ N-cấp)
     @Query("SELECT p FROM Product p " +
@@ -61,6 +66,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryIdInAndStatus(
         @Param("categoryIds") List<Long> categoryIds, 
         @Param("status") ProductStatus status
+    );
+    
+    @Query("SELECT p FROM Product p " +
+           "WHERE p.category.id IN :categoryIds " +
+           "AND p.status = :status")
+    Page<Product> findByCategoryIdInAndStatus(
+        @Param("categoryIds") List<Long> categoryIds, 
+        @Param("status") ProductStatus status,
+        Pageable pageable
     );
     
     // Tìm sản phẩm có discount >= threshold (GIÁ TỐT)
@@ -103,4 +117,31 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     default List<Product> findRandomProducts() {
         return findRandomActiveProducts();
     }
+    
+    // Lọc theo thuộc tính kỹ thuật
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "WHERE p.status = 'ACTIVE' " +
+           "AND (:neckline IS NULL OR p.neckline = :neckline) " +
+           "AND (:material IS NULL OR p.material = :material) " +
+           "AND (:sleeveType IS NULL OR p.sleeveType = :sleeveType) " +
+           "AND (:brand IS NULL OR p.brand = :brand)")
+    List<Product> findByTechnicalAttributes(
+        @Param("neckline") String neckline,
+        @Param("material") String material,
+        @Param("sleeveType") String sleeveType,
+        @Param("brand") String brand
+    );
+    
+    // Lấy danh sách giá trị unique cho mỗi thuộc tính (để hiển thị trong filter)
+    @Query("SELECT DISTINCT p.neckline FROM Product p WHERE p.neckline IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctNecklines();
+    
+    @Query("SELECT DISTINCT p.material FROM Product p WHERE p.material IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctMaterials();
+    
+    @Query("SELECT DISTINCT p.sleeveType FROM Product p WHERE p.sleeveType IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctSleeveTypes();
+    
+    @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.brand IS NOT NULL AND p.status = 'ACTIVE'")
+    List<String> findDistinctBrands();
 }

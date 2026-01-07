@@ -12,8 +12,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DashboardStatsDTO {
-    // Doanh thu hôm nay
+    // Doanh thu hôm nay (không bao gồm ship)
     private BigDecimal todayRevenue;
+    private BigDecimal todayShippingFee; // Tổng tiền ship hôm nay (riêng biệt)
     private Double todayGrowthPercent; // % so với hôm qua
     
     // Tăng trưởng

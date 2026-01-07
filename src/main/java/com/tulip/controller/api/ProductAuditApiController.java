@@ -1,5 +1,6 @@
 package com.tulip.controller.api;
 
+import com.tulip.dto.EditedProductDTO;
 import com.tulip.dto.ProductAuditDTO;
 import com.tulip.service.ProductAuditService;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/product-audit")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class ProductAuditApiController {
 
     private final ProductAuditService productAuditService;
@@ -35,5 +36,15 @@ public class ProductAuditApiController {
     public ResponseEntity<List<ProductAuditDTO>> getChangesByAdmin(@PathVariable String adminEmail) {
         List<ProductAuditDTO> changes = productAuditService.getChangesByAdmin(adminEmail);
         return ResponseEntity.ok(changes);
+    }
+
+    /**
+     * Lấy danh sách tất cả sản phẩm đã được chỉnh sửa
+     * GET /api/admin/product-audit/edited-products
+     */
+    @GetMapping("/edited-products")
+    public ResponseEntity<List<EditedProductDTO>> getAllEditedProducts() {
+        List<EditedProductDTO> editedProducts = productAuditService.getAllEditedProducts();
+        return ResponseEntity.ok(editedProducts);
     }
 }

@@ -8,6 +8,7 @@ import com.tulip.entity.product.Product;
 import com.tulip.repository.ChatMessageRepository;
 import com.tulip.repository.ChatSessionRepository;
 import com.tulip.repository.ProductRepository;
+import com.tulip.service.ChatContextBuilderService;
 import com.tulip.service.ChatService;
 import com.tulip.service.GoogleAIService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ProductRepository productRepository;
     private final GoogleAIService googleAIService;
+    private final ChatContextBuilderService contextBuilderService;
 
     @Override
     public ChatSession createSession(User user, String customerName, String customerEmail) {
@@ -78,31 +80,44 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public ChatMessageResponseDTO sendCustomerMessage(Long sessionId, String content) {
         sendMessage(sessionId, content, ChatMessage.MessageType.TEXT);
-        String baseContext = getCustomerContext(sessionId);
-        List<Long> productIds = recommendProducts(content, baseContext);
-        String policyAdvice = getPolicyAdvice(content, baseContext);
-
-        // Build full context for AI: include policy advice and product info
-        String fullContext = baseContext;
-        if (policyAdvice != null && !policyAdvice.isBlank()) {
-            fullContext += "\n\nCHÍNH SÁCH LIÊN QUAN:\n" + policyAdvice;
-        }
-        if (!productIds.isEmpty()) {
-            List<Product> recProducts = productRepository.findAllById(productIds);
-            fullContext += "\n\nSẢN PHẨM GỢI Ý:\n" + recProducts.stream()
-                    .map(p -> "- " + p.getName() + " (giá: " + (p.getDiscountPrice() != null ? p.getDiscountPrice() : p.getBasePrice()) + "₫)")
-                    .reduce((a, b) -> a + "\n" + b).orElse("");
-        }
+        
+        // === BẮT ĐẦU LOGIC MỚI: LẤY DỮ LIỆU THỰC TỪ DATABASE ===
+        log.info("📩 Nhận tin nhắn: {}", content);
+        
+        // 1. Lấy context cũ (lịch sử chat)
+        String existingContext = getCustomerContext(sessionId);
+        
+        // 2. BUILD FULL CONTEXT TỪ DATABASE (RAG)
+        // Đây là bước QUAN TRỌNG: Context builder sẽ query DB và lấy dữ liệu thực
+        String fullContext = contextBuilderService.buildFullContext(content, existingContext);
+        log.info("✅ Đã build context với {} ký tự từ database", fullContext.length());
+        
+        // 3. Tìm sản phẩm gợi ý (logic cũ giữ lại)
+        List<Long> productIds = recommendProducts(content, existingContext);
+        
+        // 4. Lấy policy advice nếu có
+        String policyAdvice = getPolicyAdvice(content, existingContext);
+        
+        // 5. Generate AI response với FULL CONTEXT từ database
         String aiRes;
         String lower = content == null ? "" : content.toLowerCase();
+        
         if (policyAdvice != null && !policyAdvice.isBlank() && containsBodyMeasurement(lower) && isProductRequest(lower)) {
+            // Trường hợp: hỏi size + body measurement + muốn sản phẩm
             aiRes = policyAdvice + "\n\nMình gợi ý một vài mẫu phù hợp bên dưới, bạn xem giúp mình nhé.";
         } else if (policyAdvice != null && !policyAdvice.isBlank() && isPolicyOrSizeQuestion(lower) && !isProductRequest(lower)) {
+            // Trường hợp: chỉ hỏi policy/size, không cần sản phẩm
             aiRes = policyAdvice;
         } else {
+            // Trường hợp: câu hỏi thông thường => Gọi AI với FULL CONTEXT
             aiRes = generateAIResponse(content, fullContext);
+            log.info("🤖 AI đã trả lời dựa trên {} sản phẩm từ database", 
+                fullContext.contains("DANH SÁCH SẢN PHẨM") ? "nhiều" : "0");
         }
-        updateCustomerContext(sessionId, baseContext + " User: " + content + " | AI: " + aiRes);
+        
+        // 6. Cập nhật context (lưu lịch sử)
+        updateCustomerContext(sessionId, existingContext + " User: " + content + " | AI: " + aiRes);
+        
         return sendBotResponse(sessionId, aiRes, productIds, policyAdvice);
     }
 

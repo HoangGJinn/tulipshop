@@ -11,22 +11,28 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/v1/api/admin/users")
+@RequestMapping("/v1/api/admin/staff")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminUserApiController {
+public class AdminStaffApiController {
 
     private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> list(@RequestParam(required = false) String keyword) {
-        List<User> users = (keyword == null || keyword.trim().isEmpty())
+        List<User> allUsers = (keyword == null || keyword.trim().isEmpty())
                 ? userRepository.findAllWithProfile()
                 : userRepository.searchWithProfile(keyword.trim());
 
-        List<Map<String, Object>> result = users.stream().map(u -> {
+        // Lọc chỉ lấy users có role STAFF
+        List<User> staffUsers = allUsers.stream()
+                .filter(u -> u.getRole() == Role.STAFF)
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> result = staffUsers.stream().map(u -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", u.getId());
             map.put("email", u.getEmail());
@@ -48,6 +54,10 @@ public class AdminUserApiController {
         if (status == null) return ResponseEntity.badRequest().body(Map.of("error", "Missing status"));
 
         return userRepository.findById(id).map(u -> {
+            // Chỉ cho phép cập nhật status của STAFF
+            if (u.getRole() != Role.STAFF) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Chỉ có thể cập nhật status của STAFF"));
+            }
             u.setStatus(status);
             userRepository.save(u);
             return ResponseEntity.ok(Map.of("status", "ok"));
@@ -60,6 +70,11 @@ public class AdminUserApiController {
         if (roleStr == null || roleStr.isBlank()) return ResponseEntity.badRequest().body(Map.of("error", "Missing role"));
 
         Role role = Role.fromString(roleStr);
+        
+        // Chỉ cho phép chuyển sang STAFF hoặc CUSTOMER (không cho chuyển sang ADMIN)
+        if (role == Role.ADMIN) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Không thể chuyển role sang ADMIN"));
+        }
 
         return userRepository.findById(id).map(u -> {
             u.setRole(role);
@@ -68,3 +83,4 @@ public class AdminUserApiController {
         }).orElse(ResponseEntity.notFound().build());
     }
 }
+

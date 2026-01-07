@@ -25,4 +25,10 @@ public class ProductCreateDTO {
     private MultipartFile thumbnailFile;
 
     private List<String> sizes;
+    
+    // Thuộc tính kỹ thuật
+    private String neckline;    // Kiểu cổ áo
+    private String material;    // Chất liệu
+    private String sleeveType;  // Kiểu tay áo
+    private String brand;       // Nhãn hiệu
 }

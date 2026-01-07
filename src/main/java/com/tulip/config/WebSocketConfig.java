@@ -47,9 +47,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Endpoint cho notifications
         registry.addEndpoint("/ws")
             .setAllowedOriginPatterns("*") // Cho phép tất cả origins (có thể giới hạn trong production)
             .withSockJS(); // Enable SockJS fallback cho browsers không hỗ trợ WebSocket
+        
+        // Endpoint cho live chat
+        registry.addEndpoint("/ws-chat")
+            .setAllowedOriginPatterns("*")
+            .withSockJS();
     }
     
     /**

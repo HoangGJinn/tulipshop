@@ -327,9 +327,10 @@
     // INITIALIZATION
     // ============================================
     function init() {
-        // Wait for DOM to be ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
+        // CRITICAL FIX: Wait for ALL resources (especially images) to load completely
+        // This prevents glitch/crash caused by incorrect width calculation
+        if (document.readyState !== 'complete') {
+            window.addEventListener('load', init);
             return;
         }
 
@@ -341,16 +342,23 @@
         initLazyLoading();
         optimizePerformance();
 
-        // Refresh ScrollTrigger after a short delay to ensure all elements are rendered
+        // CRITICAL FIX: Refresh ScrollTrigger after images are fully loaded
+        // This ensures mainContainer.offsetWidth is calculated correctly
         setTimeout(() => {
             ScrollTrigger.refresh();
-        }, 500);
+        }, 200);
 
         console.log('Tulip Shop - Horizontal Scroll Experience initialized');
     }
 
-    // Start initialization
-    init();
+    // Start initialization - wait for complete page load including images
+    if (document.readyState === 'complete') {
+        // Already loaded, init immediately
+        init();
+    } else {
+        // Wait for full load (images, CSS, etc.)
+        window.addEventListener('load', init);
+    }
 
     // Expose Lenis instance globally for debugging (optional)
     window.lenis = lenis;
