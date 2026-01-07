@@ -63,6 +63,37 @@ logging.level.org.springframework.web=DEBUG
 logging.level.com.opensymphony.sitemesh=DEBUG
 logging.level.org.springframework.mail=DEBUG
 
+# VNPAY Configuration
+vnp.pay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+vnp.return.url=http://localhost:8787/v1/api/vnpay/payment-callback
+vnp.tmn.code=your_vnp_tmn_code
+vnp.secret.key=your_vnp_secret_key
+vnp.version=2.1.0
+vnp.command=pay
+vnp.order.type=250000
+vnp.api.url=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+
+# Momo Configuration
+momo.partner.code=your_momo_partner_code
+momo.return.url=http://localhost:8787/v1/api/momo/payment-callback
+momo.endpoint.url=https://test-payment.momo.vn/gw_payment/transactionProcessor
+momo.ipn.url=http://localhost:8787/api/momo/callback
+momo.access.key=your_momo_access_key
+momo.secret.key=your_momo_secret_key
+momo.request.type=payWithMethod
+
+# Google AI Configuration
+google.ai.api.key=your_google_ai_api_key
+google.ai.api.url=https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent
+
+# Mail Timeout
+spring.mail.properties.mail.smtp.connectiontimeout=5000
+spring.mail.properties.mail.smtp.timeout=5000
+spring.mail.properties.mail.smtp.writetimeout=5000
+
+# Logging
+logging.level.com.tulip.security=DEBUG
+
 # OAuth2 Debug Logging
 logging.level.com.tulip.service.impl.CustomOAuth2UserService=DEBUG
 logging.level.org.springframework.security.oauth2=DEBUG
