@@ -14,8 +14,7 @@ import java.util.Map;
 public interface ProductService {
     ProductDetailDTO getProductDetail(Long productId);
     ProductCardDTO convertToCardDTO(Product p);
-    List<ProductCardDTO> getFilteredProducts(String categorySlug, String sort, String color, String size, Double minPrice, Double maxPrice);
-    Page<ProductCardDTO> getFilteredProductsWithPagination(String categorySlug, String sort, String color, String size, Double minPrice, Double maxPrice, Pageable pageable);
+    Page<ProductCardDTO> getFilteredProducts(String categorySlug, String color, String size, Double minPrice, Double maxPrice, String tag, Pageable pageable);
     void addVariant(Long productId, String colorName, String colorCode);
     void updateVariantStock(Long variantId, Map<String, Integer> stockData);
     void deleteVariant(Long variantId);

@@ -62,3 +62,8 @@ async function toggleWishlist(btn) {
         alert('Không thể cập nhật wishlist lúc này');
     }
 }
+
+// Format number with thousand separator
+function formatPrice(price) {
+    return parseInt(price).toLocaleString('vi-VN');
+}

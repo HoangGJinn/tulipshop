@@ -148,7 +148,7 @@
                                  th:src="${item.variant.images[0].imageUrl}"
                                  class="item-image"
                                  alt="Sản phẩm"
-                                 th:onerror="this.src=(${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'});">
+                                 th:onerror="|this.src='${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'}'|">
                             <img th:if="${item.snapThumbnailUrl == null and (item.variant == null or #lists.isEmpty(item.variant.images))}"
                                  th:src="${item.product != null and item.product.thumbnail != null ? item.product.thumbnail : '/images/placeholder.jpg'}"
                                  class="item-image"
@@ -275,7 +275,7 @@
                     </div>
                     <div th:if="${order.voucher != null}" class="d-flex justify-content-between mb-2 text-success">
                         <span>Giảm giá (Voucher):</span>
-                        <span class="fw-bold">-<span th:text="${#numbers.formatDecimal(order.voucher.discountAmount, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span></span>
+                        <span class="fw-bold">-<span th:text="${#numbers.formatDecimal(order.voucher.discountValue, 0, 'COMMA', 0, 'POINT') + '₫'}">0₫</span></span>
                     </div>
                     <div class="d-flex justify-content-between pt-3 border-top mt-3">
                         <span class="fs-5 fw-bold">Tổng thanh toán:</span>

@@ -34,8 +34,6 @@ public class CloudinaryService {
     /**
      * Tối ưu URL Cloudinary cho AI processing
      * Giảm kích thước ảnh xuống 512px để tiết kiệm tokens và tránh lỗi 429
-     * @param originalUrl URL gốc từ Cloudinary
-     * @return URL đã được tối ưu với transformation parameters
      */
     public String optimizeImageForAI(String originalUrl) {
         if (originalUrl == null || !originalUrl.contains("cloudinary.com")) {

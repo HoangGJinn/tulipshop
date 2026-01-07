@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Test</title>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 50px;
+        }
+
+        /* Test 1: Spinner */
+        .shop-all-spinner {
+            width: 96px;
+            height: 96px;
+            border: 2px solid red;
+            animation: spin-slow 10s linear infinite !important;
+            margin-bottom: 50px;
+        }
+
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Test 2: Marquee */
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            border: 2px solid blue;
+            margin-bottom: 50px;
+        }
+
+        .marquee-text {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: ticker 20s linear infinite !important;
+        }
+
+        .marquee-text span {
+            font-size: 40px;
+            padding-right: 2em;
+            color: #fff;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Test 3: Pulse */
+        .hotspot-pulse {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite !important;
+        }
+
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Animation Test Page</h1>
+    
+    <h2>1. Spinner (should rotate slowly)</h2>
+    <div class="shop-all-spinner">
+        <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="white" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <h2>2. Marquee Text (should scroll left)</h2>
+    <div class="marquee-container">
+        <div class="marquee-text">
+            <span>NGUYEN THANH VINH DEP TRAI</span>
+            <span>FRENCH TERRY COTTON 3D EMBROIDERY</span>
+            <span>NGUYEN THANH VINH DEP TRAI</span>
+            <span>FRENCH TERRY COTTON 3D EMBROIDERY</span>
+        </div>
+    </div>
+
+    <h2>3. Pulse Dot (should pulse/expand)</h2>
+    <div class="hotspot-pulse"></div>
+
+    <script>
+        console.log('Animation test page loaded');
+        console.log('Spinner animation:', window.getComputedStyle(document.querySelector('.shop-all-spinner')).animation);
+        console.log('Marquee animation:', window.getComputedStyle(document.querySelector('.marquee-text')).animation);
+        console.log('Pulse animation:', window.getComputedStyle(document.querySelector('.hotspot-pulse')).animation);
+    </script>
+</body>
+</html>
