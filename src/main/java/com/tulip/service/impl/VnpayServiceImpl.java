@@ -98,10 +98,8 @@ public class VnpayServiceImpl implements VnpayService {
                 }
             }
         }
-
         String vnp_SecureHash = VnpayUtil.hmacSHA512(vnpayConfig.getSecretKey(), hashData.toString());
         query.append("&vnp_SecureHash=").append(vnp_SecureHash);
-
         return vnpayConfig.getVnp_PayUrl() + "?" + query.toString();
     }
 

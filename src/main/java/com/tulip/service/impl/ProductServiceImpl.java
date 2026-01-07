@@ -4,11 +4,13 @@ import com.tulip.dto.*;
 import com.tulip.entity.product.*;
 import com.tulip.exception.BusinessException;
 import com.tulip.repository.*;
+import com.tulip.repository.specification.ProductSpecification;
 import com.tulip.service.CategoryService;
 import com.tulip.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -164,123 +166,48 @@ public class ProductServiceImpl implements ProductService {
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : 0)
                 .allSizes(allSizeCodes)
                 .variants(variantDTOs)
+                // Mapping thuộc tính sản phẩm
+                .neckline(product.getNeckline())
+                .material(product.getMaterial())
+                .sleeveType(product.getSleeveType())
+                .brand(product.getBrand())
+                .tags(product.getTags())
                 .build();
     }
 
-    public List<ProductCardDTO> getFilteredProducts(String categorySlug,
-                                                    String sort, String color,
-                                                    String size, Double minPrice,
-                                                    Double maxPrice) {
-
-        List<Product> products;
-        
-        // Nếu có categorySlug, tìm theo N-cấp category hierarchy
-        if (categorySlug != null && !categorySlug.isEmpty()) {
-            // Tìm category theo slug
-            Optional<Category> categoryOpt = categoryService.findBySlug(categorySlug);
-            
-            if (categoryOpt.isPresent()) {
-                Category category = categoryOpt.get();
-                // Lấy tất cả ID của category và các con cháu (đệ quy N-cấp)
-                List<Long> categoryIds = categoryService.getAllChildCategoryIds(category.getId());
-                // Query sản phẩm theo danh sách category IDs
-                products = productRepository.findByCategoryIdInAndStatus(categoryIds, ProductStatus.ACTIVE);
-            } else {
-                // Category không tồn tại, trả về danh sách rỗng
-                products = new ArrayList<>();
-            }
-        } else {
-            // Không có category filter, lấy tất cả sản phẩm ACTIVE
-            products = productRepository.findByStatus(ProductStatus.ACTIVE);
-        }
-
-        return products.stream()
-                // Lọc Giá
-                .filter(p -> (minPrice == null || p.getBasePrice().doubleValue() >= minPrice) &&
-                        (maxPrice == null || p.getBasePrice().doubleValue() <= maxPrice))
-
-                // Lọc Màu
-                .filter(p -> color == null || color.isEmpty() ||
-                        p.getVariants().stream().anyMatch(v -> v.getColorName().equalsIgnoreCase(color)))
-
-                // Lọc Size
-                .filter(p -> size == null || size.isEmpty() ||
-                        p.getVariants().stream().anyMatch(v ->
-                                v.getStocks().stream().anyMatch(s -> s.getSize().getCode().equalsIgnoreCase(size) && s.getQuantity() > 0)
-                        ))
-
-                // Sắp xếp
-                .sorted((p1, p2) -> {
-                    if ("price_asc".equals(sort)) return p1.getBasePrice().compareTo(p2.getBasePrice());
-                    if ("price_desc".equals(sort)) return p2.getBasePrice().compareTo(p1.getBasePrice());
-                    return p2.getId().compareTo(p1.getId()); // Mặc định mới nhất (ID lớn nhất)
-                })
-
-
-                .map(this::convertToCardDTO)
-                .collect(Collectors.toList());
-    }
-
     @Override
-    public Page<ProductCardDTO> getFilteredProductsWithPagination(String categorySlug,
-                                                                   String sort, String color,
-                                                                   String size, Double minPrice,
-                                                                   Double maxPrice, Pageable pageable) {
-        Page<Product> productPage;
+    @Transactional(readOnly = true)
+    public Page<ProductCardDTO> getFilteredProducts(String categorySlug,
+                                                     String color,
+                                                     String size,
+                                                     Double minPrice,
+                                                     Double maxPrice,
+                                                     String tag,
+                                                     Pageable pageable) {
         
-        // Nếu có categorySlug, tìm theo N-cấp category hierarchy
+        // 1. Xử lý category IDs (hỗ trợ N-cấp)
+        List<Long> categoryIds = null;
         if (categorySlug != null && !categorySlug.isEmpty()) {
             Optional<Category> categoryOpt = categoryService.findBySlug(categorySlug);
-            
             if (categoryOpt.isPresent()) {
                 Category category = categoryOpt.get();
-                List<Long> categoryIds = categoryService.getAllChildCategoryIds(category.getId());
-                productPage = productRepository.findByCategoryIdInAndStatus(categoryIds, ProductStatus.ACTIVE, pageable);
+                categoryIds = categoryService.getAllChildCategoryIds(category.getId());
             } else {
                 // Category không tồn tại, trả về trang rỗng
                 return Page.empty(pageable);
             }
-        } else {
-            // Không có category filter, lấy tất cả sản phẩm ACTIVE
-            productPage = productRepository.findByStatus(ProductStatus.ACTIVE, pageable);
         }
-
-        // Nếu không có filter phức tạp (color, size, price), chuyển đổi trực tiếp
-        if ((color == null || color.isEmpty()) && 
-            (size == null || size.isEmpty()) && 
-            minPrice == null && maxPrice == null) {
-            return productPage.map(this::convertToCardDTO);
-        }
-
-        // Nếu có filter phức tạp, phải lọc ở tầng application
-        // Lưu ý: Điều này làm mất tính chính xác của phân trang
-        // Trong production nên tối ưu bằng cách đưa logic này vào Query
-        List<ProductCardDTO> filteredProducts = productPage.getContent().stream()
-            .filter(product -> {
-                // Kiểm tra các điều kiện lọc
-                boolean matchesPrice = (minPrice == null || product.getBasePrice().doubleValue() >= minPrice) &&
-                                      (maxPrice == null || product.getBasePrice().doubleValue() <= maxPrice);
-                
-                boolean matchesColor = color == null || color.isEmpty() ||
-                                      product.getVariants().stream().anyMatch(v -> v.getColorName().equalsIgnoreCase(color));
-                
-                boolean matchesSize = size == null || size.isEmpty() ||
-                                     product.getVariants().stream().anyMatch(v ->
-                                         v.getStocks().stream().anyMatch(s -> 
-                                             s.getSize().getCode().equalsIgnoreCase(size) && s.getQuantity() > 0));
-                
-                return matchesPrice && matchesColor && matchesSize;
-            })
-            .map(this::convertToCardDTO)
-            .collect(Collectors.toList());
-
-        // Tạo Page mới với dữ liệu đã lọc
-        // Lưu ý: totalElements không chính xác khi có filter
-        return new org.springframework.data.domain.PageImpl<>(
-            filteredProducts, 
-            pageable, 
-            productPage.getTotalElements()
+        
+        // 2. Xây dựng Specification với tất cả điều kiện lọc
+        Specification<Product> spec = ProductSpecification.buildFilterSpec(
+            categoryIds, tag, color, size, minPrice, maxPrice
         );
+        
+        // 3. Query từ database với phân trang
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+        
+        // 4. Chuyển đổi sang DTO
+        return productPage.map(this::convertToCardDTO);
     }
 
     public ProductCardDTO convertToCardDTO(Product p) {

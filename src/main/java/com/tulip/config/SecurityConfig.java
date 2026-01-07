@@ -93,6 +93,8 @@ public class SecurityConfig {
                 // Rating API - cho phép truy cập để debug
                 .requestMatchers("/api/ratings/product/**").permitAll()
                 .requestMatchers("/api/ratings/debug/**").permitAll()
+                    .requestMatchers("/api/try-on/**").permitAll()
+                    .requestMatchers("/api/upload/image").permitAll()
                 .requestMatchers("/api/ratings/**").authenticated()
                 .requestMatchers("/error/**").permitAll()
                 // VNPAY callback URL cho phép truy cập công khai vì không có JWT:

@@ -21,4 +21,11 @@ public class ProductDetailDTO {
 
     // Danh sách các biến thể màu sắc
     private List<ProductVariantDTO> variants;
+    
+    // Thuộc tính sản phẩm
+    private String neckline;    // Cổ áo
+    private String material;    // Chất liệu
+    private String sleeveType;  // Tay áo
+    private String brand;       // Thương hiệu
+    private String tags;        // Tags
 }
