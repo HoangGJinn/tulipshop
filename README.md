@@ -43,8 +43,14 @@ Chào mừng đến với **Tulip Shop**! Đây là dự án website thương m�
 
 ## 📸 Screenshots
 
+<p align="center">
+  <a href="#screenshots">
+    <img src="https://img.shields.io/badge/View%20All%20Screenshots-10%20Screens-success?style=for-the-badge" />
+  </a>
+</p>
+
 <details>
-<summary><b>Click to view all application screenshots (10 screens)</b></summary>
+<summary><b>📷 Click to explore the full application gallery</b></summary>
 
 <br>
 
