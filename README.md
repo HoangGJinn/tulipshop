@@ -45,7 +45,7 @@ Chào mừng đến với **Tulip Shop**! Đây là dự án website thương m�
 
 <p align="center">
   <a href="#screenshots">
-    <img src="https://img.shields.io/badge/View%20All%20Screenshots-10%20Screens-success?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/View%20All%20Screenshots-12%20Screens-success?style=for-the-badge" />
   </a>
 </p>
 
@@ -64,6 +64,12 @@ Chào mừng đến với **Tulip Shop**! Đây là dự án website thương m�
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/HoangGJinn/Project_Image/main/Tulip_Shop/customer_detail_product.png" width="900"/>
+</p>
+
+### ⭐ Product Rating & Review
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HoangGJinn/Project_Image/main/Tulip_Shop/customer_rating.png" width="900"/>
 </p>
 
 ### 🛒 Shopping Cart
@@ -100,6 +106,12 @@ Chào mừng đến với **Tulip Shop**! Đây là dự án website thương m�
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/HoangGJinn/Project_Image/main/Tulip_Shop/admin_store_management.png" width="900"/>
+</p>
+
+### ✏️ Product Management
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HoangGJinn/Project_Image/main/Tulip_Shop/admin_edit_product.png" width="900"/>
 </p>
 
 ### 👥 User Management
